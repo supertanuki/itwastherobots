@@ -422,7 +422,11 @@ export default class Robot extends Phaser.GameObjects.Container {
     // Right leg: pushes backward to propel
     this.upperLegR.setAngle(-70 + phase * 20);       // -90°..-50°
     this.lowerLegR.setAngle(-60 + phase * 15);
-    this.footR.setPosition(-13 - phase * 2, -2);     // y=-2, stays above ground
+
+    // Foot follows the tip of lowerLegR — stays connected, touches the ground
+    const footPos = this._tipOf(this.lowerLegR);
+    this.footR.setPosition(footPos.x, Math.min(footPos.y, 0));
+    this.footR.setAngle(this.lowerLegR.angle);
 
     // Body rocks slightly — effort
     this.torso.setAngle(phase * 5);
