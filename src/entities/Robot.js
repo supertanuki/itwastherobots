@@ -165,7 +165,7 @@ export default class Robot extends Phaser.GameObjects.Container {
     // ── Connectors — small blocks that fill the gaps between limbs ────────
     this.neck        = add(4,  3, METAL); // head ↔ torso
     this.shoulderR   = add(3,  4, METAL); // torso ↔ upper arm right
-    this.elbowR      = add(3,  3, METAL); // upper arm ↔ lower arm right
+    this.elbowR      = add(2,  2, METAL); // upper arm ↔ lower arm right
     this.hipR        = add(4,  3, METAL); // torso ↔ upper leg right
     this.kneeR       = add(3,  3, METAL); // upper leg ↔ lower leg right
     this.shoulderL   = add(3,  3, METAL); // torso ↔ arm stub left
@@ -414,10 +414,22 @@ export default class Robot extends Phaser.GameObjects.Container {
     const cycle = (this._crawlTime % 900) / 900; // 0..1 per crawl step
     const phase = Math.sin(cycle * Math.PI * 2);   // -1..1
 
-    // Right arm: reach forward then pull — all y values kept <= 0 (above ground)
+    // Right arm: reach forward then pull — chained like _syncChain
     this.upperArmR.setAngle(40 + phase * 30);       // 10°..70°
-    this.lowerArmR.setAngle(30 + phase * 20);
-    this.lowerArmR.setY(-2);                         // locked above ground
+
+    // Elbow snaps to tip of upper arm
+    const elbow = this._tipOf(this.upperArmR);
+    this.elbowR.setPosition(elbow.x, Math.min(elbow.y, 0));
+    this.elbowR.setAngle(this.upperArmR.angle * 0.5);
+
+    // Forearm extends from elbow
+    const lAAngle = 30 + phase * 20;
+    this.lowerArmR.setAngle(lAAngle);
+    const lArad = lAAngle * Math.PI / 180;
+    this.lowerArmR.setPosition(
+      elbow.x + (this.lowerArmR.height / 2) * Math.sin(lArad),
+      Math.min(elbow.y + (this.lowerArmR.height / 2) * Math.cos(lArad), 0),
+    );
 
     // Right leg: pushes backward to propel
     this.upperLegR.setAngle(-70 + phase * 20);       // -90°..-50°
@@ -456,11 +468,7 @@ export default class Robot extends Phaser.GameObjects.Container {
       clampY((this.torso.y + this.upperArmR.y) / 2)
     );
     this.shoulderR.setAngle(this.upperArmR.angle * 0.5);
-    this.elbowR.setPosition(
-      (this.upperArmR.x + this.lowerArmR.x) / 2,
-      clampY((this.upperArmR.y + this.lowerArmR.y) / 2)
-    );
-    this.elbowR.setAngle(this.lowerArmR.angle);
+    // elbowR and lowerArmR are already chained above — skip midpoint for these
     this.hipR.setPosition(
       (this.torso.x + this.upperLegR.x) / 2,
       clampY((this.torso.y + this.upperLegR.y) / 2)
