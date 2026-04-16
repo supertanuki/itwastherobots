@@ -339,8 +339,8 @@ export default class Robot extends Phaser.GameObjects.Container {
     ];
 
     // Chain-managed parts — angle ONLY (_syncChain handles their positions every frame)
+    // lowerArmR angle is derived from upperArmR inside _syncChain — not tweened separately
     const chainAngles = [
-      { t: this.lowerArmR, a: -12 },
       { t: this.lowerLegR, a: 0 },
     ];
 
@@ -426,8 +426,8 @@ export default class Robot extends Phaser.GameObjects.Container {
     );
     this.elbowR.setAngle(this.upperArmR.angle);
 
-    // Forearm extends from bottom of elbow
-    const lAAngle = 30 + phase * 20;
+    // Forearm locks to upper arm (same −30° offset as upright states)
+    const lAAngle = this.upperArmR.angle - 30;
     this.lowerArmR.setAngle(lAAngle);
     const lArad = lAAngle * Math.PI / 180;
     const elbowTip = this._tipOf(this.elbowR);
@@ -520,9 +520,8 @@ export default class Robot extends Phaser.GameObjects.Container {
     // Keep left shoulder tracking torso vertical motion
     this.shoulderL.setY(-22 + smoothAbs * 1.5);
 
-    // Right arm — Λ shape swings opposite to leg (positions handled by _syncChain)
+    // Right arm swings opposite to leg — lowerArmR locks to upperArmR via _syncChain
     this.upperArmR.setAngle(18 - legPhase * 14);
-    this.lowerArmR.setAngle(-12 + legPhase * 6); // forearm swings less
 
     // Left arm stub flails a bit
     this.armLStub.setAngle(-15 + legPhase * 8);
@@ -639,10 +638,12 @@ export default class Robot extends Phaser.GameObjects.Container {
     const DEG = Math.PI / 180;
 
     // ── Arm ───────────────────────────────────────────────────────────────
+    // lowerArmR locks to upperArmR with a fixed −30° offset (Λ shape stays rigid)
+    this.lowerArmR.setAngle(this.upperArmR.angle - 30);
+
     // Place elbowR so its top edge overlaps the bottom of upperArmR
     const elbow = this._tipOf(this.upperArmR);
     const eA = this.upperArmR.angle * DEG;
-    // Push center of elbowR half its height down along arm direction
     this.elbowR.setPosition(
       elbow.x + (this.elbowR.height / 2) * Math.sin(eA),
       elbow.y + (this.elbowR.height / 2) * Math.cos(eA),
