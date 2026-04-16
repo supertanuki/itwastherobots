@@ -143,8 +143,8 @@ export default class Robot extends Phaser.GameObjects.Container {
     this.torso       = add(8, 10, METAL);
 
     // Right arm
-    this.upperArmR   = add(3,  7, METAL);
-    this.lowerArmR   = add(2,  6, METAL);
+    this.upperArmR   = add(2,  7, METAL);
+    this.lowerArmR   = add(2,  5, METAL);
 
     // Left arm stub
     this.armLStub    = add(3,  3, METAL);
@@ -185,11 +185,15 @@ export default class Robot extends Phaser.GameObjects.Container {
     // Head (above torso)
     this.head.setPosition(0, -28);
 
-    // Right arm — hangs beside torso, slightly angled
-    this.upperArmR.setPosition(7, -21);
-    this.upperArmR.setAngle(8);
-    this.lowerArmR.setPosition(9, -14);
-    this.lowerArmR.setAngle(10);
+    // Right arm — inverted V (Λ): upper arm angles out, forearm angles back in
+    this.upperArmR.setPosition(6, -20);
+    this.upperArmR.setAngle(18);
+    this.elbowR.setPosition(7, -17);
+    this.elbowR.setAngle(5);
+    this.lowerArmR.setPosition(6, -14);
+    this.lowerArmR.setAngle(-12);
+    this.shoulderR.setPosition(5, -22);
+    this.shoulderR.setAngle(12);
     // Left arm stub — shoulder level
     this.armLStub.setPosition(-6, -23);
     this.armLStub.setAngle(-15);
@@ -307,8 +311,8 @@ export default class Robot extends Phaser.GameObjects.Container {
     const parts = [
       { t: this.torso,     x: 0,   y: -19, a: 0 },
       { t: this.head,      x: 0,   y: -28, a: 0 },
-      { t: this.upperArmR, x: 7,   y: -21, a: 8 },
-      { t: this.lowerArmR, x: 9,   y: -14, a: 10 },
+      { t: this.upperArmR, x: 6,   y: -20, a: 18 },
+      { t: this.lowerArmR, x: 6,   y: -14, a: -12 },
       { t: this.armLStub,  x: -6,  y: -23, a: -15 },
       { t: this.upperLegR, x: 2,   y: -9,  a: 0 },
       { t: this.lowerLegR, x: 2,   y: -1,  a: 0 },
@@ -316,8 +320,8 @@ export default class Robot extends Phaser.GameObjects.Container {
       { t: this.legLStub,  x: -3,  y: -8,  a: 10 },
       // Connectors
       { t: this.neck,      x: 0,   y: -24, a: 0 },
-      { t: this.shoulderR, x: 5,   y: -22, a: 5 },
-      { t: this.elbowR,    x: 8,   y: -17, a: 8 },
+      { t: this.shoulderR, x: 5,   y: -22, a: 12 },
+      { t: this.elbowR,    x: 7,   y: -17, a: 5 },
       { t: this.hipR,      x: 2,   y: -13, a: 0 },
       { t: this.kneeR,     x: 2,   y: -5,  a: 0 },
       { t: this.shoulderL, x: -5,  y: -22, a: -10 },
@@ -476,8 +480,23 @@ export default class Robot extends Phaser.GameObjects.Container {
     this.torso.setY(-19 + Math.abs(legPhase) * 1.5);
     this.head.setY(-28 + Math.abs(legPhase) * 1.5);
 
-    // Right arm swings opposite to leg
-    this.upperArmR.setAngle(8 - legPhase * 14);
+    // Right arm — Λ shape swings opposite to leg
+    const armAngle = 18 - legPhase * 14;
+    this.upperArmR.setAngle(armAngle);
+
+    // Elbow tracks the bottom tip of the upper arm
+    const elbow = this._tipOf(this.upperArmR);
+    this.elbowR.setPosition(elbow.x, elbow.y);
+    this.elbowR.setAngle(armAngle * 0.3);
+
+    // Forearm follows with lag — maintains the inward angle of the Λ
+    const forearmAngle = -12 + legPhase * 6;
+    this.lowerArmR.setAngle(forearmAngle);
+    const DEG = Math.PI / 180;
+    this.lowerArmR.setPosition(
+      elbow.x + (this.lowerArmR.height / 2) * Math.sin(forearmAngle * DEG),
+      elbow.y + (this.lowerArmR.height / 2) * Math.cos(forearmAngle * DEG),
+    );
 
     // Left arm stub flails a bit
     this.armLStub.setAngle(-15 + legPhase * 8);
@@ -573,6 +592,15 @@ export default class Robot extends Phaser.GameObjects.Container {
   }
 
   // ─── Helpers ──────────────────────────────────────────────────────────────
+
+  /** Returns the position of the bottom tip of a rotated rectangle child. */
+  _tipOf(part) {
+    const DEG = Math.PI / 180;
+    return {
+      x: part.x + (part.height / 2) * Math.sin(part.angle * DEG),
+      y: part.y + (part.height / 2) * Math.cos(part.angle * DEG),
+    };
+  }
 
   _stopTweens() {
     if (this._swayTween) { this._swayTween.stop(); this._swayTween = null; }
