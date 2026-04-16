@@ -64,6 +64,7 @@ export default class Robot extends Phaser.GameObjects.Container {
     this._tweens = [];
 
     this._buildParts();
+    this._initSparks();
     this._poseLying();
     // Scale x3 so the robot fills ~half the virtual screen height (31 local px × 3 = 93px ≈ VH/2)
     this.setScale(3, 3);
@@ -126,6 +127,32 @@ export default class Robot extends Phaser.GameObjects.Container {
 
     // Mirror parts when facing left (preserve the x3 base scale)
     this.setScale(this.facingRight ? 3 : -3, 3);
+  }
+
+  // ─── Sparks ───────────────────────────────────────────────────────────────
+
+  _initSparks() {
+    // 1×1 white pixel texture, created once and reused
+    if (!this.scene.textures.exists('pixel_spark')) {
+      const g = this.scene.make.graphics({ add: false });
+      g.fillStyle(0xffffff, 1);
+      g.fillRect(0, 0, 1, 1);
+      g.generateTexture('pixel_spark', 1, 1);
+      g.destroy();
+    }
+
+    this._sparks = this.scene.add.particles(0, 0, 'pixel_spark', {
+      speed:    { min: 8,   max: 55 },
+      angle:    { min: 0,   max: 360 },   // all directions
+      scale:    { start: 1.5, end: 0 },
+      alpha:    { start: 1,   end: 0 },
+      lifespan: { min: 150,   max: 550 },
+      gravityY: 60,   // pulls sparks into a natural arc
+      frequency: -1,  // manual burst only
+    }).setDepth(50);
+
+    // Random delay before first burst (ms)
+    this._sparkTimer = Phaser.Math.Between(300, 900);
   }
 
   // ─── Build parts ──────────────────────────────────────────────────────────
@@ -414,6 +441,15 @@ export default class Robot extends Phaser.GameObjects.Container {
     const cycle = (this._crawlTime % 900) / 900; // 0..1 per crawl step
     const phase = Math.sin(cycle * Math.PI * 2);   // -1..1
 
+    // Random spark bursts — fire from the robot's torso area in world space
+    this._sparkTimer -= delta;
+    if (this._sparkTimer <= 0) {
+      const sx = this.x + this.torso.x * Math.abs(this.scaleX);
+      const sy = this.y + this.torso.y * this.scaleY;
+      this._sparks.explode(Phaser.Math.Between(3, 8), sx, sy);
+      this._sparkTimer = Phaser.Math.Between(400, 1600);
+    }
+
     // Right arm: reach forward then pull — chained like _syncChain
     this.upperArmR.setAngle(40 + phase * 30);       // 10°..70°
 
@@ -678,6 +714,7 @@ export default class Robot extends Phaser.GameObjects.Container {
   destroy(fromScene) {
     this.scene.events.off('update', this._syncToProxy, this);
     if (this.body_proxy) this.body_proxy.destroy();
+    if (this._sparks) this._sparks.destroy();
     super.destroy(fromScene);
   }
 }
