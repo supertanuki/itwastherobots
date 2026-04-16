@@ -139,8 +139,8 @@ export default class Robot extends Phaser.GameObjects.Container {
     this.torso       = add(8, 10, METAL);
 
     // Right arm
-    this.upperArmR   = add(4,  7, METAL);
-    this.lowerArmR   = add(3,  6, METAL);
+    this.upperArmR   = add(3,  7, METAL);
+    this.lowerArmR   = add(2,  6, METAL);
 
     // Left arm stub
     this.armLStub    = add(3,  3, METAL);
