@@ -45,7 +45,7 @@ export default class Robot extends Phaser.GameObjects.Container {
     // Add physics body to the container via a separate invisible body rectangle
     // (Containers can't have physics directly — we use a proxy sprite)
     this.body_proxy = scene.physics.add.existing(
-      scene.add.rectangle(x, y - 42, 30, 84, 0x000000, 0),
+      scene.add.rectangle(x, y - 12, 40, 22, 0x000000, 0),
     );
     this.body_proxy.body.setCollideWorldBounds(true);
     this.body_proxy.setDepth(10);
@@ -83,6 +83,9 @@ export default class Robot extends Phaser.GameObjects.Container {
   getUp() {
     if (this.state !== RobotState.LYING) return;
     this.state = RobotState.GETTING_UP;
+    // Switch physics proxy to upright size
+    this.body_proxy.body.setSize(30, 84);
+    this.body_proxy.setPosition(this.body_proxy.x, this.body_proxy.y - 30);
     this._animateGetUp();
   }
 
@@ -90,6 +93,11 @@ export default class Robot extends Phaser.GameObjects.Container {
     this._syncToProxy();
 
     switch (this.state) {
+      case RobotState.LYING:
+        this._updateCrawling(delta);
+        this._applyMovement(this._moveIntent);
+        break;
+
       case RobotState.STANDING:
         this._updateStanding(delta);
         this._applyMovement(this._moveIntent);
@@ -103,7 +111,6 @@ export default class Robot extends Phaser.GameObjects.Container {
       case RobotState.STUMBLING:
       case RobotState.RECOVERING:
       case RobotState.GETTING_UP:
-      case RobotState.LYING:
         this._applyMovement(0);
         break;
     }
@@ -340,6 +347,44 @@ export default class Robot extends Phaser.GameObjects.Container {
     });
   }
 
+  /** Crawl cycle — robot drags itself with one arm and one leg. */
+  _updateCrawling(delta) {
+    const moving = this._moveIntent !== 0;
+
+    if (!moving) {
+      // Idle on ground — slight twitch on the stub, nothing else
+      this._crawlTime = 0;
+      return;
+    }
+
+    this._crawlTime = (this._crawlTime || 0) + delta;
+    const cycle = (this._crawlTime % 900) / 900; // 0..1 per crawl step
+    const phase = Math.sin(cycle * Math.PI * 2);   // -1..1
+
+    // Right arm: reach forward (positive = toward head) then pull back
+    // In lying pose the arm is splayed at ~70°; we cycle it to pull the body
+    this.upperArmR.setAngle(55 + phase * 30);  // 25°..85°
+    this.lowerArmR.setAngle(45 + phase * 20);
+    this.handR.setPosition(8 + phase * 3, 6 - phase * 2);
+
+    // Right leg: pushes backward to propel
+    this.upperLegR.setAngle(-70 + phase * 20); // -90°..-50°
+    this.lowerLegR.setAngle(-60 + phase * 15);
+    this.footR.setPosition(-13 - phase * 2, -3);
+
+    // Body rocks slightly — effort
+    this.torso.setAngle(phase * 5);
+    this.torso.setY(-4 - Math.abs(phase) * 1.5); // very slight lift on pull
+
+    // Head tries to lift to look ahead
+    this.head.setAngle(10 - Math.abs(phase) * 8);
+    this.head.setX(9 - phase * 1);
+
+    // Stubs drag passively — opposite phase (inertia)
+    this.armLStub.setAngle(-20 - phase * 6);
+    this.legLStub.setAngle(-28 + phase * 6);
+  }
+
   /** Walk cycle for the broken robot. */
   _updateWalking(delta) {
     // Walk cycle time
@@ -430,19 +475,19 @@ export default class Robot extends Phaser.GameObjects.Container {
   // ─── Physics / movement ───────────────────────────────────────────────────
 
   _applyMovement(intent) {
-    const speed = 30; // virtual pixels/s
+    const speed = this.state === RobotState.LYING ? 18 : 30; // crawl slower
     if (intent !== 0) {
       this.body_proxy.body.setVelocityX(intent * speed);
       this.facingRight = intent > 0;
       if (this.state === RobotState.STANDING) {
         this.state = RobotState.WALKING;
         this._walkTime = 0;
-        // Stop the sway tween when walking starts
         if (this._swayTween) this._swayTween.stop();
         if (this._swayHeadTween) this._swayHeadTween.stop();
       }
     } else {
       this.body_proxy.body.setVelocityX(0);
+      this._crawlTime = 0; // reset crawl cycle when stopped
       if (this.state === RobotState.WALKING) {
         this.state = RobotState.STANDING;
         this._tweenToStanding(() => this._startSway());
@@ -452,7 +497,9 @@ export default class Robot extends Phaser.GameObjects.Container {
 
   _syncToProxy() {
     if (!this.body_proxy) return;
-    this.setPosition(this.body_proxy.x, this.body_proxy.y + 42);
+    const offset = (this.state === RobotState.LYING || this.state === RobotState.GETTING_UP)
+      ? 12 : 42;
+    this.setPosition(this.body_proxy.x, this.body_proxy.y + offset);
   }
 
   // ─── Helpers ──────────────────────────────────────────────────────────────

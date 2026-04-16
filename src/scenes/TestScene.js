@@ -57,11 +57,15 @@ export default class TestScene extends Phaser.Scene {
     }).setScrollFactor(0).setDepth(100);
 
     // ── Hint label ────────────────────────────────────────────────────────
-    this.hintLabel = this.add.text(VW / 2, VH - 8, 'SPACE — get up', {
+    this.hintLabel = this.add.text(VW / 2, VH - 8, 'SPACE — get up  |  ← → move', {
       fontFamily: 'monospace',
       fontSize: '5px',
       color: '#44ff88',
     }).setOrigin(0.5, 1).setDepth(100);
+    // Fade out after a few seconds
+    this.time.delayedCall(4000, () => {
+      this.tweens.add({ targets: this.hintLabel, alpha: 0, duration: 1000 });
+    });
 
     // ── Robot — starts lying on the ground ───────────────────────────────
     // Spawn at feet position: x = near left, y = ground surface
@@ -95,8 +99,10 @@ export default class TestScene extends Phaser.Scene {
       }
     }
 
-    // ── Movement input (only when can move) ───────────────────────────────
-    const canMove = r.state === RobotState.STANDING || r.state === RobotState.WALKING;
+    // ── Movement input (crawl + walk) ────────────────────────────────────
+    const canMove = r.state === RobotState.LYING ||
+                    r.state === RobotState.STANDING ||
+                    r.state === RobotState.WALKING;
 
     if (canMove) {
       const left  = this.cursors.left.isDown  || this.keyA.isDown || this.keyQ.isDown;
