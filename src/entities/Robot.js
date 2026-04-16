@@ -115,6 +115,10 @@ export default class Robot extends Phaser.GameObjects.Container {
         break;
     }
 
+    // Eye always follows head position
+    this.eye.setPosition(this.head.x + 2, this.head.y + 1);
+    this.eye.setAngle(this.head.angle);
+
     // Mirror parts when facing left (preserve the x3 base scale)
     this.setScale(this.facingRight ? 3 : -3, 3);
   }
@@ -180,7 +184,6 @@ export default class Robot extends Phaser.GameObjects.Container {
 
     // Head (above torso)
     this.head.setPosition(0, -28);
-    this.eye.setPosition(2, -27);
 
     // Right arm — hangs beside torso, slightly angled
     this.upperArmR.setPosition(7, -21);
@@ -224,7 +227,6 @@ export default class Robot extends Phaser.GameObjects.Container {
 
     this.head.setPosition(9, -5);
     this.head.setAngle(0);
-    this.eye.setPosition(11, -4);
 
     // Arms splayed — kept above ground (local y <= 0)
     this.upperArmR.setPosition(5, -2);
@@ -262,7 +264,6 @@ export default class Robot extends Phaser.GameObjects.Container {
 
     // Phase 1 — robot stirs, head rises first (600ms)
     T.add({ targets: this.head,  y: -10, angle: 15, duration: 600, ease: 'Sine.easeOut' });
-    T.add({ targets: this.eye,   y: -9,             duration: 600 });
 
     // Phase 2 — torso lifts (after 500ms, takes 800ms) — struggle
     this.scene.time.delayedCall(500, () => {
@@ -306,7 +307,6 @@ export default class Robot extends Phaser.GameObjects.Container {
     const parts = [
       { t: this.torso,     x: 0,   y: -19, a: 0 },
       { t: this.head,      x: 0,   y: -28, a: 0 },
-      { t: this.eye,       x: 2,   y: -27, a: 0 },
       { t: this.upperArmR, x: 7,   y: -21, a: 8 },
       { t: this.lowerArmR, x: 9,   y: -14, a: 10 },
       { t: this.armLStub,  x: -6,  y: -23, a: -15 },
