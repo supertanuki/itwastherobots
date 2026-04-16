@@ -45,7 +45,7 @@ export default class Robot extends Phaser.GameObjects.Container {
     // Add physics body to the container via a separate invisible body rectangle
     // (Containers can't have physics directly — we use a proxy sprite)
     this.body_proxy = scene.physics.add.existing(
-      scene.add.rectangle(x, y - 14, 10, 28, 0x000000, 0),
+      scene.add.rectangle(x, y - 42, 30, 84, 0x000000, 0),
     );
     this.body_proxy.body.setCollideWorldBounds(true);
     this.body_proxy.setDepth(10);
@@ -65,6 +65,8 @@ export default class Robot extends Phaser.GameObjects.Container {
 
     this._buildParts();
     this._poseLying();
+    // Scale x3 so the robot fills ~half the virtual screen height (31 local px × 3 = 93px ≈ VH/2)
+    this.setScale(3, 3);
 
     // Sync container position to physics proxy each frame
     scene.events.on('update', this._syncToProxy, this);
@@ -106,8 +108,8 @@ export default class Robot extends Phaser.GameObjects.Container {
         break;
     }
 
-    // Mirror parts when facing left
-    this.setScale(this.facingRight ? 1 : -1, 1);
+    // Mirror parts when facing left (preserve the x3 base scale)
+    this.setScale(this.facingRight ? 3 : -3, 3);
   }
 
   // ─── Build parts ──────────────────────────────────────────────────────────
@@ -450,7 +452,7 @@ export default class Robot extends Phaser.GameObjects.Container {
 
   _syncToProxy() {
     if (!this.body_proxy) return;
-    this.setPosition(this.body_proxy.x, this.body_proxy.y + 14);
+    this.setPosition(this.body_proxy.x, this.body_proxy.y + 42);
   }
 
   // ─── Helpers ──────────────────────────────────────────────────────────────
