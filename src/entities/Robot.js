@@ -388,15 +388,15 @@ export default class Robot extends Phaser.GameObjects.Container {
       repeat: -1,
       repeatDelay: 1200,
     });
-    // Arm stub spasms
+    // Arm stub — slow passive drift, no spasm
     T.add({
       targets: this.armLStub,
-      angle: { from: -18, to: -8 },
-      y: { from: -23, to: -20 },
-      duration: 80,
+      angle: { from: -18, to: -10 },
+      duration: 1800,
       yoyo: true,
-      repeat: 3,
-      repeatDelay: 2500,
+      repeat: -1,
+      ease: 'Sine.easeInOut',
+      repeatDelay: 800,
     });
   }
 
@@ -428,12 +428,13 @@ export default class Robot extends Phaser.GameObjects.Container {
     this.footR.setPosition(footPos.x, Math.min(footPos.y, 0));
     this.footR.setAngle(this.lowerLegR.angle);
 
-    // Body rocks slightly — effort
-    this.torso.setAngle(phase * 5);
-    this.torso.setY(-4 - Math.abs(phase) * 1.5);    // lifts slightly, never positive
+    // Body shifts slightly with effort — no rocking angle (would disconnect left shoulder)
+    const smoothAbs = phase * phase; // 0→1→0 per half-cycle, no derivative discontinuity
+    this.torso.setAngle(0);
+    this.torso.setY(-4 - smoothAbs * 1.5);           // lifts slightly, never positive
 
     // Head tries to lift to look ahead
-    this.head.setAngle(10 - Math.abs(phase) * 8);
+    this.head.setAngle(10 - smoothAbs * 8);
     this.head.setX(9 - phase * 1);
     this.head.setY(-5);                              // locked above ground
 
@@ -499,9 +500,12 @@ export default class Robot extends Phaser.GameObjects.Container {
     // Left leg stub barely moves — drag effect
     this.legLStub.setAngle(8 + legPhase * 4);
 
-    // Body bobs slightly
-    this.torso.setY(-19 + Math.abs(legPhase) * 1.5);
-    this.head.setY(-28 + Math.abs(legPhase) * 1.5);
+    // Body bobs slightly — smooth squared phase avoids derivative discontinuity
+    const smoothAbs = legPhase * legPhase;
+    this.torso.setY(-19 + smoothAbs * 1.5);
+    this.head.setY(-28 + smoothAbs * 1.5);
+    // Keep left shoulder tracking torso vertical motion
+    this.shoulderL.setY(-22 + smoothAbs * 1.5);
 
     // Right arm — Λ shape swings opposite to leg (positions handled by _syncChain)
     this.upperArmR.setAngle(18 - legPhase * 14);
@@ -511,8 +515,9 @@ export default class Robot extends Phaser.GameObjects.Container {
     this.armLStub.setAngle(-15 + legPhase * 8);
   }
 
-  _updateStanding(delta) {
-    // nothing extra — sway tween handles it
+  _updateStanding(_delta) {
+    // Sync left shoulder connector with torso sway so it doesn't visually disconnect
+    this.shoulderL.setAngle(-10 + this.torso.angle * 0.8);
   }
 
   // ─── Stumble system ───────────────────────────────────────────────────────
