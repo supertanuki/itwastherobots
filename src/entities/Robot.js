@@ -115,6 +115,11 @@ export default class Robot extends Phaser.GameObjects.Container {
         break;
     }
 
+    // Keep arm and leg chains connected for all upright states
+    if (this.state !== RobotState.LYING) {
+      this._syncChain();
+    }
+
     // Eye always follows head position
     this.eye.setPosition(this.head.x + 2, this.head.y + 1);
     this.eye.setAngle(this.head.angle);
@@ -480,23 +485,9 @@ export default class Robot extends Phaser.GameObjects.Container {
     this.torso.setY(-19 + Math.abs(legPhase) * 1.5);
     this.head.setY(-28 + Math.abs(legPhase) * 1.5);
 
-    // Right arm — Λ shape swings opposite to leg
-    const armAngle = 18 - legPhase * 14;
-    this.upperArmR.setAngle(armAngle);
-
-    // Elbow tracks the bottom tip of the upper arm
-    const elbow = this._tipOf(this.upperArmR);
-    this.elbowR.setPosition(elbow.x, elbow.y);
-    this.elbowR.setAngle(armAngle * 0.3);
-
-    // Forearm follows with lag — maintains the inward angle of the Λ
-    const forearmAngle = -12 + legPhase * 6;
-    this.lowerArmR.setAngle(forearmAngle);
-    const DEG = Math.PI / 180;
-    this.lowerArmR.setPosition(
-      elbow.x + (this.lowerArmR.height / 2) * Math.sin(forearmAngle * DEG),
-      elbow.y + (this.lowerArmR.height / 2) * Math.cos(forearmAngle * DEG),
-    );
+    // Right arm — Λ shape swings opposite to leg (positions handled by _syncChain)
+    this.upperArmR.setAngle(18 - legPhase * 14);
+    this.lowerArmR.setAngle(-12 + legPhase * 6); // forearm swings less
 
     // Left arm stub flails a bit
     this.armLStub.setAngle(-15 + legPhase * 8);
@@ -601,6 +592,38 @@ export default class Robot extends Phaser.GameObjects.Container {
       x: part.x + (part.height / 2) * Math.sin(part.angle * DEG),
       y: part.y + (part.height / 2) * Math.cos(part.angle * DEG),
     };
+  }
+
+  /**
+   * Keeps limb chains rigid every frame.
+   * - Elbow snaps to the tip of upperArmR; forearm extends from elbow.
+   * - Knee snaps to the tip of upperLegR; lower leg extends from knee.
+   * Only called for upright states (not LYING).
+   */
+  _syncChain() {
+    const DEG = Math.PI / 180;
+
+    // ── Arm ───────────────────────────────────────────────────────────────
+    const elbow = this._tipOf(this.upperArmR);
+    this.elbowR.setPosition(elbow.x, elbow.y);
+    this.elbowR.setAngle(this.upperArmR.angle * 0.3);
+
+    const fA = this.lowerArmR.angle * DEG;
+    this.lowerArmR.setPosition(
+      elbow.x + (this.lowerArmR.height / 2) * Math.sin(fA),
+      elbow.y + (this.lowerArmR.height / 2) * Math.cos(fA),
+    );
+
+    // ── Leg ───────────────────────────────────────────────────────────────
+    const knee = this._tipOf(this.upperLegR);
+    this.kneeR.setPosition(knee.x, knee.y);
+    this.kneeR.setAngle(this.upperLegR.angle * 0.4);
+
+    const lA = this.lowerLegR.angle * DEG;
+    this.lowerLegR.setPosition(
+      knee.x + (this.lowerLegR.height / 2) * Math.sin(lA),
+      knee.y + (this.lowerLegR.height / 2) * Math.cos(lA),
+    );
   }
 
   _stopTweens() {

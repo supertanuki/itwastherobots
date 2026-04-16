@@ -20,8 +20,8 @@ export default class TestScene extends Phaser.Scene {
     // ── Virtual world dimensions ──────────────────────────────────────────
     const VW = 320;
     const VH = 180;
-    // Ground surface flush with screen bottom
-    const GROUND_Y = VH;
+    // Ground surface — 4px strip visible at screen bottom
+    const GROUND_Y = VH - 4;
 
     // ── Camera zoom x4 — 1 virtual pixel = 4 screen pixels ───────────────
     this.cameras.main.setZoom(4);
@@ -34,14 +34,12 @@ export default class TestScene extends Phaser.Scene {
     this.add.rectangle(VW / 2, VH / 2, VW, VH, 0x000000);
 
     // ── Ground ────────────────────────────────────────────────────────────
-    // Physics body sits just below the screen — top surface at GROUND_Y = VH
-    const ground = this.physics.add.staticImage(VW / 2, GROUND_Y + 10, '__DEFAULT');
-    ground.setDisplaySize(VW, 20);
-    ground.setVisible(false);
-    ground.refreshBody();
+    // Physics ground — static body, top surface at GROUND_Y
+    const groundBody = this.add.rectangle(VW / 2, GROUND_Y + 10, VW, 20, 0x000000, 0);
+    this.physics.add.existing(groundBody, true); // true = static
 
-    // Visible ground line — 2px at very bottom of screen
-    this.add.rectangle(VW / 2, VH - 1, VW, 2, 0xffffff);
+    // Visible ground strip — 4px white band at the bottom of the screen
+    this.add.rectangle(VW / 2, VH - 2, VW, 4, 0xffffff);
 
     // ── Debug label (top-left, in screen space — scrollFactor 0) ─────────
     this.debugLabel = this.add.text(4, 4, '', {
@@ -66,7 +64,7 @@ export default class TestScene extends Phaser.Scene {
     this.robot = new Robot(this, 60, GROUND_Y);
 
     // Collide robot physics proxy with ground
-    this.physics.add.collider(this.robot.body_proxy, ground);
+    this.physics.add.collider(this.robot.body_proxy, groundBody);
 
     // ── Input ─────────────────────────────────────────────────────────────
     this.cursors = this.input.keyboard.createCursorKeys();
