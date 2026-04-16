@@ -142,17 +142,17 @@ export default class Robot extends Phaser.GameObjects.Container {
     }
 
     this._sparks = this.scene.add.particles(0, 0, 'pixel_spark', {
-      speed:    { min: 8,   max: 55 },
-      angle:    { min: 0,   max: 360 },   // all directions
-      scale:    { start: 1.5, end: 0 },
-      alpha:    { start: 1,   end: 0 },
-      lifespan: { min: 150,   max: 550 },
-      gravityY: 60,   // pulls sparks into a natural arc
-      frequency: -1,  // manual burst only
+      speed:    { min: 20,  max: 90 },
+      angle:    { min: 0,   max: 360 },
+      scale:    { start: 4, end: 1 },     // big square pixels, stay visible longer
+      alpha:    { start: 1, end: 0 },
+      lifespan: { min: 300, max: 800 },
+      gravityY: 100,
+      emitting: false,
     }).setDepth(50);
 
-    // Random delay before first burst (ms)
-    this._sparkTimer = Phaser.Math.Between(300, 900);
+    // Trigger first burst immediately on the first crawl frame
+    this._sparkTimer = 0;
   }
 
   // ─── Build parts ──────────────────────────────────────────────────────────
@@ -446,8 +446,8 @@ export default class Robot extends Phaser.GameObjects.Container {
     if (this._sparkTimer <= 0) {
       const sx = this.x + this.torso.x * Math.abs(this.scaleX);
       const sy = this.y + this.torso.y * this.scaleY;
-      this._sparks.explode(Phaser.Math.Between(3, 8), sx, sy);
-      this._sparkTimer = Phaser.Math.Between(400, 1600);
+      this._sparks.explode(Phaser.Math.Between(8, 16), sx, sy);
+      this._sparkTimer = Phaser.Math.Between(300, 1000);
     }
 
     // Right arm: reach forward then pull — chained like _syncChain
