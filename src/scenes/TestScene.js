@@ -20,28 +20,28 @@ export default class TestScene extends Phaser.Scene {
     // ── Virtual world dimensions ──────────────────────────────────────────
     const VW = 320;
     const VH = 180;
-    const GROUND_Y = VH - 20; // top of ground surface
+    // Ground surface flush with screen bottom
+    const GROUND_Y = VH;
 
     // ── Camera zoom x4 — 1 virtual pixel = 4 screen pixels ───────────────
     this.cameras.main.setZoom(4);
-    // Center the virtual world on screen
     this.cameras.main.centerOn(VW / 2, VH / 2);
 
-    // Physics world bounds = virtual size
-    this.physics.world.setBounds(0, 0, VW, VH);
+    // World bounds slightly taller than screen so the physics ground body fits below
+    this.physics.world.setBounds(0, 0, VW, VH + 40);
 
     // ── Background ────────────────────────────────────────────────────────
     this.add.rectangle(VW / 2, VH / 2, VW, VH, 0x000000);
 
     // ── Ground ────────────────────────────────────────────────────────────
-    // Static physics body for the ground
+    // Physics body sits just below the screen — top surface at GROUND_Y = VH
     const ground = this.physics.add.staticImage(VW / 2, GROUND_Y + 10, '__DEFAULT');
     ground.setDisplaySize(VW, 20);
-    ground.setVisible(false); // invisible physics body — we draw it manually
+    ground.setVisible(false);
     ground.refreshBody();
 
-    // Visible ground
-    this.add.rectangle(VW / 2, GROUND_Y + 5, VW, 10, 0xffffff);
+    // Visible ground line — 2px at very bottom of screen
+    this.add.rectangle(VW / 2, VH - 1, VW, 2, 0xffffff);
 
     // ── Debug label (top-left, in screen space — scrollFactor 0) ─────────
     this.debugLabel = this.add.text(4, 4, '', {

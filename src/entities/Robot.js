@@ -586,8 +586,9 @@ export default class Robot extends Phaser.GameObjects.Container {
 
   _syncToProxy() {
     if (!this.body_proxy) return;
+    // offset = proxy half-height, so container origin (feet) aligns with proxy bottom (ground)
     const offset = (this.state === RobotState.LYING || this.state === RobotState.GETTING_UP)
-      ? 12 : 42;
+      ? 11 : 42;
     this.setPosition(this.body_proxy.x, this.body_proxy.y + offset);
   }
 
