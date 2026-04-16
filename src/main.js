@@ -8,11 +8,15 @@ const VIRTUAL_H = 180;
 
 const config = {
   type: Phaser.AUTO,
-  width: VIRTUAL_W * 4,   // 1280
-  height: VIRTUAL_H * 4,  // 720
   parent: 'game-container',
   backgroundColor: '#000000',
-  pixelArt: true,          // disables anti-aliasing, keeps pixels sharp
+  pixelArt: true,
+  scale: {
+    mode: Phaser.Scale.FIT,        // scale to fill window, keep aspect ratio
+    autoCenter: Phaser.Scale.CENTER_BOTH,
+    width: VIRTUAL_W * 4,          // 1280 — internal canvas size
+    height: VIRTUAL_H * 4,         // 720
+  },
   physics: {
     default: 'arcade',
     arcade: {
