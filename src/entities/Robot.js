@@ -306,7 +306,6 @@ export default class Robot extends Phaser.GameObjects.Container {
       this._tweenToStanding(() => {
         this.state = RobotState.STANDING;
         this._startSway();
-        this._scheduleStumble();
       });
     });
   }
@@ -379,14 +378,15 @@ export default class Robot extends Phaser.GameObjects.Container {
       ease: 'Sine.easeInOut',
       delay: 150,
     });
-    // Left leg stub twitches occasionally
+    // Left leg stub drifts passively
     T.add({
       targets: this.legLStub,
-      angle: { from: 8, to: 14 },
-      duration: 200,
+      angle: { from: 8, to: 13 },
+      duration: 700,
       yoyo: true,
       repeat: -1,
-      repeatDelay: 1200,
+      ease: 'Sine.easeInOut',
+      repeatDelay: 1000,
     });
     // Arm stub — slow passive drift, no spasm
     T.add({
@@ -584,7 +584,6 @@ export default class Robot extends Phaser.GameObjects.Container {
     this._tweenToStanding(() => {
       this.state = RobotState.STANDING;
       this._startSway();
-      this._scheduleStumble();
     });
   }
 
