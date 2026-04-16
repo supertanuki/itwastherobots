@@ -211,12 +211,12 @@ export default class Robot extends Phaser.GameObjects.Container {
     this.head.setAngle(0);
     this.eye.setPosition(11, -4);
 
-    // Arms splayed
-    this.upperArmR.setPosition(5, -1);
-    this.upperArmR.setAngle(70);
-    this.lowerArmR.setPosition(8, 3);
-    this.lowerArmR.setAngle(60);
-    this.handR.setPosition(10, 6);
+    // Arms splayed — kept above ground (local y <= 0)
+    this.upperArmR.setPosition(5, -2);
+    this.upperArmR.setAngle(55);
+    this.lowerArmR.setPosition(9, -2);
+    this.lowerArmR.setAngle(45);
+    this.handR.setPosition(12, -1);
 
     this.armLStub.setPosition(-4, -2);
     this.armLStub.setAngle(-20);
@@ -361,27 +361,30 @@ export default class Robot extends Phaser.GameObjects.Container {
     const cycle = (this._crawlTime % 900) / 900; // 0..1 per crawl step
     const phase = Math.sin(cycle * Math.PI * 2);   // -1..1
 
-    // Right arm: reach forward (positive = toward head) then pull back
-    // In lying pose the arm is splayed at ~70°; we cycle it to pull the body
-    this.upperArmR.setAngle(55 + phase * 30);  // 25°..85°
-    this.lowerArmR.setAngle(45 + phase * 20);
-    this.handR.setPosition(8 + phase * 3, 6 - phase * 2);
+    // Right arm: reach forward then pull — all y values kept <= 0 (above ground)
+    this.upperArmR.setAngle(40 + phase * 30);       // 10°..70°
+    this.lowerArmR.setAngle(30 + phase * 20);
+    this.lowerArmR.setY(-2);                         // locked above ground
+    this.handR.setPosition(12 + phase * 2, -1);      // y fixed at -1, never positive
 
     // Right leg: pushes backward to propel
-    this.upperLegR.setAngle(-70 + phase * 20); // -90°..-50°
+    this.upperLegR.setAngle(-70 + phase * 20);       // -90°..-50°
     this.lowerLegR.setAngle(-60 + phase * 15);
-    this.footR.setPosition(-13 - phase * 2, -3);
+    this.footR.setPosition(-13 - phase * 2, -2);     // y=-2, stays above ground
 
     // Body rocks slightly — effort
     this.torso.setAngle(phase * 5);
-    this.torso.setY(-4 - Math.abs(phase) * 1.5); // very slight lift on pull
+    this.torso.setY(-4 - Math.abs(phase) * 1.5);    // lifts slightly, never positive
 
     // Head tries to lift to look ahead
     this.head.setAngle(10 - Math.abs(phase) * 8);
     this.head.setX(9 - phase * 1);
+    this.head.setY(-5);                              // locked above ground
 
     // Stubs drag passively — opposite phase (inertia)
+    this.armLStub.setY(-2);
     this.armLStub.setAngle(-20 - phase * 6);
+    this.legLStub.setY(-1);
     this.legLStub.setAngle(-28 + phase * 6);
   }
 
