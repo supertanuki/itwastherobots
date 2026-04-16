@@ -282,8 +282,8 @@ export default class Robot extends Phaser.GameObjects.Container {
 
     // Phase 3 — right leg pushes (after 1000ms)
     this.scene.time.delayedCall(1000, () => {
-      T.add({ targets: this.upperLegR, angle: -40, y: -6,  duration: 500 });
-      T.add({ targets: this.lowerLegR, angle: -20, y: -1, duration: 500 });
+      T.add({ targets: this.upperLegR, angle: -40, y: -6, duration: 500 });
+      T.add({ targets: this.lowerLegR, angle: -20,        duration: 500 });
 
       // Left leg stub flails
       T.add({ targets: this.legLStub, angle: 20, duration: 200, yoyo: true, repeat: 2 });
@@ -295,7 +295,7 @@ export default class Robot extends Phaser.GameObjects.Container {
       T.add({ targets: this.torso, y: -19, angle: 15, duration: 400, ease: 'Back.easeOut' });
       T.add({ targets: this.head,  y: -28, angle: 10, duration: 400 });
       T.add({ targets: this.upperLegR, angle: 0, y: -9, duration: 400 });
-      T.add({ targets: this.lowerLegR, angle: 0, y: -1, duration: 400 });
+      T.add({ targets: this.lowerLegR, angle: 0,        duration: 400 });
 
       // Right arm flings out for balance
       T.add({ targets: this.upperArmR, angle: -60, duration: 250, yoyo: true });
@@ -312,34 +312,48 @@ export default class Robot extends Phaser.GameObjects.Container {
   }
 
   _tweenToStanding(onComplete) {
-    const T = this.scene.tweens;
-    const parts = [
+    const dur = 350;
+    const ease = 'Sine.easeOut';
+
+    // Kill any lingering tweens on every part first — prevents position conflicts
+    [this.torso, this.head, this.upperArmR, this.lowerArmR, this.armLStub,
+     this.upperLegR, this.lowerLegR, this.footR, this.legLStub,
+     this.neck, this.shoulderR, this.elbowR, this.hipR,
+     this.kneeR, this.shoulderL, this.hipL].forEach(p => {
+      this.scene.tweens.killTweensOf(p);
+    });
+
+    // Parts tweened freely (position + angle) — NOT managed by _syncChain
+    const free = [
       { t: this.torso,     x: 0,   y: -19, a: 0 },
       { t: this.head,      x: 0,   y: -28, a: 0 },
       { t: this.upperArmR, x: 6,   y: -20, a: 18 },
-      { t: this.lowerArmR, x: 6,   y: -14, a: -12 },
       { t: this.armLStub,  x: -6,  y: -23, a: -15 },
       { t: this.upperLegR, x: 2,   y: -9,  a: 0 },
-      { t: this.lowerLegR, x: 2,   y: -1,  a: 0 },
       { t: this.footR,     x: 2,   y: 3,   a: 0 },
       { t: this.legLStub,  x: -3,  y: -8,  a: 10 },
-      // Connectors
       { t: this.neck,      x: 0,   y: -24, a: 0 },
       { t: this.shoulderR, x: 5,   y: -22, a: 12 },
-      { t: this.elbowR,    x: 7,   y: -17, a: 5 },
       { t: this.hipR,      x: 2,   y: -13, a: 0 },
-      { t: this.kneeR,     x: 2,   y: -5,  a: 0 },
       { t: this.shoulderL, x: -5,  y: -22, a: -10 },
       { t: this.hipL,      x: -3,  y: -13, a: 5 },
     ];
 
+    // Chain-managed parts — angle ONLY (_syncChain handles their positions every frame)
+    const chainAngles = [
+      { t: this.lowerArmR, a: -12 },
+      { t: this.lowerLegR, a: 0 },
+    ];
+
+    const total = free.length + chainAngles.length;
     let done = 0;
-    parts.forEach(({ t, x, y, a }) => {
-      this.scene.tweens.add({
-        targets: t, x, y, angle: a,
-        duration: 350, ease: 'Sine.easeOut',
-        onComplete: () => { done++; if (done === parts.length && onComplete) onComplete(); },
-      });
+    const cb = () => { done++; if (done === total && onComplete) onComplete(); };
+
+    free.forEach(({ t, x, y, a }) => {
+      this.scene.tweens.add({ targets: t, x, y, angle: a, duration: dur, ease, onComplete: cb });
+    });
+    chainAngles.forEach(({ t, a }) => {
+      this.scene.tweens.add({ targets: t, angle: a, duration: dur, ease, onComplete: cb });
     });
   }
 
