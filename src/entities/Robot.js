@@ -135,28 +135,38 @@ export default class Robot extends Phaser.GameObjects.Container {
     const EYE       = 0xff2200;
     const STUB      = 0xffffff; // missing-limb stub color
 
-    // Torso (origin of container = feet, so torso center is at -14 to -24)
-    this.torso      = add(8, 10, METAL);
+    // Torso
+    this.torso       = add(8, 10, METAL);
 
-    // Right arm (has it)
-    this.upperArmR  = add(4,  7,  METAL);
-    this.lowerArmR  = add(3,  6,  METAL);
-    this.handR      = add(3,  3,  METAL);
+    // Right arm
+    this.upperArmR   = add(4,  7, METAL);
+    this.lowerArmR   = add(3,  6, METAL);
+    this.handR       = add(3,  3, METAL);
 
-    // Left arm STUB (missing — short stump with sparks implied)
-    this.armLStub   = add(3,  3,  METAL);
+    // Left arm stub
+    this.armLStub    = add(3,  3, METAL);
 
-    // Right leg (has it — but it's the damaged one, will drag)
-    this.upperLegR  = add(4,  8,  METAL);
-    this.lowerLegR  = add(3,  7,  METAL_DRK);
-    this.footR      = add(4,  2,  JOINT);
+    // Right leg
+    this.upperLegR   = add(4,  8, METAL);
+    this.lowerLegR   = add(3,  7, METAL);
+    this.footR       = add(4,  2, METAL);
 
-    // Left leg STUB
-    this.legLStub   = add(4,  3,  METAL);
+    // Left leg stub
+    this.legLStub    = add(4,  3, METAL);
 
-    // Head and eye added last — rendered on top of everything
-    this.head       = add(6,  6,  METAL);
-    this.eye        = add(2,  2,  EYE);  // eye always on top
+    // ── Connectors — small blocks that fill the gaps between limbs ────────
+    this.neck        = add(4,  3, METAL); // head ↔ torso
+    this.shoulderR   = add(3,  4, METAL); // torso ↔ upper arm right
+    this.elbowR      = add(3,  3, METAL); // upper arm ↔ lower arm right
+    this.wristR      = add(3,  3, METAL); // lower arm ↔ hand right
+    this.hipR        = add(4,  3, METAL); // torso ↔ upper leg right
+    this.kneeR       = add(3,  3, METAL); // upper leg ↔ lower leg right
+    this.shoulderL   = add(3,  3, METAL); // torso ↔ arm stub left
+    this.hipL        = add(3,  3, METAL); // torso ↔ leg stub left
+
+    // Head and eye last — always on top
+    this.head        = add(6,  6, METAL);
+    this.eye         = add(2,  2, EYE);
   }
 
   // ─── Poses — sets each part's x/y/angle within the container ─────────────
@@ -197,7 +207,17 @@ export default class Robot extends Phaser.GameObjects.Container {
     this.legLStub.setPosition(-3, -8);
     this.legLStub.setAngle(10);
 
-    // Reset all angles
+    // Connectors
+    this.neck.setPosition(0, -24);      this.neck.setAngle(0);
+    this.shoulderR.setPosition(5, -22); this.shoulderR.setAngle(5);
+    this.elbowR.setPosition(8, -17);    this.elbowR.setAngle(8);
+    this.wristR.setPosition(10, -11);   this.wristR.setAngle(5);
+    this.hipR.setPosition(2, -13);      this.hipR.setAngle(0);
+    this.kneeR.setPosition(2, -5);      this.kneeR.setAngle(0);
+    this.shoulderL.setPosition(-5, -22); this.shoulderL.setAngle(-10);
+    this.hipL.setPosition(-3, -13);     this.hipL.setAngle(5);
+
+    // Reset main angles
     this.torso.setAngle(0);
     this.head.setAngle(0);
   }
@@ -230,6 +250,16 @@ export default class Robot extends Phaser.GameObjects.Container {
 
     this.legLStub.setPosition(-5, -1);
     this.legLStub.setAngle(-30);
+
+    // Connectors — flat, close to adjacent parts
+    this.neck.setPosition(5,  -5);     this.neck.setAngle(0);
+    this.shoulderR.setPosition(5, -2); this.shoulderR.setAngle(50);
+    this.elbowR.setPosition(8,  -2);   this.elbowR.setAngle(45);
+    this.wristR.setPosition(11, -1);   this.wristR.setAngle(40);
+    this.hipR.setPosition(-2,  -3);    this.hipR.setAngle(-80);
+    this.kneeR.setPosition(-7,  -3);   this.kneeR.setAngle(-75);
+    this.shoulderL.setPosition(-3, -2); this.shoulderL.setAngle(-20);
+    this.hipL.setPosition(-4,  -2);    this.hipL.setAngle(-25);
   }
 
   // ─── Animations ───────────────────────────────────────────────────────────
@@ -292,6 +322,15 @@ export default class Robot extends Phaser.GameObjects.Container {
       { t: this.lowerLegR, x: 2,   y: -1,  a: 0 },
       { t: this.footR,     x: 2,   y: 3,   a: 0 },
       { t: this.legLStub,  x: -3,  y: -8,  a: 10 },
+      // Connectors
+      { t: this.neck,      x: 0,   y: -24, a: 0 },
+      { t: this.shoulderR, x: 5,   y: -22, a: 5 },
+      { t: this.elbowR,    x: 8,   y: -17, a: 8 },
+      { t: this.wristR,    x: 10,  y: -11, a: 5 },
+      { t: this.hipR,      x: 2,   y: -13, a: 0 },
+      { t: this.kneeR,     x: 2,   y: -5,  a: 0 },
+      { t: this.shoulderL, x: -5,  y: -22, a: -10 },
+      { t: this.hipL,      x: -3,  y: -13, a: 5 },
     ];
 
     let done = 0;
@@ -386,6 +425,49 @@ export default class Robot extends Phaser.GameObjects.Container {
     this.armLStub.setAngle(-20 - phase * 6);
     this.legLStub.setY(-1);
     this.legLStub.setAngle(-28 + phase * 6);
+
+    // Connectors — positioned as midpoints between adjacent parts, y clamped above ground
+    const clampY = (y) => Math.min(y, -1);
+    this.neck.setPosition(
+      (this.head.x + this.torso.x) / 2,
+      clampY((this.head.y + this.torso.y) / 2)
+    );
+    this.neck.setAngle(this.torso.angle);
+    this.shoulderR.setPosition(
+      (this.torso.x + this.upperArmR.x) / 2 + 1,
+      clampY((this.torso.y + this.upperArmR.y) / 2)
+    );
+    this.shoulderR.setAngle(this.upperArmR.angle * 0.5);
+    this.elbowR.setPosition(
+      (this.upperArmR.x + this.lowerArmR.x) / 2,
+      clampY((this.upperArmR.y + this.lowerArmR.y) / 2)
+    );
+    this.elbowR.setAngle(this.lowerArmR.angle);
+    this.wristR.setPosition(
+      (this.lowerArmR.x + this.handR.x) / 2,
+      clampY((this.lowerArmR.y + this.handR.y) / 2)
+    );
+    this.wristR.setAngle(this.lowerArmR.angle);
+    this.hipR.setPosition(
+      (this.torso.x + this.upperLegR.x) / 2,
+      clampY((this.torso.y + this.upperLegR.y) / 2)
+    );
+    this.hipR.setAngle(this.upperLegR.angle * 0.5);
+    this.kneeR.setPosition(
+      (this.upperLegR.x + this.lowerLegR.x) / 2,
+      clampY((this.upperLegR.y + this.lowerLegR.y) / 2)
+    );
+    this.kneeR.setAngle(this.lowerLegR.angle);
+    this.shoulderL.setPosition(
+      (this.torso.x + this.armLStub.x) / 2,
+      clampY((this.torso.y + this.armLStub.y) / 2)
+    );
+    this.shoulderL.setAngle(this.armLStub.angle * 0.5);
+    this.hipL.setPosition(
+      (this.torso.x + this.legLStub.x) / 2,
+      clampY((this.torso.y + this.legLStub.y) / 2)
+    );
+    this.hipL.setAngle(this.legLStub.angle * 0.5);
   }
 
   /** Walk cycle for the broken robot. */
