@@ -130,25 +130,21 @@ export default class Robot extends Phaser.GameObjects.Container {
 
     // Colors
     const METAL     = 0xffffff;
-    const METAL_DRK = 0xcccccc;
-    const JOINT     = 0xaaaaaa;
+    const METAL_DRK = 0xffffff;
+    const JOINT     = 0xffffff;
     const EYE       = 0xff2200;
-    const STUB      = 0x888888; // missing-limb stub color
+    const STUB      = 0xffffff; // missing-limb stub color
 
     // Torso (origin of container = feet, so torso center is at -14 to -24)
     this.torso      = add(8, 10, METAL);
 
-    // Head
-    this.head       = add(6,  6,  METAL_DRK);
-    this.eye        = add(2,  2,  EYE);       // single eye
-
     // Right arm (has it)
     this.upperArmR  = add(4,  7,  METAL);
-    this.lowerArmR  = add(3,  6,  METAL_DRK);
-    this.handR      = add(3,  3,  JOINT);
+    this.lowerArmR  = add(3,  6,  METAL);
+    this.handR      = add(3,  3,  METAL);
 
     // Left arm STUB (missing — short stump with sparks implied)
-    this.armLStub   = add(3,  3,  STUB);
+    this.armLStub   = add(3,  3,  METAL);
 
     // Right leg (has it — but it's the damaged one, will drag)
     this.upperLegR  = add(4,  8,  METAL);
@@ -156,7 +152,11 @@ export default class Robot extends Phaser.GameObjects.Container {
     this.footR      = add(4,  2,  JOINT);
 
     // Left leg STUB
-    this.legLStub   = add(4,  3,  STUB);
+    this.legLStub   = add(4,  3,  METAL);
+
+    // Head and eye added last — rendered on top of everything
+    this.head       = add(6,  6,  METAL);
+    this.eye        = add(2,  2,  EYE);  // eye always on top
   }
 
   // ─── Poses — sets each part's x/y/angle within the container ─────────────
