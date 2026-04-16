@@ -31,11 +31,7 @@ export default class TestScene extends Phaser.Scene {
     this.physics.world.setBounds(0, 0, VW, VH);
 
     // ── Background ────────────────────────────────────────────────────────
-    // Simple dark gradient rectangle (no assets needed)
-    this.add.rectangle(VW / 2, VH / 2, VW, VH, 0x1a1a2e);
-
-    // Distant wall / background detail
-    this.add.rectangle(VW / 2, VH / 2 - 10, VW, VH - 40, 0x16213e);
+    this.add.rectangle(VW / 2, VH / 2, VW, VH, 0x000000);
 
     // ── Ground ────────────────────────────────────────────────────────────
     // Static physics body for the ground
@@ -44,10 +40,8 @@ export default class TestScene extends Phaser.Scene {
     ground.setVisible(false); // invisible physics body — we draw it manually
     ground.refreshBody();
 
-    // Visible ground rectangle (drawn on top)
-    this.add.rectangle(VW / 2, GROUND_Y + 5, VW, 10, 0x2d3561);
-    // Ground surface line
-    this.add.rectangle(VW / 2, GROUND_Y, VW, 1, 0x3d4571);
+    // Visible ground
+    this.add.rectangle(VW / 2, GROUND_Y + 5, VW, 10, 0xffffff);
 
     // ── Debug label (top-left, in screen space — scrollFactor 0) ─────────
     this.debugLabel = this.add.text(4, 4, '', {

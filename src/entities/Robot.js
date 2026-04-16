@@ -129,11 +129,11 @@ export default class Robot extends Phaser.GameObjects.Container {
     };
 
     // Colors
-    const METAL     = 0x7a8fa6;
-    const METAL_DRK = 0x4a6278;
-    const JOINT     = 0x2a3a4a;
+    const METAL     = 0xffffff;
+    const METAL_DRK = 0xcccccc;
+    const JOINT     = 0xaaaaaa;
     const EYE       = 0xff2200;
-    const STUB      = 0x3a4a5a; // missing-limb stub color
+    const STUB      = 0x888888; // missing-limb stub color
 
     // Torso (origin of container = feet, so torso center is at -14 to -24)
     this.torso      = add(8, 10, METAL);

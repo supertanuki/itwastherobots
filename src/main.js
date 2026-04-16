@@ -11,7 +11,7 @@ const config = {
   width: VIRTUAL_W * 4,   // 1280
   height: VIRTUAL_H * 4,  // 720
   parent: 'game-container',
-  backgroundColor: '#1a1a2e',
+  backgroundColor: '#000000',
   pixelArt: true,          // disables anti-aliasing, keeps pixels sharp
   physics: {
     default: 'arcade',
