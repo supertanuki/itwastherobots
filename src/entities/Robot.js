@@ -165,7 +165,7 @@ export default class Robot extends Phaser.GameObjects.Container {
     // ── Connectors — small blocks that fill the gaps between limbs ────────
     this.neck        = add(4,  3, METAL); // head ↔ torso
     this.shoulderR   = add(3,  4, METAL); // torso ↔ upper arm right
-    this.elbowR      = add(2,  2, METAL); // upper arm ↔ lower arm right
+    this.elbowR      = add(2,  1, METAL); // upper arm ↔ lower arm right
     this.hipR        = add(4,  3, METAL); // torso ↔ upper leg right
     this.kneeR       = add(3,  3, METAL); // upper leg ↔ lower leg right
     this.shoulderL   = add(3,  3, METAL); // torso ↔ arm stub left
@@ -417,18 +417,23 @@ export default class Robot extends Phaser.GameObjects.Container {
     // Right arm: reach forward then pull — chained like _syncChain
     this.upperArmR.setAngle(40 + phase * 30);       // 10°..70°
 
-    // Elbow snaps to tip of upper arm
+    // Elbow: center pushed half its height below upper arm tip, same angle
     const elbow = this._tipOf(this.upperArmR);
-    this.elbowR.setPosition(elbow.x, Math.min(elbow.y, 0));
-    this.elbowR.setAngle(this.upperArmR.angle * 0.5);
+    const eArad = this.upperArmR.angle * Math.PI / 180;
+    this.elbowR.setPosition(
+      elbow.x + (this.elbowR.height / 2) * Math.sin(eArad),
+      Math.min(elbow.y + (this.elbowR.height / 2) * Math.cos(eArad), 0),
+    );
+    this.elbowR.setAngle(this.upperArmR.angle);
 
-    // Forearm extends from elbow
+    // Forearm extends from bottom of elbow
     const lAAngle = 30 + phase * 20;
     this.lowerArmR.setAngle(lAAngle);
     const lArad = lAAngle * Math.PI / 180;
+    const elbowTip = this._tipOf(this.elbowR);
     this.lowerArmR.setPosition(
-      elbow.x + (this.lowerArmR.height / 2) * Math.sin(lArad),
-      Math.min(elbow.y + (this.lowerArmR.height / 2) * Math.cos(lArad), 0),
+      elbowTip.x + (this.lowerArmR.height / 2) * Math.sin(lArad),
+      Math.min(elbowTip.y + (this.lowerArmR.height / 2) * Math.cos(lArad), 0),
     );
 
     // Right leg: pushes backward to propel
@@ -635,14 +640,22 @@ export default class Robot extends Phaser.GameObjects.Container {
     const DEG = Math.PI / 180;
 
     // ── Arm ───────────────────────────────────────────────────────────────
+    // Place elbowR so its top edge overlaps the bottom of upperArmR
     const elbow = this._tipOf(this.upperArmR);
-    this.elbowR.setPosition(elbow.x, elbow.y);
-    this.elbowR.setAngle(this.upperArmR.angle * 0.3);
+    const eA = this.upperArmR.angle * DEG;
+    // Push center of elbowR half its height down along arm direction
+    this.elbowR.setPosition(
+      elbow.x + (this.elbowR.height / 2) * Math.sin(eA),
+      elbow.y + (this.elbowR.height / 2) * Math.cos(eA),
+    );
+    this.elbowR.setAngle(this.upperArmR.angle);
 
+    // lowerArmR top flush with elbowR bottom
+    const elbowTip = this._tipOf(this.elbowR);
     const fA = this.lowerArmR.angle * DEG;
     this.lowerArmR.setPosition(
-      elbow.x + (this.lowerArmR.height / 2) * Math.sin(fA),
-      elbow.y + (this.lowerArmR.height / 2) * Math.cos(fA),
+      elbowTip.x + (this.lowerArmR.height / 2) * Math.sin(fA),
+      elbowTip.y + (this.lowerArmR.height / 2) * Math.cos(fA),
     );
 
     // ── Leg ───────────────────────────────────────────────────────────────
