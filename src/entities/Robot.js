@@ -142,12 +142,12 @@ export default class Robot extends Phaser.GameObjects.Container {
     }
 
     this._sparks = this.scene.add.particles(0, 0, 'pixel_spark', {
-      speed:    { min: 20,  max: 90 },
-      angle:    { min: 0,   max: 360 },
-      scale:    { start: 4, end: 1 },     // big square pixels, stay visible longer
+      speed:    { min: 40,  max: 130 },
+      angle:    { min: 200, max: 340 },   // upper arc (270° = straight up)
+      scale:    { start: 4, end: 1 },
       alpha:    { start: 1, end: 0 },
-      lifespan: { min: 300, max: 800 },
-      gravityY: 100,
+      lifespan: { min: 700, max: 1400 },
+      gravityY: 30,                       // weak gravity — sparks climb high
       emitting: false,
     }).setDepth(50);
 
