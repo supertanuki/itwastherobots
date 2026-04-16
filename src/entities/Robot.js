@@ -172,7 +172,7 @@ export default class Robot extends Phaser.GameObjects.Container {
     const STUB      = 0xffffff; // missing-limb stub color
 
     // Torso
-    this.torso       = add(8, 10, METAL);
+    this.torso       = add(8,  7, METAL);
 
     // Right arm
     this.upperArmR   = add(2,  7, METAL);
@@ -211,23 +211,23 @@ export default class Robot extends Phaser.GameObjects.Container {
    * but Phaser Y grows DOWN, so "above feet" = negative Y.
    */
   _poseStanding() {
-    // Torso
-    this.torso.setPosition(0, -19);      // center of torso
+    // Torso — height 7, bottom kept at -14 so hips stay connected
+    this.torso.setPosition(0, -18);      // center of torso (was -19 with height 10)
 
     // Head (above torso)
     this.head.setPosition(0, -28);
 
     // Right arm — inverted V (Λ): upper arm angles out, forearm angles back in
-    this.upperArmR.setPosition(6, -20);
+    this.upperArmR.setPosition(6, -19);
     this.upperArmR.setAngle(18);
-    this.elbowR.setPosition(7, -17);
+    this.elbowR.setPosition(7, -16);
     this.elbowR.setAngle(5);
-    this.lowerArmR.setPosition(6, -14);
+    this.lowerArmR.setPosition(6, -13);
     this.lowerArmR.setAngle(-12);
-    this.shoulderR.setPosition(5, -22);
+    this.shoulderR.setPosition(5, -21);
     this.shoulderR.setAngle(12);
     // Left arm stub — shoulder level
-    this.armLStub.setPosition(-6, -23);
+    this.armLStub.setPosition(-6, -21);
     this.armLStub.setAngle(-15);
 
     // Right leg
@@ -243,12 +243,12 @@ export default class Robot extends Phaser.GameObjects.Container {
     this.legLStub.setAngle(10);
 
     // Connectors
-    this.neck.setPosition(0, -24);      this.neck.setAngle(0);
-    this.shoulderR.setPosition(5, -22); this.shoulderR.setAngle(5);
-    this.elbowR.setPosition(8, -17);    this.elbowR.setAngle(8);
+    this.neck.setPosition(0, -22);      this.neck.setAngle(0);
+    this.shoulderR.setPosition(5, -21); this.shoulderR.setAngle(5);
+    this.elbowR.setPosition(8, -16);    this.elbowR.setAngle(8);
     this.hipR.setPosition(2, -13);      this.hipR.setAngle(0);
     this.kneeR.setPosition(2, -5);      this.kneeR.setAngle(0);
-    this.shoulderL.setPosition(-5, -22); this.shoulderL.setAngle(-10);
+    this.shoulderL.setPosition(-5, -21); this.shoulderL.setAngle(-10);
     this.hipL.setPosition(-3, -13);     this.hipL.setAngle(5);
 
     // Reset main angles
@@ -319,7 +319,7 @@ export default class Robot extends Phaser.GameObjects.Container {
     // Phase 4 — almost standing but stumbles (after 1800ms)
     this.scene.time.delayedCall(1800, () => {
       // Fake-stand then lurch forward
-      T.add({ targets: this.torso, y: -19, angle: 15, duration: 400, ease: 'Back.easeOut' });
+      T.add({ targets: this.torso, y: -18, angle: 15, duration: 400, ease: 'Back.easeOut' });
       T.add({ targets: this.head,  y: -28, angle: 10, duration: 400 });
       T.add({ targets: this.upperLegR, angle: 0, y: -9, duration: 400 });
       T.add({ targets: this.lowerLegR, angle: 0,        duration: 400 });
@@ -351,17 +351,17 @@ export default class Robot extends Phaser.GameObjects.Container {
 
     // Parts tweened freely (position + angle) — NOT managed by _syncChain
     const free = [
-      { t: this.torso,     x: 0,   y: -19, a: 0 },
+      { t: this.torso,     x: 0,   y: -18, a: 0 },
       { t: this.head,      x: 0,   y: -28, a: 0 },
-      { t: this.upperArmR, x: 6,   y: -20, a: 18 },
-      { t: this.armLStub,  x: -6,  y: -23, a: -15 },
+      { t: this.upperArmR, x: 6,   y: -19, a: 18 },
+      { t: this.armLStub,  x: -6,  y: -21, a: -15 },
       { t: this.upperLegR, x: 2,   y: -9,  a: 0 },
       { t: this.footR,     x: 2,   y: 3,   a: 0 },
       { t: this.legLStub,  x: -3,  y: -8,  a: 10 },
-      { t: this.neck,      x: 0,   y: -24, a: 0 },
-      { t: this.shoulderR, x: 5,   y: -22, a: 12 },
+      { t: this.neck,      x: 0,   y: -22, a: 0 },
+      { t: this.shoulderR, x: 5,   y: -21, a: 12 },
       { t: this.hipR,      x: 2,   y: -13, a: 0 },
-      { t: this.shoulderL, x: -5,  y: -22, a: -10 },
+      { t: this.shoulderL, x: -5,  y: -21, a: -10 },
       { t: this.hipL,      x: -3,  y: -13, a: 5 },
     ];
 
@@ -551,10 +551,10 @@ export default class Robot extends Phaser.GameObjects.Container {
 
     // Body bobs slightly — smooth squared phase avoids derivative discontinuity
     const smoothAbs = legPhase * legPhase;
-    this.torso.setY(-19 + smoothAbs * 1.5);
+    this.torso.setY(-18 + smoothAbs * 1.5);
     this.head.setY(-28 + smoothAbs * 1.5);
     // Keep left shoulder tracking torso vertical motion
-    this.shoulderL.setY(-22 + smoothAbs * 1.5);
+    this.shoulderL.setY(-21 + smoothAbs * 1.5);
 
     // Right arm swings opposite to leg — lowerArmR locks to upperArmR via _syncChain
     this.upperArmR.setAngle(18 - legPhase * 14);
