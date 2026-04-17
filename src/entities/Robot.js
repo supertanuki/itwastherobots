@@ -211,11 +211,6 @@ export default class Robot extends Phaser.GameObjects.Container {
     this.shoulderL   = add(3,  3, METAL); // torso ↔ arm stub left
     this.hipL        = add(3,  3, METAL); // torso ↔ leg stub left
 
-    // Cut cables — exit from torso top (lying) or arm stub (standing)
-    this.cable1      = add(1,  5, METAL);
-    this.cable2      = add(1,  4, METAL);
-    this.cable3      = add(1,  3, METAL);
-
     // Head and eye last — always on top
     this.head        = add(6,  6, METAL);
     this.eye         = add(2,  2, EYE);
@@ -269,11 +264,6 @@ export default class Robot extends Phaser.GameObjects.Container {
     this.shoulderL.setPosition(-5, -21); this.shoulderL.setAngle(-10);
     this.hipL.setPosition(-3, -13);     this.hipL.setAngle(5);
 
-    // Cut cables — dangling from the cut end of armLStub (top edge=-22.5)
-    this.cable1.setPosition(-7,   -25);   this.cable1.setAngle(-25);
-    this.cable2.setPosition(-6,   -24.5); this.cable2.setAngle(10);
-    this.cable3.setPosition(-5,   -24);   this.cable3.setAngle(-10);
-
     // Reset main angles
     this.torso.setAngle(0);
     this.head.setAngle(0);
@@ -305,11 +295,6 @@ export default class Robot extends Phaser.GameObjects.Container {
 
     this.legLStub.setPosition(-5, -1);
     this.legLStub.setAngle(-30);
-
-    // Cut cables — exit from top surface of torso (torso.y=-4, top edge=-7.5)
-    this.cable1.setPosition(-1.5, -10);  this.cable1.setAngle(-20);
-    this.cable2.setPosition( 0.5, -9.5); this.cable2.setAngle(5);
-    this.cable3.setPosition( 2,   -9);   this.cable3.setAngle(15);
 
     // Connectors — flat, close to adjacent parts
     this.neck.setPosition(5,  -5);     this.neck.setAngle(0);
@@ -373,8 +358,7 @@ export default class Robot extends Phaser.GameObjects.Container {
     [this.torso, this.head, this.upperArmR, this.lowerArmR, this.armLStub,
      this.upperLegR, this.lowerLegR, this.footR, this.legLStub,
      this.neck, this.shoulderR, this.elbowR, this.hipR,
-     this.kneeR, this.shoulderL, this.hipL,
-     this.cable1, this.cable2, this.cable3].forEach(p => {
+     this.kneeR, this.shoulderL, this.hipL].forEach(p => {
       this.scene.tweens.killTweensOf(p);
     });
 
@@ -392,9 +376,6 @@ export default class Robot extends Phaser.GameObjects.Container {
       { t: this.hipR,      x: 2,   y: -13,   a: 0 },
       { t: this.shoulderL, x: -5,  y: -21,   a: -10 },
       { t: this.hipL,      x: -3,  y: -13,   a: 5 },
-      { t: this.cable1,    x: -7,  y: -25,   a: -25 },
-      { t: this.cable2,    x: -6,  y: -24.5, a: 10 },
-      { t: this.cable3,    x: -5,  y: -24,   a: -10 },
     ];
 
     // Chain-managed parts — angle ONLY (_syncChain handles their positions every frame)
@@ -518,12 +499,6 @@ export default class Robot extends Phaser.GameObjects.Container {
     const smoothAbs = phase * phase; // 0→1→0 per half-cycle, no derivative discontinuity
     this.torso.setAngle(0);
     this.torso.setY(-4 - smoothAbs * 1.5);           // lifts slightly, never positive
-
-    // Cables follow torso top edge
-    const cTop = this.torso.y - 3.5;
-    this.cable1.setY(cTop - 2.5);
-    this.cable2.setY(cTop - 2);
-    this.cable3.setY(cTop - 1.5);
 
     // Head tries to lift to look ahead
     this.head.setAngle(10 - smoothAbs * 8);
