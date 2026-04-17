@@ -9,15 +9,10 @@ import Robot, { RobotState } from '../entities/Robot.js';
  * Controls:
  *   ← / → / A / D / Q / D  — move
  *   SPACE                   — trigger get-up (when lying)
- *   F1                      — toggle physics debug
  */
 export default class TestScene extends Phaser.Scene {
   constructor() {
     super('TestScene');
-  }
-
-  preload() {
-    this.load.image('wall', '/img/sketch-wall-texture_1409-10961.jpg');
   }
 
   create() {
@@ -67,18 +62,13 @@ export default class TestScene extends Phaser.Scene {
     }
 
     // ── Robot — starts lying on the ground ───────────────────────────────
-    this.robot = new Robot(this, 60, GROUND_Y);
+    this.robot = new Robot(this, 200, GROUND_Y);
     this.physics.add.collider(this.robot.body_proxy, groundBody);
 
     // ── Camera follows the robot ──────────────────────────────────────────
     this.cameras.main.startFollow(this.robot, true);
-
-    // ── Wall texture overlay — scrollFactor 0 = fixed on screen, always on top
-    this.add.image(VW / 2, VH / 2, 'wall')
-      .setDisplaySize(VW, VH)
-      .setAlpha(0.1)
-      .setScrollFactor(0)
-      .setDepth(1000);
+    // Negative offset → camera leads right, robot appears ~1/4 from left
+    this.cameras.main.setFollowOffset(-80, 0);
 
     // ── Input ─────────────────────────────────────────────────────────────
     this.cursors = this.input.keyboard.createCursorKeys();
@@ -87,11 +77,6 @@ export default class TestScene extends Phaser.Scene {
     this.keyQ    = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Q);
     this.keySpace = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
     this.keyF1   = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.F1);
-
-    this.keyF1.on('down', () => {
-      this.physics.world.drawDebug = !this.physics.world.drawDebug;
-      if (!this.physics.world.drawDebug) this.physics.world.debugGraphic.clear();
-    });
   }
 
   update() {

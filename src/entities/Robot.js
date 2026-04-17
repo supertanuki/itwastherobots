@@ -228,7 +228,7 @@ export default class Robot extends Phaser.GameObjects.Container {
     this.torso.setPosition(0, -18);      // center of torso (was -19 with height 10)
 
     // Head (above torso)
-    this.head.setPosition(0, -28);
+    this.head.setPosition(0, -26);
 
     // Right arm — inverted V (Λ): upper arm angles out, forearm angles back in
     this.upperArmR.setPosition(6, -19);
@@ -333,7 +333,7 @@ export default class Robot extends Phaser.GameObjects.Container {
     this.scene.time.delayedCall(1800, () => {
       // Fake-stand then lurch forward
       T.add({ targets: this.torso, y: -18, angle: 15, duration: 400, ease: 'Back.easeOut' });
-      T.add({ targets: this.head,  y: -28, angle: 10, duration: 400 });
+      T.add({ targets: this.head,  y: -26, angle: 10, duration: 400 });
       T.add({ targets: this.upperLegR, angle: 0, y: -9, duration: 400 });
       T.add({ targets: this.lowerLegR, angle: 0,        duration: 400 });
 
@@ -365,7 +365,7 @@ export default class Robot extends Phaser.GameObjects.Container {
     // Parts tweened freely (position + angle) — NOT managed by _syncChain
     const free = [
       { t: this.torso,     x: 0,   y: -18, a: 0 },
-      { t: this.head,      x: 0,   y: -28, a: 0 },
+      { t: this.head,      x: 0,   y: -26, a: 0 },
       { t: this.upperArmR, x: 6,   y: -19, a: 18 },
       { t: this.armLStub,  x: -6,  y: -21, a: -15 },
       { t: this.upperLegR, x: 2,   y: -9,  a: 0 },
@@ -467,10 +467,11 @@ export default class Robot extends Phaser.GameObjects.Container {
     this.upperArmR.setAngle(40 + phase * 30);       // 10°..70°
 
     // Elbow: center pushed half its height below upper arm tip, same angle
+    // Shifted 10 virtual px left (÷3 scale) so the arm trails behind during crawl
     const elbow = this._tipOf(this.upperArmR);
     const eArad = this.upperArmR.angle * Math.PI / 180;
     this.elbowR.setPosition(
-      elbow.x + (this.elbowR.height / 2) * Math.sin(eArad),
+      elbow.x + (this.elbowR.height / 2) * Math.sin(eArad) - 10 / 3,
       Math.min(elbow.y + (this.elbowR.height / 2) * Math.cos(eArad), 0),
     );
     this.elbowR.setAngle(this.upperArmR.angle);
@@ -565,7 +566,8 @@ export default class Robot extends Phaser.GameObjects.Container {
     // Body bobs slightly — smooth squared phase avoids derivative discontinuity
     const smoothAbs = legPhase * legPhase;
     this.torso.setY(-18 + smoothAbs * 1.5);
-    this.head.setY(-28 + smoothAbs * 1.5);
+    this.neck.setY(-22 + smoothAbs * 1.5);
+    this.head.setY(-26 + smoothAbs * 1.5);
     // Keep left shoulder tracking torso vertical motion
     this.shoulderL.setY(-21 + smoothAbs * 1.5);
 
@@ -691,10 +693,11 @@ export default class Robot extends Phaser.GameObjects.Container {
     this.lowerArmR.setAngle(this.upperArmR.angle - 30);
 
     // Place elbowR so its top edge overlaps the bottom of upperArmR
+    // Shifted 8 virtual px left (÷3 scale) so the elbow trails behind the shoulder
     const elbow = this._tipOf(this.upperArmR);
     const eA = this.upperArmR.angle * DEG;
     this.elbowR.setPosition(
-      elbow.x + (this.elbowR.height / 2) * Math.sin(eA),
+      elbow.x + (this.elbowR.height / 2) * Math.sin(eA) - 8 / 3,
       elbow.y + (this.elbowR.height / 2) * Math.cos(eA),
     );
     this.elbowR.setAngle(this.upperArmR.angle);
