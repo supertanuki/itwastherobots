@@ -20,8 +20,8 @@ export default class TestScene extends Phaser.Scene {
     // ── Virtual world dimensions ──────────────────────────────────────────
     const VW = 320;
     const VH = 180;
-    // Ground surface — 4px strip visible at screen bottom
-    const GROUND_Y = VH - 4;
+    // Ground surface — 20px strip visible at screen bottom (5× original 4px)
+    const GROUND_Y = VH - 20;
 
     // ── Camera zoom x4 — 1 virtual pixel = 4 screen pixels ───────────────
     this.cameras.main.setZoom(4);
@@ -38,8 +38,8 @@ export default class TestScene extends Phaser.Scene {
     const groundBody = this.add.rectangle(VW / 2, GROUND_Y + 10, VW, 20, 0x000000, 0);
     this.physics.add.existing(groundBody, true); // true = static
 
-    // Visible ground strip — 4px white band at the bottom of the screen
-    this.add.rectangle(VW / 2, VH - 2, VW, 4, 0xffffff);
+    // Visible ground strip — 20px white band flush with screen bottom
+    this.add.rectangle(VW / 2, VH - 10, VW, 20, 0xffffff);
 
     // ── Debug label (top-left, in screen space — scrollFactor 0) ─────────
     this.debugLabel = this.add.text(4, 4, '', {
