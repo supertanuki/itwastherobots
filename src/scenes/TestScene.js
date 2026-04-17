@@ -68,36 +68,35 @@ export default class TestScene extends Phaser.Scene {
       px += pw;
     }
 
-    // ── Wall texture overlay ──────────────────────────────────────────────
-    this.add.image(VW / 2, VH / 2, 'wall')
-      .setDisplaySize(VW, VH)
-      .setAlpha(0.1)
-      .setDepth(150);
-
-    // ── Debug label (top-left, in screen space — scrollFactor 0) ─────────
-    this.debugLabel = this.add.text(4, 4, '', {
-      fontFamily: 'monospace',
-      fontSize: '4px',        // tiny in virtual space — looks normal at x4
-      color: '#556677',
-    }).setScrollFactor(0).setDepth(100);
-
-    // ── Hint label ────────────────────────────────────────────────────────
-    this.hintLabel = this.add.text(VW / 2, VH - 8, 'SPACE — get up  |  ← → move', {
-      fontFamily: 'monospace',
-      fontSize: '5px',
-      color: '#44ff88',
-    }).setOrigin(0.5, 1).setDepth(100);
-    // Fade out after a few seconds
-    this.time.delayedCall(4000, () => {
-      this.tweens.add({ targets: this.hintLabel, alpha: 0, duration: 1000 });
-    });
-
     // ── Robot — starts lying on the ground ───────────────────────────────
     // Spawn at feet position: x = near left, y = ground surface
     this.robot = new Robot(this, 60, GROUND_Y);
 
     // Collide robot physics proxy with ground
     this.physics.add.collider(this.robot.body_proxy, groundBody);
+
+    // ── Wall texture overlay — added after robot so it renders above ──────
+    this.add.image(VW / 2, VH / 2, 'wall')
+      .setDisplaySize(VW, VH)
+      .setAlpha(0.1);
+
+    // ── Debug label (top-left, in screen space — scrollFactor 0) ─────────
+    this.debugLabel = this.add.text(4, 4, '', {
+      fontFamily: 'monospace',
+      fontSize: '4px',        // tiny in virtual space — looks normal at x4
+      color: '#ffffff',
+    }).setScrollFactor(0).setDepth(500);
+
+    // ── Hint label ────────────────────────────────────────────────────────
+    this.hintLabel = this.add.text(VW / 2, VH - 8, 'SPACE — get up  |  ← → move', {
+      fontFamily: 'monospace',
+      fontSize: '5px',
+      color: '#44ff88',
+    }).setOrigin(0.5, 1).setDepth(500);
+    // Fade out after a few seconds
+    this.time.delayedCall(4000, () => {
+      this.tweens.add({ targets: this.hintLabel, alpha: 0, duration: 1000 });
+    });
 
     // ── Input ─────────────────────────────────────────────────────────────
     this.cursors = this.input.keyboard.createCursorKeys();
