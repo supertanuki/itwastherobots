@@ -16,6 +16,10 @@ export default class TestScene extends Phaser.Scene {
     super('TestScene');
   }
 
+  preload() {
+    this.load.image('wall', '/img/sketch-wall-texture_1409-10961.jpg');
+  }
+
   create() {
     // ── Virtual world dimensions ──────────────────────────────────────────
     const VW = 320;
@@ -63,6 +67,12 @@ export default class TestScene extends Phaser.Scene {
       gfx.fillCircle(bx2, by2, 1.5);
       px += pw;
     }
+
+    // ── Wall texture overlay ──────────────────────────────────────────────
+    this.add.image(VW / 2, VH / 2, 'wall')
+      .setDisplaySize(VW, VH)
+      .setAlpha(0.1)
+      .setDepth(150);
 
     // ── Debug label (top-left, in screen space — scrollFactor 0) ─────────
     this.debugLabel = this.add.text(4, 4, '', {
