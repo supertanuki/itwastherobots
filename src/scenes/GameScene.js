@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import Robot, { RobotState } from '../entities/Robot.js';
 
 /**
- * TestScene — movement test for the broken robot.
+ * GameScene — movement test for the broken robot.
  *
  * Virtual resolution: 320x180 (zoomed x4 = 1280x720 on screen).
  *
@@ -10,9 +10,9 @@ import Robot, { RobotState } from '../entities/Robot.js';
  *   ← / → / A / D / Q / D  — move
  *   SPACE                   — trigger get-up (when lying)
  */
-export default class TestScene extends Phaser.Scene {
+export default class GameScene extends Phaser.Scene {
   constructor() {
-    super('TestScene');
+    super('GameScene');
   }
 
   create() {
