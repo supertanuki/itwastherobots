@@ -66,6 +66,7 @@ export default class Robot extends Phaser.GameObjects.Container {
     this._buildParts();
     this._initSparks();
     this._poseLying();
+    this._scheduleBlink();
     // Scale x3 so the robot fills ~half the virtual screen height (31 local px × 3 = 93px ≈ VH/2)
     this.setScale(3, 3);
 
@@ -127,6 +128,18 @@ export default class Robot extends Phaser.GameObjects.Container {
 
     // Mirror parts when facing left (preserve the x3 base scale)
     this.setScale(this.facingRight ? 3 : -3, 3);
+  }
+
+  // ─── Eye blink ────────────────────────────────────────────────────────────
+
+  _scheduleBlink() {
+    this.scene.time.delayedCall(Phaser.Math.Between(2000, 3000), () => {
+      this.eye.setFillStyle(0x222222);                          // dim
+      this.scene.time.delayedCall(120, () => {
+        this.eye.setFillStyle(0xff2200);                        // reopen
+        this._scheduleBlink();                                  // reschedule
+      });
+    });
   }
 
   // ─── Sparks ───────────────────────────────────────────────────────────────
