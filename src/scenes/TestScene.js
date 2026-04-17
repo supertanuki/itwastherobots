@@ -38,8 +38,31 @@ export default class TestScene extends Phaser.Scene {
     const groundBody = this.add.rectangle(VW / 2, GROUND_Y + 10, VW, 20, 0x000000, 0);
     this.physics.add.existing(groundBody, true); // true = static
 
-    // Visible ground strip — 20px white band flush with screen bottom
-    this.add.rectangle(VW / 2, VH - 10, VW, 20, 0xffffff);
+    // ── Ground plates — metal panels with white outline + bolt rivets ────
+    const gfx = this.add.graphics();
+    const GH  = 20;       // plate height = ground height
+    // Plate widths that sum exactly to VW=320, varying for an industrial look
+    const plateWidths = [40, 54, 36, 62, 44, 38, 46];
+    let px = 0;
+    for (const pw of plateWidths) {
+      // Black fill
+      gfx.fillStyle(0x000000, 1);
+      gfx.fillRect(px, GROUND_Y, pw, GH);
+      // White 1px outline
+      gfx.lineStyle(1, 0xffffff, 1);
+      gfx.strokeRect(px, GROUND_Y, pw, GH);
+      // Bolt rivets — 4 corners (radius 1.5 virtual px = 6 screen px)
+      gfx.fillStyle(0xffffff, 1);
+      const bx1 = px + 5;
+      const bx2 = px + pw - 5;
+      const by1 = GROUND_Y + 5;
+      const by2 = GROUND_Y + GH - 5;
+      gfx.fillCircle(bx1, by1, 1.5);
+      gfx.fillCircle(bx2, by1, 1.5);
+      gfx.fillCircle(bx1, by2, 1.5);
+      gfx.fillCircle(bx2, by2, 1.5);
+      px += pw;
+    }
 
     // ── Debug label (top-left, in screen space — scrollFactor 0) ─────────
     this.debugLabel = this.add.text(4, 4, '', {
