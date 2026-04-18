@@ -79,7 +79,7 @@ export default class GameScene extends Phaser.Scene {
     // ── Subtitle text — fixed to screen, bottom-center ───────────────────
     // World coords (160, 174) × camera zoom 4 = screen (640, 696), near bottom.
     // Black background behind the text (full width, 4px vertical padding).
-    this._subtitleBg = this.add.rectangle(160, 178, 322, 24, 0x000000)
+    this._subtitleBg = this.add.rectangle(160, 178, 322, 24, 0xffffff)
       .setOrigin(0.5, 1)
       .setScrollFactor(0)
       .setAlpha(0);
