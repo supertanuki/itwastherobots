@@ -68,6 +68,9 @@ export default class GameScene extends Phaser.Scene {
     this.robot = new Robot(this, 200, GROUND_Y);
     this.physics.add.collider(this.robot.body_proxy, groundBody);
 
+    // ── Robot wakes up — speak with a robotic voice ───────────────────────
+    this._robotSpeak('où suis-je ? que s\'est-il passé ?');
+
     // ── Camera follows the robot ──────────────────────────────────────────
     this.cameras.main.startFollow(this.robot, true);
     // Negative offset → camera leads right, robot appears ~1/4 from left
@@ -113,6 +116,35 @@ export default class GameScene extends Phaser.Scene {
     }
 
     r.update(this.game.loop.delta);
+  }
+
+  /**
+   * Speak a line using the browser's speech synthesis with a robotic voice.
+   * Prefers a French voice; falls back to whatever is available.
+   */
+  _robotSpeak(text) {
+    if (!window.speechSynthesis) return;
+
+    const utter = new SpeechSynthesisUtterance(text);
+    utter.lang  = 'fr-FR';
+    utter.rate  = 0.7;   // slow and laboured
+    utter.pitch = 0.1;   // very low = robotic
+    utter.volume = 1;
+
+    // Pick a French voice if one is available
+    const applyVoice = () => {
+      const voices = window.speechSynthesis.getVoices();
+      const fr = voices.find(v => v.lang.startsWith('fr'));
+      if (fr) utter.voice = fr;
+      window.speechSynthesis.speak(utter);
+    };
+
+    // Voices may not be loaded yet on first call
+    if (window.speechSynthesis.getVoices().length > 0) {
+      applyVoice();
+    } else {
+      window.speechSynthesis.addEventListener('voiceschanged', applyVoice, { once: true });
+    }
   }
 
   /**
