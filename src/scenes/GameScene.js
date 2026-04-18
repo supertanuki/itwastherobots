@@ -10,7 +10,7 @@ import Robot, { RobotState } from '../entities/Robot.js';
  *   ← / → / A / D / Q      — move
  *
  * Controls (lying / crawling):
- *   → then ↓ then ← then ↑  — one crawl step to the right (combo)
+ *   → then ← then → then ←  — crawl right (alternating left/right)
  *   SPACE                    — get up
  */
 export default class GameScene extends Phaser.Scene {
@@ -116,8 +116,8 @@ export default class GameScene extends Phaser.Scene {
   }
 
   /**
-   * Advance the 4-step crawl combo while the robot is lying.
-   * Sequence: right(0) → down(1) → left(2) → up(3)
+   * Crawl combo while the robot is lying: alternating right / left.
+   * Sequence: right(0) → left(1) → right(0) → …
    * Each valid step extends the active window by ACTIVE_MS (animation + velocity).
    * A wrong key cuts the window immediately and resets the sequence.
    * No input for ACTIVE_MS → window expires naturally, animation freezes.
@@ -125,10 +125,8 @@ export default class GameScene extends Phaser.Scene {
   _tickCrawlSequence(r) {
     const K     = Phaser.Input.Keyboard;
     const right = K.JustDown(this.cursors.right) || K.JustDown(this.keyD);
-    const down  = K.JustDown(this.cursors.down)  || K.JustDown(this.keyS);
     const left  = K.JustDown(this.cursors.left)  || K.JustDown(this.keyA) || K.JustDown(this.keyQ);
-    const up    = K.JustDown(this.cursors.up);
-    const any   = right || down || left || up;
+    const any   = right || left;
 
     const ACTIVE_MS = 250; // animation/velocity window per step
 
@@ -143,9 +141,7 @@ export default class GameScene extends Phaser.Scene {
 
     switch (this._crawlStep) {
       case 0: if (right) ok(1); else if (any) fail(); break;
-      case 1: if (down)  ok(2); else if (any) fail(); break;
-      case 2: if (left)  ok(3); else if (any) fail(); break;
-      case 3: if (up)    ok(0); else if (any) fail(); break;
+      case 1: if (left)  ok(0); else if (any) fail(); break;
     }
   }
 }
