@@ -18,6 +18,14 @@ export default class GameScene extends Phaser.Scene {
     super('GameScene');
   }
 
+  preload() {
+    this.load.bitmapFont(
+      'subtitle',
+      'fonts/FreePixelStrokeShadow-16.png',
+      'fonts/FreePixelStrokeShadow-16.xml',
+    );
+  }
+
   create() {
     // ── Virtual world dimensions ──────────────────────────────────────────
     const VW      = 320;
@@ -68,8 +76,15 @@ export default class GameScene extends Phaser.Scene {
     this.robot = new Robot(this, 200, GROUND_Y);
     this.physics.add.collider(this.robot.body_proxy, groundBody);
 
+    // ── Subtitle text — fixed to screen, bottom-center ───────────────────
+    // World coords (160, 174) × camera zoom 4 = screen (640, 696), near bottom.
+    this._subtitleText = this.add.bitmapText(160, 174, 'subtitle', '', 16)
+      .setOrigin(0.5, 1)
+      .setScrollFactor(0)
+      .setAlpha(0);
+
     // ── Robot wakes up — speak with a robotic voice ───────────────────────
-    this._robotSpeak('où suis-je ? que s\'est-il passé ?');
+    this._robotSpeak('Mais... Où je suis ? ... Que s\'est-il passé ?');
 
     // ── Camera follows the robot ──────────────────────────────────────────
     this.cameras.main.startFollow(this.robot, true);
@@ -123,15 +138,25 @@ export default class GameScene extends Phaser.Scene {
    * Prefers a French voice; falls back to whatever is available.
    */
   _robotSpeak(text) {
-    if (!window.speechSynthesis) return;
+    // Show subtitle immediately
+    this._subtitleText.setText(text).setAlpha(1);
+
+    const fadeOut = () => {
+      this.tweens.add({ targets: this._subtitleText, alpha: 0, duration: 800 });
+    };
+
+    if (!window.speechSynthesis) {
+      this.time.delayedCall(4000, fadeOut);
+      return;
+    }
 
     const utter = new SpeechSynthesisUtterance(text);
-    utter.lang  = 'fr-FR';
-    utter.rate  = 0.7;   // slow and laboured
-    utter.pitch = 0.1;   // very low = robotic
+    utter.lang   = 'fr-FR';
+    utter.rate   = 0.6;  // slow and laboured
+    utter.pitch  = 0.1;  // very low = robotic
     utter.volume = 1;
+    utter.onend  = fadeOut;
 
-    // Pick a French voice if one is available
     const applyVoice = () => {
       const voices = window.speechSynthesis.getVoices();
       const fr = voices.find(v => v.lang.startsWith('fr'));
@@ -139,7 +164,6 @@ export default class GameScene extends Phaser.Scene {
       window.speechSynthesis.speak(utter);
     };
 
-    // Voices may not be loaded yet on first call
     if (window.speechSynthesis.getVoices().length > 0) {
       applyVoice();
     } else {
