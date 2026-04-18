@@ -78,6 +78,12 @@ export default class GameScene extends Phaser.Scene {
 
     // ── Subtitle text — fixed to screen, bottom-center ───────────────────
     // World coords (160, 174) × camera zoom 4 = screen (640, 696), near bottom.
+    // Black background behind the text (full width, 4px vertical padding).
+    this._subtitleBg = this.add.rectangle(160, 178, 322, 24, 0x000000)
+      .setOrigin(0.5, 1)
+      .setScrollFactor(0)
+      .setAlpha(0);
+
     this._subtitleText = this.add.bitmapText(160, 174, 'subtitle', '', 16)
       .setOrigin(0.5, 1)
       .setScrollFactor(0)
@@ -140,9 +146,10 @@ export default class GameScene extends Phaser.Scene {
   _robotSpeak(text) {
     // Show subtitle immediately
     this._subtitleText.setText(text).setAlpha(1);
+    this._subtitleBg.setAlpha(1);
 
     const fadeOut = () => {
-      this.tweens.add({ targets: this._subtitleText, alpha: 0, duration: 800 });
+      this.tweens.add({ targets: [this._subtitleBg, this._subtitleText], alpha: 0, duration: 800 });
     };
 
     if (!window.speechSynthesis) {
