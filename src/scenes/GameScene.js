@@ -6,9 +6,12 @@ import Robot, { RobotState } from '../entities/Robot.js';
  *
  * Virtual resolution: 320x180 (zoomed x4 = 1280x720 on screen).
  *
- * Controls:
- *   ← / → / A / D / Q / D  — move
- *   SPACE                   — trigger get-up (when lying)
+ * Controls (standing):
+ *   ← / → / A / D / Q      — move
+ *
+ * Controls (lying / crawling):
+ *   → then ↓ then ← then ↑  — one crawl step to the right (combo)
+ *   SPACE                    — get up
  */
 export default class GameScene extends Phaser.Scene {
   constructor() {
@@ -76,7 +79,12 @@ export default class GameScene extends Phaser.Scene {
     this.keyD    = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D);
     this.keyQ    = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Q);
     this.keySpace = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+    this.keyS    = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S);
     this.keyF1   = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.F1);
+
+    // Crawl combo state (lying only): right → down → left → up
+    this._crawlStep        = 0;  // current position in the 4-step combo
+    this._crawlActiveUntil = 0;  // animation + velocity play while time.now < this value
   }
 
   update() {
@@ -86,20 +94,58 @@ export default class GameScene extends Phaser.Scene {
       if (r.state === RobotState.LYING) r.getUp();
     }
 
-    const canMove = r.state === RobotState.LYING    ||
-                    r.state === RobotState.STANDING  ||
-                    r.state === RobotState.WALKING;
-
-    if (canMove) {
-      const left  = this.cursors.left.isDown  || this.keyA.isDown || this.keyQ.isDown;
-      const right = this.cursors.right.isDown || this.keyD.isDown;
-      if (left && !right)      r.setMoveIntent(-1);
-      else if (right && !left) r.setMoveIntent(1);
-      else                     r.setMoveIntent(0);
+    if (r.state === RobotState.LYING) {
+      // ── Crawl combo: right → down → left → up ──────────────────────────
+      // Each valid step gives a small forward pulse; input is always checked.
+      this._tickCrawlSequence(r);
+      r.setMoveIntent(this.time.now < this._crawlActiveUntil ? 1 : 0);
     } else {
-      r.setMoveIntent(0);
+      const canMove = r.state === RobotState.STANDING || r.state === RobotState.WALKING;
+      if (canMove) {
+        const left  = this.cursors.left.isDown  || this.keyA.isDown || this.keyQ.isDown;
+        const right = this.cursors.right.isDown || this.keyD.isDown;
+        if (left && !right)      r.setMoveIntent(-1);
+        else if (right && !left) r.setMoveIntent(1);
+        else                     r.setMoveIntent(0);
+      } else {
+        r.setMoveIntent(0);
+      }
     }
 
     r.update(this.game.loop.delta);
+  }
+
+  /**
+   * Advance the 4-step crawl combo while the robot is lying.
+   * Sequence: right(0) → down(1) → left(2) → up(3)
+   * Each valid step extends the active window by ACTIVE_MS (animation + velocity).
+   * A wrong key cuts the window immediately and resets the sequence.
+   * No input for ACTIVE_MS → window expires naturally, animation freezes.
+   */
+  _tickCrawlSequence(r) {
+    const K     = Phaser.Input.Keyboard;
+    const right = K.JustDown(this.cursors.right) || K.JustDown(this.keyD);
+    const down  = K.JustDown(this.cursors.down)  || K.JustDown(this.keyS);
+    const left  = K.JustDown(this.cursors.left)  || K.JustDown(this.keyA) || K.JustDown(this.keyQ);
+    const up    = K.JustDown(this.cursors.up);
+    const any   = right || down || left || up;
+
+    const ACTIVE_MS = 250; // animation/velocity window per step
+
+    const ok = (nextStep) => {
+      this._crawlStep        = nextStep;
+      this._crawlActiveUntil = this.time.now + ACTIVE_MS;
+    };
+    const fail = () => {
+      this._crawlStep        = 0;
+      this._crawlActiveUntil = 0; // stop immediately
+    };
+
+    switch (this._crawlStep) {
+      case 0: if (right) ok(1); else if (any) fail(); break;
+      case 1: if (down)  ok(2); else if (any) fail(); break;
+      case 2: if (left)  ok(3); else if (any) fail(); break;
+      case 3: if (up)    ok(0); else if (any) fail(); break;
+    }
   }
 }

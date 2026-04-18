@@ -442,13 +442,8 @@ export default class Robot extends Phaser.GameObjects.Container {
 
   /** Crawl cycle — robot drags itself with one arm and one leg. */
   _updateCrawling(delta) {
-    const moving = this._moveIntent !== 0;
-
-    if (!moving) {
-      // Idle on ground — slight twitch on the stub, nothing else
-      this._crawlTime = 0;
-      return;
-    }
+    // Freeze pose when idle — resume from the same point on next valid key press
+    if (this._moveIntent === 0) return;
 
     this._crawlTime = (this._crawlTime || 0) + delta;
     const cycle = (this._crawlTime % 900) / 900; // 0..1 per crawl step
@@ -652,7 +647,8 @@ export default class Robot extends Phaser.GameObjects.Container {
       }
     } else {
       this.body_proxy.body.setVelocityX(0);
-      this._crawlTime = 0; // reset crawl cycle when stopped
+      // Don't reset _crawlTime when lying — animation keeps running between pulses
+      if (this.state !== RobotState.LYING) this._crawlTime = 0;
       if (this.state === RobotState.WALKING) {
         this.state = RobotState.STANDING;
         this._tweenToStanding(() => this._startSway());
