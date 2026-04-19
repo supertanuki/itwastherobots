@@ -83,10 +83,7 @@ export default class GameScene extends Phaser.Scene {
     // Negative offset → camera leads right, robot appears ~1/4 from left
     this.cameras.main.setFollowOffset(-80, 0);
 
-    // Manual camera mode (postupdate, active after zoom-out)
-    this._manualCamera = false;
-    this.events.on('postupdate', this._trackCamera, this);
-    this.events.once('robot-stood-up', this._zoomOut, this);
+    this._zoomedOut = false;
 
     // ── Input ─────────────────────────────────────────────────────────────
     this.cursors = this.input.keyboard.createCursorKeys();
@@ -127,6 +124,15 @@ export default class GameScene extends Phaser.Scene {
       // Each valid step gives a small forward pulse; input is always checked.
       this._tickCrawlSequence(r);
       r.setMoveIntent(this.time.now < this._crawlActiveUntil ? 1 : 0);
+
+      // SPACE triggers get-up and starts zoom-out simultaneously
+      if (Phaser.Input.Keyboard.JustDown(this.keySpace)) {
+        r.getUp();
+        if (!this._zoomedOut) {
+          this._zoomedOut = true;
+          this._zoomOut();
+        }
+      }
     } else {
       const canMove = r.state === RobotState.STANDING || r.state === RobotState.WALKING;
       if (canMove) {
@@ -144,48 +150,31 @@ export default class GameScene extends Phaser.Scene {
   }
 
   /**
-   * Smoothly zoom from ×4 to ×2, keeping the ground anchored at the
-   * bottom of the screen.  Formula: scrollY = VH − 720/zoom.
+   * Zoom ×4 → ×2, keeping ground anchored at screen bottom.
+   * startFollow stays active for X; followOffset.y is recalculated
+   * each tween frame so scrollY = VH − viewH stays exact.
+   * Starts immediately when the robot begins getting up.
    */
   _zoomOut() {
     const cam     = this.cameras.main;
+    const VH      = 180;
     const WORLD_W = 3000;
 
-    // Stop Phaser's built-in follow — we take over in _trackCamera()
-    cam.stopFollow();
-    this._manualCamera = true;
-
-    // Expand Y bounds so the camera can scroll into negative world-Y space
+    // Allow camera to scroll into negative world-Y (empty space above world)
     cam.setBounds(0, -720, WORLD_W, 900);
 
     this.tweens.add({
       targets:  cam,
       zoom:     2,
-      duration: 2000,
+      duration: 2800,   // covers the full get-up animation (≈ 2850 ms)
       ease:     'Sine.InOut',
+      onUpdate: () => {
+        const viewH = 720 / cam.zoom;
+        // Keep ground (VH) at screen bottom: scrollY = VH − viewH
+        // Via follow: scrollY = robot.y − viewH/2 + offsetY → offsetY = VH − viewH/2 − robot.y
+        cam.setFollowOffset(-80, VH - viewH / 2 - this.robot.y);
+      },
     });
-  }
-
-  /**
-   * Manual camera tracking — runs every frame via postupdate.
-   * Keeps ground at screen bottom and robot at ~1/4 from left.
-   */
-  _trackCamera() {
-    if (!this._manualCamera) return;
-    const cam    = this.cameras.main;
-    const VH     = 180;
-    const WORLD_W = 3000;
-    const viewW  = 1280 / cam.zoom;
-
-    // scrollY: world bottom (VH) stays at screen bottom (720)
-    cam.scrollY = VH - 720 / cam.zoom;
-
-    // scrollX: robot at 25% from left, clamped to world bounds
-    cam.scrollX = Phaser.Math.Clamp(
-      this.robot.x - viewW * 0.25,
-      0,
-      WORLD_W - viewW,
-    );
   }
 
   /** Called once after 10 space presses — activates the robot. */
