@@ -16,19 +16,24 @@ export default class UIScene extends Phaser.Scene {
   }
 
   create() {
-    const W = 1280;
-    const H = 720;
-    const BH = 80; // band height
+    const W  = 1280;
+    const H  = 720;
+    const BW = W * 0.8;  // 80% of screen width = 1024px
+    const BH = 80;       // band height
 
-    // White band at the bottom
-    this._bg = this.add.rectangle(W / 2, H, W, BH, 0xffffff)
-      .setOrigin(0.5, 1);
+    // Ground occupies screen y 480–720 (60 virtual px × zoom 4).
+    // Place the band at its vertical midpoint: y = (480 + 720) / 2 = 600.
+    const BY = 600;
+
+    // White band centred on the ground strip
+    this._bg = this.add.rectangle(W / 2, BY, BW, BH, 0xffffff)
+      .setOrigin(0.5, 0.5);
 
     // Text centred inside the band
-    this._text = this.add.text(W / 2, H - BH / 2, 'Test...', {
+    this._text = this.add.text(W / 2, BY, 'Test...', {
       fontSize: '24px',
       color: '#000000',
-      wordWrap: { width: W - 40 },
+      wordWrap: { width: BW - 40 },
     }).setOrigin(0.5, 0.5);
 
     // Listen for events from GameScene
