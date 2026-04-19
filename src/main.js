@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import GameScene from './scenes/GameScene.js';
+import UIScene   from './scenes/UIScene.js';
 
 // Virtual resolution — pixel art world
 // Camera zoom x4 means 1 pixel here = 4 pixels on screen
@@ -24,7 +25,7 @@ const config = {
       debug: false,
     },
   },
-  scene: [GameScene],
+  scene: [GameScene, UIScene],
 };
 
 new Phaser.Game(config);
