@@ -74,12 +74,13 @@ export default class GameScene extends Phaser.Scene {
 
     // ── Robot — starts lying on the ground ───────────────────────────────
     this.robot = new Robot(this, 200, GROUND_Y);
+    this.robot.setDepth(10);
     this.physics.add.collider(this.robot.body_proxy, groundBody);
 
-    // ── Skull ─────────────────────────────────────────────────────────────
-    this._skull       = new Skull(this, 300, GROUND_Y);
-    this._skullPushed = false;
-    this.physics.add.collider(this._skull.proxy, groundBody);
+    // ── Skull pyramid ─────────────────────────────────────────────────────
+    this._skulls           = [];
+    this._pyramidTriggered = false;
+    this._buildSkullPyramid(500, GROUND_Y, groundBody);
 
     // ── Silent mode — ?nosounds in URL disables all audio ────────────────
     this._silent = new URLSearchParams(window.location.search).has('nosounds');
@@ -169,30 +170,77 @@ export default class GameScene extends Phaser.Scene {
   }
 
   /**
-   * Detect when the robot (Arcade) crawls into the skull (Matter) and
-   * apply a one-shot impulse via Matter.Body.setVelocity.
+   * Build a pyramid of skulls: 8 at base, 7 on top, …, 1 at apex.
+   * @param {number} centerX   world x of the pyramid centre
+   * @param {number} groundY   world y of the surface (skull bases rest here)
+   * @param groundBody         static Arcade body used for colliders
+   */
+  _buildSkullPyramid(centerX, groundY, groundBody) {
+    const ROWS    = 8;
+    const SKULL_W = 16;   // visual / spacing width
+    const SKULL_H = 14;   // row height (proxy height)
+
+    for (let row = 0; row < ROWS; row++) {
+      const count = ROWS - row;           // 8, 7, 6 … 1
+      const y     = groundY - row * SKULL_H;
+      // Centre the row horizontally
+      const startX = centerX - ((count - 1) * SKULL_W) / 2;
+
+      for (let col = 0; col < count; col++) {
+        const x = startX + col * SKULL_W;
+        const skull = new Skull(this, x, y);
+        this.physics.add.collider(skull.proxy, groundBody);
+        this._skulls.push(skull);
+      }
+    }
+  }
+
+  /**
+   * Detect when the robot contacts the front skull in the pyramid and
+   * trigger a ripple collapse.
    */
   _checkSkullCollision() {
-    if (!this._skull) return;
+    if (this._pyramidTriggered || !this._skulls.length) return;
 
     const r  = this.robot;
     const vx = r.body_proxy.body.velocity.x;
+    if (vx <= 0) return;   // only trigger on rightward movement
 
-    // Rightmost extent of the robot: max of physics proxy right edge and head right edge.
-    // Head local x = 9, width = 6 → world right = robot.x + (9 + 3) * |scaleX| = robot.x + 36
+    // Rightmost extent of the robot
     const proxyRight = r.body_proxy.body.right;
     const headRight  = r.x + (r.head.x + r.head.width / 2) * Math.abs(r.scaleX);
     const robotRight = Math.max(proxyRight, headRight);
 
-    // Left edge of skull physics body
-    const skullLeft = this._skull.proxy.body.left;
-    const gap       = skullLeft - robotRight;
+    for (const skull of this._skulls) {
+      if (skull._activated) continue;
+      const gap = skull.proxy.body.left - robotRight;
+      if (gap < 4 && gap > -12) {
+        this._pyramidTriggered = true;
+        this._triggerCascade(skull);
+        return;
+      }
+    }
+  }
 
-    if (gap < 4 && gap > -12 && vx > 0 && !this._skullPushed) {
-      this._skullPushed = true;
-      this._skull.push(1);
-    } else if (gap > 15) {
-      this._skullPushed = false;
+  /**
+   * Ripple collapse: skulls closer to the hit point fly first.
+   * Delay per skull = distance × 8 ms.  Direction = away from hit point.
+   * @param {Skull} hitSkull   the skull the robot first touched
+   */
+  _triggerCascade(hitSkull) {
+    const hx = hitSkull.x;
+    const hy = hitSkull.y;
+
+    for (const skull of this._skulls) {
+      const dx    = skull.x - hx;
+      const dy    = skull.y - hy;
+      const dist  = Math.sqrt(dx * dx + dy * dy);
+      const delay = dist * 8;
+      const angle = Math.atan2(dy, dx);
+
+      this.time.delayedCall(delay, () => {
+        skull.push(1 + (1 / (dist + 1)), angle);
+      });
     }
   }
 

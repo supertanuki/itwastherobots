@@ -3,17 +3,18 @@ import Phaser from 'phaser';
 /**
  * Skull — human skull with an Arcade physics body.
  *
- * Visual size: ~16×18 virtual pixels (matches robot head at scale 3).
- * Container origin is at the skull base (ground level).
- * Physics body proxy is 14×16 px centred 8 virtual px above ground.
+ * Starts frozen (no gravity, immovable) so it can be stacked in a pyramid
+ * without jitter.  Call push() to activate physics and launch it.
  *
- * Call skull.push(strength) to knock it away.
+ * Visual size: ~16 wide × 18 tall virtual pixels.
+ * Container origin is at the skull base (ground level).
+ * Physics proxy: 14 wide × 14 tall px, centre 7 px above groundY.
  */
 export default class Skull extends Phaser.GameObjects.Container {
   /**
    * @param {Phaser.Scene} scene
    * @param {number} x        world x (virtual pixels)
-   * @param {number} groundY  world y of the ground surface
+   * @param {number} groundY  world y of the surface this skull rests on
    */
   constructor(scene, x, groundY) {
     super(scene, x, groundY);
@@ -24,47 +25,60 @@ export default class Skull extends Phaser.GameObjects.Container {
     this._drawSkull(g);
     this.add(g);
 
-    // ── Arcade physics body proxy (same pattern as Robot.body_proxy) ──────
-    // Center is 8 px above ground so the body base aligns with groundY
-    this._proxy = scene.add.rectangle(x, groundY - 8, 14, 16, 0x000000, 0);
+    // ── Arcade physics proxy ──────────────────────────────────────────────
+    // 14×14 px rectangle; centre at groundY-7 so bottom aligns with groundY
+    this._proxy = scene.add.rectangle(x, groundY - 7, 14, 14, 0x000000, 0);
     scene.physics.add.existing(this._proxy);
-    const body = this._proxy.body;
+    const body = /** @type {Phaser.Physics.Arcade.Body} */ (this._proxy.body);
     body.setCollideWorldBounds(true);
-    body.setDragX(150);       // friction — skull slides then stops
-    body.setBounce(0, 0.2);   // slight bounce off ground only
+    body.setDragX(120);
+    body.setBounce(0, 0.18);
+    // Start frozen — activated on push()
+    body.setAllowGravity(false);
+    body.setImmovable(true);
 
-    // Sync container to physics proxy every frame
+    this._activated = false;
+
     scene.events.on('update', this._sync, this);
   }
 
-  // ─── Physics proxy accessor (for colliders in GameScene) ─────────────────
+  // ─── Accessor ─────────────────────────────────────────────────────────────
 
   get proxy() { return this._proxy; }
 
   // ─── Sync ─────────────────────────────────────────────────────────────────
 
   _sync() {
-    // proxy.x/y is the game-object centre; container origin = ground level
-    this.setPosition(this._proxy.x, this._proxy.y + 8);
+    // proxy centre y = groundY - 7; container origin = groundY → offset +7
+    this.setPosition(this._proxy.x, this._proxy.y + 7);
   }
 
   // ─── Push ─────────────────────────────────────────────────────────────────
 
   /**
-   * Knock the skull away to the right with a physical impulse.
-   * @param {number} [strength=1]
+   * Activate physics and launch the skull in the given world-space angle.
+   * @param {number} [strength=1]    velocity multiplier
+   * @param {number} [waveAngle=0]   radians, 0 = rightward
    */
-  push(strength = 1) {
-    // Horizontal kick + small upward component
-    // Cast: physics.add.existing() without true = dynamic body, setVelocity exists
-    /** @type {Phaser.Physics.Arcade.Body} */ (this._proxy.body).setVelocity(70 * strength, -35 * strength);
+  push(strength = 1, waveAngle = 0) {
+    if (this._activated) return;
+    this._activated = true;
 
-    // Visual tumble — Arcade has no angular velocity, so use a tween
+    const body = /** @type {Phaser.Physics.Arcade.Body} */ (this._proxy.body);
+    body.setAllowGravity(true);
+    body.setImmovable(false);
+
+    const speed = (45 + Math.random() * 35) * strength;
+    // Mix radial direction with a rightward bias so skulls scatter forward
+    const vx = (Math.cos(waveAngle) * 0.6 + 0.4) * speed + (Math.random() - 0.5) * 15;
+    const vy = Math.sin(waveAngle) * speed - 18 - Math.random() * 10;
+    body.setVelocity(vx, vy);
+
     this.scene.tweens.killTweensOf(this);
     this.scene.tweens.add({
       targets:  this,
-      angle:    50,
-      duration: 500,
+      angle:    (Math.random() - 0.4) * 160,
+      duration: 600,
       ease:     'Sine.easeOut',
     });
   }
@@ -74,29 +88,17 @@ export default class Skull extends Phaser.GameObjects.Container {
   _drawSkull(g) {
     // ── White parts ──
     g.fillStyle(0xffffff, 1);
-
-    // Cranium — oval, 16 wide × 12 tall, centre y = -12
-    g.fillEllipse(0, -12, 16, 12);
-
-    // Jaw — rectangle 8×4 just below the cranium
-    g.fillRect(-4, -7, 8, 4);
+    g.fillEllipse(0, -12, 16, 12);   // cranium
+    g.fillRect(-4, -7, 8, 4);         // jaw
 
     // ── Black holes ──
     g.fillStyle(0x000000, 1);
-
-    // Left eye socket  (3×4)
-    g.fillRect(-5, -15, 3, 4);
-
-    // Right eye socket (3×4)
-    g.fillRect(2, -15, 3, 4);
-
-    // Nose cavity      (2×2)
-    g.fillRect(-1, -10, 2, 2);
-
-    // Teeth gaps — three vertical black slits at the bottom of the jaw
-    g.fillRect(-3, -6, 1, 2);   // left
-    g.fillRect(-1, -6, 2, 2);   // centre
-    g.fillRect(2,  -6, 1, 2);   // right
+    g.fillRect(-5, -15, 3, 4);        // left eye socket
+    g.fillRect(2,  -15, 3, 4);        // right eye socket
+    g.fillRect(-1, -10, 2, 2);        // nose cavity
+    g.fillRect(-3, -6,  1, 2);        // teeth left
+    g.fillRect(-1, -6,  2, 2);        // teeth centre
+    g.fillRect(2,  -6,  1, 2);        // teeth right
   }
 
   // ─── Cleanup ──────────────────────────────────────────────────────────────
