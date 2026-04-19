@@ -21,9 +21,7 @@ export default class Skull extends Phaser.GameObjects.Container {
     scene.add.existing(this);
 
     // ── Visuals ───────────────────────────────────────────────────────────
-    const g = scene.add.graphics();
-    this._drawSkull(g);
-    this.add(g);
+    this._buildParts();
 
     // ── Arcade physics proxy ──────────────────────────────────────────────
     // 14×14 px rectangle; centre at groundY-7 so bottom aligns with groundY
@@ -45,6 +43,35 @@ export default class Skull extends Phaser.GameObjects.Container {
   // ─── Accessor ─────────────────────────────────────────────────────────────
 
   get proxy() { return this._proxy; }
+
+  // ─── Build parts ──────────────────────────────────────────────────────────
+
+  /**
+   * Build skull from individual Shape objects so their fill colour can be
+   * tweened later.  White parts are stored in this._whiteParts.
+   *
+   * fillRect(x, y, w, h) uses top-left origin →
+   * Phaser Rectangle/Ellipse uses centre origin → cx = x+w/2, cy = y+h/2.
+   */
+  _buildParts() {
+    const add = (obj) => { this.add(obj); return obj; };
+
+    // White parts — will be darkened on push()
+    this._whiteParts = [
+      add(this.scene.add.ellipse(0, -12, 16, 12, 0xffffff)),   // cranium
+      add(this.scene.add.rectangle(0, -5, 8, 4, 0xffffff)),    // jaw
+    ];
+
+    // Black holes — static
+    [
+      this.scene.add.rectangle(-3.5, -13, 3, 4, 0x000000),     // left eye socket
+      this.scene.add.rectangle( 3.5, -13, 3, 4, 0x000000),     // right eye socket
+      this.scene.add.rectangle( 0,   -9,  2, 2, 0x000000),     // nose cavity
+      this.scene.add.rectangle(-2.5, -5,  1, 2, 0x000000),     // teeth left
+      this.scene.add.rectangle( 0,   -5,  2, 2, 0x000000),     // teeth centre
+      this.scene.add.rectangle( 2.5, -5,  1, 2, 0x000000),     // teeth right
+    ].forEach(r => add(r));
+  }
 
   // ─── Sync ─────────────────────────────────────────────────────────────────
 
@@ -81,24 +108,24 @@ export default class Skull extends Phaser.GameObjects.Container {
       duration: 600,
       ease:     'Sine.easeOut',
     });
-  }
 
-  // ─── Draw ─────────────────────────────────────────────────────────────────
-
-  _drawSkull(g) {
-    // ── White parts ──
-    g.fillStyle(0xffffff, 1);
-    g.fillEllipse(0, -12, 16, 12);   // cranium
-    g.fillRect(-4, -7, 8, 4);         // jaw
-
-    // ── Black holes ──
-    g.fillStyle(0x000000, 1);
-    g.fillRect(-5, -15, 3, 4);        // left eye socket
-    g.fillRect(2,  -15, 3, 4);        // right eye socket
-    g.fillRect(-1, -10, 2, 2);        // nose cavity
-    g.fillRect(-3, -6,  1, 2);        // teeth left
-    g.fillRect(-1, -6,  2, 2);        // teeth centre
-    g.fillRect(2,  -6,  1, 2);        // teeth right
+    // Darken the white parts over 1s via colour interpolation
+    const colorProxy = { t: 0 };
+    const from = Phaser.Display.Color.ValueToColor(0xffffff);
+    const to   = Phaser.Display.Color.ValueToColor(0x888888);
+    this.scene.tweens.add({
+      targets:  colorProxy,
+      t:        1,
+      duration: 1000,
+      ease:     'Sine.easeIn',
+      onUpdate: () => {
+        const c   = Phaser.Display.Color.Interpolate.ColorWithColor(from, to, 1, colorProxy.t);
+        const hex = Phaser.Display.Color.GetColor(c.r, c.g, c.b);
+        for (const part of this._whiteParts) {
+          part.setFillStyle(hex);
+        }
+      },
+    });
   }
 
   // ─── Cleanup ──────────────────────────────────────────────────────────────
