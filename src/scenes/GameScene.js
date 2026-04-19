@@ -76,8 +76,10 @@ export default class GameScene extends Phaser.Scene {
     this.robot = new Robot(this, 200, GROUND_Y);
     this.physics.add.collider(this.robot.body_proxy, groundBody);
 
-    // ── Skull — decorative object to the right of the starting position ───
-    new Skull(this, 300, GROUND_Y);
+    // ── Skull ─────────────────────────────────────────────────────────────
+    this._skull       = new Skull(this, 300, GROUND_Y);
+    this._skullPushed = false;
+    this.physics.add.collider(this._skull.proxy, groundBody);
 
     // ── Silent mode — ?nosounds in URL disables all audio ────────────────
     this._silent = new URLSearchParams(window.location.search).has('nosounds');
@@ -162,6 +164,36 @@ export default class GameScene extends Phaser.Scene {
     }
 
     r.update(this.game.loop.delta);
+
+    this._checkSkullCollision();
+  }
+
+  /**
+   * Detect when the robot (Arcade) crawls into the skull (Matter) and
+   * apply a one-shot impulse via Matter.Body.setVelocity.
+   */
+  _checkSkullCollision() {
+    if (!this._skull) return;
+
+    const r  = this.robot;
+    const vx = r.body_proxy.body.velocity.x;
+
+    // Rightmost extent of the robot: max of physics proxy right edge and head right edge.
+    // Head local x = 9, width = 6 → world right = robot.x + (9 + 3) * |scaleX| = robot.x + 36
+    const proxyRight = r.body_proxy.body.right;
+    const headRight  = r.x + (r.head.x + r.head.width / 2) * Math.abs(r.scaleX);
+    const robotRight = Math.max(proxyRight, headRight);
+
+    // Left edge of skull physics body
+    const skullLeft = this._skull.proxy.body.left;
+    const gap       = skullLeft - robotRight;
+
+    if (gap < 4 && gap > -12 && vx > 0 && !this._skullPushed) {
+      this._skullPushed = true;
+      this._skull.push(1);
+    } else if (gap > 15) {
+      this._skullPushed = false;
+    }
   }
 
   /**
