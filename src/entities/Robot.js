@@ -367,6 +367,7 @@ export default class Robot extends Phaser.GameObjects.Container {
       this._tweenToStanding(() => {
         this.state = RobotState.STANDING;
         this._startSway();
+        this.scene.events.emit('robot-stood-up');
       });
     });
   }
