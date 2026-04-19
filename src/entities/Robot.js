@@ -66,6 +66,10 @@ export default class Robot extends Phaser.GameObjects.Container {
     this._buildParts();
     this._initSparks();
     this._poseLying();
+
+    // Start dormant — eye gray, blink suspended until activate() is called
+    this._dormant = true;
+    this.eye.setFillStyle(0x444444);
     this._scheduleBlink();
     // Scale x3 so the robot fills ~half the virtual screen height (31 local px × 3 = 93px ≈ VH/2)
     this.setScale(3, 3);
@@ -134,12 +138,29 @@ export default class Robot extends Phaser.GameObjects.Container {
 
   _scheduleBlink() {
     this.scene.time.delayedCall(Phaser.Math.Between(2000, 3000), () => {
+      if (this._dormant) return;                                // suspended while dormant
       this.eye.setFillStyle(0x222222);                          // dim
       this.scene.time.delayedCall(120, () => {
+        if (this._dormant) return;
         this.eye.setFillStyle(0xff2200);                        // reopen
         this._scheduleBlink();                                  // reschedule
       });
     });
+  }
+
+  /** Flash the eye red for 100 ms then back to gray (dormant wake-up hint). */
+  flickerEye() {
+    this.eye.setFillStyle(0xff2200);
+    this.scene.time.delayedCall(100, () => {
+      if (this._dormant) this.eye.setFillStyle(0x444444);
+    });
+  }
+
+  /** Wake the robot up: eye stays red, normal blink cycle resumes. */
+  activate() {
+    this._dormant = false;
+    this.eye.setFillStyle(0xff2200);
+    this._scheduleBlink();
   }
 
   // ─── Sparks ───────────────────────────────────────────────────────────────

@@ -18,8 +18,8 @@ export default class UIScene extends Phaser.Scene {
   preload() {
     this.load.bitmapFont(
       'subtitle',
-      'fonts/FreePixelStrokeShadow-16.png',
-      'fonts/FreePixelStrokeShadow-16.xml',
+      'fonts/FreePixel-16.png',
+      'fonts/FreePixel-16.xml',
     );
   }
 
@@ -33,20 +33,44 @@ export default class UIScene extends Phaser.Scene {
     // Place the band at its vertical midpoint: y = (480 + 720) / 2 = 600.
     const BY = 600;
 
-    // Text centered
-    this._text = this.add.bitmapText(W / 2, BY, 'subtitle', 'Test...', 32)
+    // ── Instruction band — black bg, white text (shown from the start) ───
+    this._instrBg = this.add.rectangle(W / 2, BY, BW, BH, 0x000000)
+      .setOrigin(0.5, 0.5);
+
+    this._instrText = this.add.bitmapText(W / 2, BY, 'subtitle', 'Presser la touche espace plusieurs fois', 16)
       .setOrigin(0.5, 0.5)
+      .setTint(0xffffff)
       .setMaxWidth(BW - 40);
 
-    // Listen for events from GameScene
+    // ── Speech band — white bg, black text (hidden until robot speaks) ───
+    this._bg = this.add.rectangle(W / 2, BY, BW, BH, 0xffffff)
+      .setOrigin(0.5, 0.5)
+      .setAlpha(0);
+
+    this._text = this.add.bitmapText(W / 2, BY, 'subtitle', '', 16)
+      .setOrigin(0.5, 0.5)
+      .setTintFill(0x000000)
+      .setMaxWidth(BW - 40)
+      .setAlpha(0);
+
+    // ── Events ────────────────────────────────────────────────────────────
+    this.game.events.on('instruction-hide', () => {
+      this.tweens.add({
+        targets: [this._instrBg, this._instrText],
+        alpha: 0,
+        duration: 400,
+      });
+    }, this);
+
     this.game.events.on('subtitle-show', ({ text }) => {
       this._text.setText(text);
+      this._bg.setAlpha(1);
       this._text.setAlpha(1);
     }, this);
 
     this.game.events.on('subtitle-hide', () => {
       this.tweens.add({
-        targets: [this._text],
+        targets: [this._bg, this._text],
         alpha: 0,
         duration: 800,
       });

@@ -71,11 +71,12 @@ export default class GameScene extends Phaser.Scene {
     // ── Silent mode — ?nosounds in URL disables all audio ────────────────
     this._silent = new URLSearchParams(window.location.search).has('nosounds');
 
-    // ── Launch UI overlay (subtitles) ────────────────────────────────────
-    this.scene.launch('UIScene');
+    // ── Wake-up state ─────────────────────────────────────────────────────
+    this._wakeCount = 0;   // space presses so far
+    this._awake     = false;
 
-    // ── Robot wakes up — speak with a robotic voice ───────────────────────
-    this._robotSpeak('Mais... Où je suis ? ... Que s\'est-il passé ?');
+    // ── Launch UI overlay (subtitles + instruction) ───────────────────────
+    this.scene.launch('UIScene');
 
     // ── Camera follows the robot ──────────────────────────────────────────
     this.cameras.main.startFollow(this.robot, true);
@@ -100,7 +101,20 @@ export default class GameScene extends Phaser.Scene {
     const r = this.robot;
 
     if (Phaser.Input.Keyboard.JustDown(this.keySpace)) {
-      if (r.state === RobotState.LYING) r.getUp();
+      if (!this._awake) {
+        this._wakeCount++;
+        r.flickerEye();
+        if (this._wakeCount >= 10) this._wakeUp(r);
+      } else if (r.state === RobotState.LYING) {
+        r.getUp();
+      }
+    }
+
+    // Block all movement until the robot is awake
+    if (!this._awake) {
+      r.setMoveIntent(0);
+      r.update(this.game.loop.delta);
+      return;
     }
 
     if (r.state === RobotState.LYING) {
@@ -122,6 +136,14 @@ export default class GameScene extends Phaser.Scene {
     }
 
     r.update(this.game.loop.delta);
+  }
+
+  /** Called once after 10 space presses — activates the robot. */
+  _wakeUp(r) {
+    this._awake = true;
+    r.activate();
+    this.game.events.emit('instruction-hide');
+    this._robotSpeak('Mais... Où je suis ? ... Que s\'est-il passé ?');
   }
 
   /**
