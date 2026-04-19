@@ -161,6 +161,20 @@ export default class Robot extends Phaser.GameObjects.Container {
     this._dormant = false;
     this.eye.setFillStyle(0xff2200);
     this._scheduleBlink();
+    this._burstSparks();
+  }
+
+  /** Several spark bursts spread over ~1s to mark the wake-up moment. */
+  _burstSparks() {
+    const burst = () => {
+      const sx = this.x + this.torso.x * Math.abs(this.scaleX);
+      const sy = this.y + this.torso.y * this.scaleY;
+      this._sparks.explode(Phaser.Math.Between(12, 20), sx, sy);
+    };
+    burst();
+    this.scene.time.delayedCall(200, burst);
+    this.scene.time.delayedCall(500, burst);
+    this.scene.time.delayedCall(900, burst);
   }
 
   // ─── Sparks ───────────────────────────────────────────────────────────────

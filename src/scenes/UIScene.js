@@ -33,6 +33,24 @@ export default class UIScene extends Phaser.Scene {
     // Place the band at its vertical midpoint: y = (480 + 720) / 2 = 600.
     const BY = 600;
 
+    // ── Vignette — radial gradient transparent→black, covers full screen ─
+    // Large enough so all four corners of 1280×720 are fully black.
+    // (max corner distance from center ≈ 724 px; use 800px radius to be safe)
+    const vigR   = 800;
+    const vigSz  = vigR * 2;
+    const canvas = document.createElement('canvas');
+    canvas.width  = vigSz;
+    canvas.height = vigSz;
+    const ctx  = canvas.getContext('2d');
+    const grad = ctx.createRadialGradient(vigR, vigR, 0, vigR, vigR, vigR);
+    grad.addColorStop(0,   'rgba(0,0,0,0)');
+    grad.addColorStop(1,   'rgba(0,0,0,1)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, vigSz, vigSz);
+    this.textures.addCanvas('vignette', canvas);
+    // Robot sits at roughly (560, 480) on screen (camera follow offset –80)
+    this._vignette = this.add.image(560, 480, 'vignette');
+
     // ── Instruction band — black bg, white text (shown from the start) ───
     this._instrBg = this.add.rectangle(W / 2, BY, BW, BH, 0x000000)
       .setOrigin(0.5, 0.5);
