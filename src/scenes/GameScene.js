@@ -18,14 +18,6 @@ export default class GameScene extends Phaser.Scene {
     super('GameScene');
   }
 
-  preload() {
-    this.load.bitmapFont(
-      'subtitle',
-      'fonts/FreePixelStrokeShadow-16.png',
-      'fonts/FreePixelStrokeShadow-16.xml',
-    );
-  }
-
   create() {
     // ── Virtual world dimensions ──────────────────────────────────────────
     const VW      = 320;

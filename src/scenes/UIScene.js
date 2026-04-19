@@ -15,6 +15,14 @@ export default class UIScene extends Phaser.Scene {
     super({ key: 'UIScene', active: false });
   }
 
+  preload() {
+    this.load.bitmapFont(
+      'subtitle',
+      'fonts/FreePixelStrokeShadow-16.png',
+      'fonts/FreePixelStrokeShadow-16.xml',
+    );
+  }
+
   create() {
     const W  = 1280;
     const H  = 720;
@@ -29,12 +37,10 @@ export default class UIScene extends Phaser.Scene {
     this._bg = this.add.rectangle(W / 2, BY, BW, BH, 0xffffff)
       .setOrigin(0.5, 0.5);
 
-    // Text centred inside the band
-    this._text = this.add.text(W / 2, BY, 'Test...', {
-      fontSize: '24px',
-      color: '#000000',
-      wordWrap: { width: BW - 40 },
-    }).setOrigin(0.5, 0.5);
+    // Text centred inside the band (bitmap font, 16px)
+    this._text = this.add.bitmapText(W / 2, BY, 'subtitle', 'Test...', 16)
+      .setOrigin(0.5, 0.5)
+      .setMaxWidth(BW - 40);
 
     // Listen for events from GameScene
     this.game.events.on('subtitle-show', ({ text }) => {
