@@ -76,6 +76,9 @@ export default class GameScene extends Phaser.Scene {
     this.robot = new Robot(this, 200, GROUND_Y);
     this.physics.add.collider(this.robot.body_proxy, groundBody);
 
+    // ── Silent mode — ?nosounds in URL disables all audio ────────────────
+    this._silent = new URLSearchParams(window.location.search).has('nosounds');
+
     // ── Launch UI overlay (subtitles) ────────────────────────────────────
     this.scene.launch('UIScene');
 
@@ -140,7 +143,7 @@ export default class GameScene extends Phaser.Scene {
       this.game.events.emit('subtitle-hide');
     };
 
-    if (!window.speechSynthesis) {
+    if (this._silent || !window.speechSynthesis) {
       this.time.delayedCall(4000, fadeOut);
       return;
     }
