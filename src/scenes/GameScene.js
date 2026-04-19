@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import Robot, { RobotState } from '../entities/Robot.js';
+import Skull from '../entities/Skull.js';
 import i18n from '../i18n.js';
 
 /**
@@ -74,6 +75,9 @@ export default class GameScene extends Phaser.Scene {
     // ── Robot — starts lying on the ground ───────────────────────────────
     this.robot = new Robot(this, 200, GROUND_Y);
     this.physics.add.collider(this.robot.body_proxy, groundBody);
+
+    // ── Skull — decorative object to the right of the starting position ───
+    new Skull(this, 300, GROUND_Y);
 
     // ── Silent mode — ?nosounds in URL disables all audio ────────────────
     this._silent = new URLSearchParams(window.location.search).has('nosounds');
