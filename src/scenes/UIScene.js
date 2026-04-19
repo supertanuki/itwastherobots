@@ -43,8 +43,8 @@ export default class UIScene extends Phaser.Scene {
     canvas.height = vigSz;
     const ctx  = canvas.getContext('2d');
     const grad = ctx.createRadialGradient(vigR, vigR, 0, vigR, vigR, vigR);
-    grad.addColorStop(0,   'rgba(0,0,0,0)');
-    grad.addColorStop(1,   'rgba(0,0,0,1)');
+    grad.addColorStop(0, 'rgba(0,0,0,0)');
+    grad.addColorStop(1, 'rgba(0,0,0,1)');
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, vigSz, vigSz);
     this.textures.addCanvas('vignette', canvas);

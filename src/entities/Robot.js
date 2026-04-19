@@ -66,6 +66,7 @@ export default class Robot extends Phaser.GameObjects.Container {
     this._buildParts();
     this._initSparks();
     this._poseLying();
+    this._poseGrounded(); // head/leg/foot start flat at ground level
 
     // Start dormant — eye gray, blink suspended until activate() is called
     this._dormant = true;
@@ -162,6 +163,7 @@ export default class Robot extends Phaser.GameObjects.Container {
     this.eye.setFillStyle(0xff2200);
     this._scheduleBlink();
     this._burstSparks();
+    this._animateFromGrounded();
   }
 
   /** Several spark bursts spread over ~1s to mark the wake-up moment. */
@@ -339,6 +341,37 @@ export default class Robot extends Phaser.GameObjects.Container {
     this.kneeR.setPosition(-7,  -3);   this.kneeR.setAngle(-75);
     this.shoulderL.setPosition(-3, -2); this.shoulderL.setAngle(-20);
     this.hipL.setPosition(-4,  -2);    this.hipL.setAngle(-25);
+  }
+
+  /**
+   * Override head, leg and foot to y=0 (flat on the ground) for the
+   * dormant start state. Called once after _poseLying().
+   */
+  _poseGrounded() {
+    this.head.setY(-2);
+    this.neck.setY(-2);
+    this.upperLegR.setY(-2);
+    this.lowerLegR.setY(-2);
+    this.footR.setY(-1);
+    this.hipR.setY(-2);
+    this.kneeR.setY(-2);
+  }
+
+  /**
+   * Slow tween: head/leg/foot rise from ground level back to lying pose.
+   * Called once on wake-up, before the crawl/get-up phase.
+   */
+  _animateFromGrounded() {
+    const T    = this.scene.tweens;
+    const dur  = 1600;
+    const ease = 'Sine.easeOut';
+    T.add({ targets: this.head,      y: -5,  duration: dur, ease });
+    T.add({ targets: this.neck,      y: -5,  duration: dur, ease });
+    T.add({ targets: this.upperLegR, y: -3,  duration: dur, ease });
+    T.add({ targets: this.lowerLegR, y: -3,  duration: dur, ease });
+    T.add({ targets: this.footR,     y: -1,  duration: dur, ease });
+    T.add({ targets: this.hipR,      y: -3,  duration: dur, ease });
+    T.add({ targets: this.kneeR,     y: -3,  duration: dur, ease });
   }
 
   // ─── Animations ───────────────────────────────────────────────────────────
