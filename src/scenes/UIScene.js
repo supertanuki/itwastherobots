@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import i18n from '../i18n.js';
 
 /**
  * UIScene — overlay scene for HUD / subtitles.
@@ -29,9 +30,9 @@ export default class UIScene extends Phaser.Scene {
     const BW = W * 0.8;  // 80% of screen width = 1024px
     const BH = 80;       // band height
 
-    // Ground occupies screen y 480–720 (60 virtual px × zoom 4).
-    // Place the band at its vertical midpoint: y = (480 + 720) / 2 = 600.
-    const BY = 600;
+    // Instruction band: ~1/3 from top. Speech band: near bottom with margin.
+    const BY       = 240;
+    const SPEECH_Y = H - BH / 2 - 24;  // bottom-aligned, 24px margin
 
     // ── Vignette — radial gradient transparent→black, covers full screen ─
     // Large enough so all four corners of 1280×720 are fully black.
@@ -56,29 +57,51 @@ export default class UIScene extends Phaser.Scene {
       .setOrigin(0.5, 0.5);
 
     // 32px instruction text
-    this._instrText = this.add.bitmapText(W / 2, BY, 'subtitle', 'Presser la touche espace plusieurs fois', 32)
+    this._instrText = this.add.bitmapText(W / 2, BY, 'subtitle', i18n.instructionStart, 32)
       .setOrigin(0.5, 0.5)
       .setTint(0xffffff)
       .setMaxWidth(BW - 40);
 
     // ── Speech band — white bg, black text (hidden until robot speaks) ───
-    this._bg = this.add.rectangle(W / 2, BY, BW, BH, 0xffffff)
+    this._bg = this.add.rectangle(W / 2, SPEECH_Y, BW, BH, 0xffffff)
       .setOrigin(0.5, 0.5)
       .setAlpha(0);
 
     // 32px subtitle text
-    this._text = this.add.bitmapText(W / 2, BY, 'subtitle', '', 32)
+    this._text = this.add.bitmapText(W / 2, SPEECH_Y, 'subtitle', '', 32)
       .setOrigin(0.5, 0.5)
       .setTintFill(0x000000)
       .setMaxWidth(BW - 40)
       .setAlpha(0);
 
     // ── Events ────────────────────────────────────────────────────────────
+    // Initial instruction fade-out on wake-up
     this.game.events.on('instruction-hide', () => {
       this.tweens.add({
         targets: [this._instrBg, this._instrText],
         alpha: 0,
         duration: 400,
+      });
+      this.tweens.add({
+        targets:  this._vignette,
+        alpha:    0,
+        duration: 2000,
+      });
+    }, this);
+
+    // Dynamic instruction band (dialogue prompts)
+    this.game.events.on('instr-show', ({ text }) => {
+      this._instrText.setText(text);
+      this.tweens.killTweensOf([this._instrBg, this._instrText]);
+      this._instrBg.setAlpha(1);
+      this._instrText.setAlpha(1);
+    }, this);
+
+    this.game.events.on('instr-hide', () => {
+      this.tweens.add({
+        targets:  [this._instrBg, this._instrText],
+        alpha:    0,
+        duration: 500,
       });
     }, this);
 

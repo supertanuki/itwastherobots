@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import Robot, { RobotState } from '../entities/Robot.js';
+import i18n from '../i18n.js';
 
 /**
  * GameScene — movement test for the broken robot.
@@ -102,7 +103,7 @@ export default class GameScene extends Phaser.Scene {
   update() {
     const r = this.robot;
 
-    if (Phaser.Input.Keyboard.JustDown(this.keySpace) && !this._awake) {
+    if (!this._awake && Phaser.Input.Keyboard.JustDown(this.keySpace)) {
       this._wakeCount++;
       r.flickerEye();
       if (this._wakeCount === 8) {
@@ -135,6 +136,19 @@ export default class GameScene extends Phaser.Scene {
       // Each valid step gives a small forward pulse; input is always checked.
       this._tickCrawlSequence(r);
       r.setMoveIntent(this.time.now < this._crawlActiveUntil ? 1 : 0);
+
+      // SPACE: advance dialogue if active, otherwise get up
+      if (Phaser.Input.Keyboard.JustDown(this.keySpace)) {
+        if (this._dlgWaiting) {
+          this._dlgAdvance();
+        } else {
+          r.getUp();
+          if (!this._zoomedOut) {
+            this._zoomedOut = true;
+            this._zoomOut();
+          }
+        }
+      }
     } else {
       const canMove = r.state === RobotState.STANDING || r.state === RobotState.WALKING;
       if (canMove) {
@@ -183,32 +197,91 @@ export default class GameScene extends Phaser.Scene {
     });
   }
 
-  /** Called once after 10 space presses — activates the robot. */
+  /** Called once after 8 space presses — activates the robot. */
   _wakeUp(r) {
     this._awake = true;
     r.activate();
     this.game.events.emit('instruction-hide');
-    this._robotSpeak('Mais... Où je suis ? ... Que s\'est-il passé ?');
+    this._startDialogue(i18n.dialogueWakeup);
+  }
+
+  // ─── Dialogue system ──────────────────────────────────────────────────────
+
+  /**
+   * Play a sequence of robot lines one at a time.
+   * After 2s each, show "Presser espace pour continuer" — unless the player
+   * already advanced before the 2s timer fires.
+   * @param {string[]} lines
+   */
+  _startDialogue(lines) {
+    this._dlgLines   = lines;
+    this._dlgIndex   = 0;
+    this._dlgWaiting = false;      // true while waiting for SPACE
+    this._dlgTimer   = null;       // delayed-call handle for instruction banner
+    this._dlgInstrOn = false;      // true while instruction banner is visible
+    this._dlgPlayLine();
+  }
+
+  _dlgPlayLine() {
+    const text = this._dlgLines[this._dlgIndex];
+    this._dlgWaiting = false;
+    this._robotSpeak(text, { keepVisible: true });
+
+    // Show "press space" 2s after line starts, unless already advanced
+    this._dlgTimer = this.time.delayedCall(2000, () => {
+      if (!this._dlgWaiting) return;  // already advanced
+      this._dlgInstrOn = true;
+      this.game.events.emit('instr-show', { text: i18n.instructionContinue });
+    });
+
+    this._dlgWaiting = true;
+  }
+
+  /** Called from update() when SPACE is pressed during active dialogue. */
+  _dlgAdvance() {
+    this._dlgWaiting = false;
+
+    if (this._dlgTimer) { this._dlgTimer.remove(); this._dlgTimer = null; }
+
+    if (this._dlgInstrOn) {
+      this.game.events.emit('instr-hide');
+      this._dlgInstrOn = false;
+    }
+
+    this._dlgIndex++;
+    if (this._dlgIndex < this._dlgLines.length) {
+      this._dlgPlayLine();
+    } else {
+      // Dialogue finished — hide subtitle and unlock get-up
+      this._dlgLines   = null;
+      this._dlgWaiting = false;
+      this.game.events.emit('subtitle-hide');
+    }
   }
 
   /**
    * Speak a line using the browser's speech synthesis with a robotic voice.
    * Prefers a French voice; falls back to whatever is available.
+   * @param {string} text
+   * @param {{ keepVisible?: boolean }} opts  — keepVisible: don't auto-hide subtitle
    */
-  _robotSpeak(text) {
+  _robotSpeak(text, { keepVisible = false } = {}) {
+    // Cancel any ongoing speech before starting a new line
+    if (window.speechSynthesis) window.speechSynthesis.cancel();
+
     this.game.events.emit('subtitle-show', { text });
 
     const fadeOut = () => {
-      this.game.events.emit('subtitle-hide');
+      if (!keepVisible) this.game.events.emit('subtitle-hide');
     };
 
     if (this._silent || !window.speechSynthesis) {
-      this.time.delayedCall(4000, fadeOut);
+      if (!keepVisible) this.time.delayedCall(4000, fadeOut);
       return;
     }
 
     const utter = new SpeechSynthesisUtterance(text);
-    utter.lang   = 'fr-FR';
+    utter.lang   = i18n.speechLang;    // e.g. 'fr-FR' or 'en-US'
     utter.rate   = 0.6;  // slow and laboured
     utter.pitch  = 0.1;  // very low = robotic
     utter.volume = 1;
@@ -216,8 +289,8 @@ export default class GameScene extends Phaser.Scene {
 
     const applyVoice = () => {
       const voices = window.speechSynthesis.getVoices();
-      const fr = voices.find(v => v.lang.startsWith('fr'));
-      if (fr) utter.voice = fr;
+      const voice  = voices.find(v => v.lang.startsWith(i18n.speechLangPrefix));
+      if (voice) utter.voice = voice;
       window.speechSynthesis.speak(utter);
     };
 
