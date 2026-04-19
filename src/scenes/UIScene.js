@@ -33,25 +33,20 @@ export default class UIScene extends Phaser.Scene {
     // Place the band at its vertical midpoint: y = (480 + 720) / 2 = 600.
     const BY = 600;
 
-    // White band centred on the ground strip
-    this._bg = this.add.rectangle(W / 2, BY, BW, BH, 0xffffff)
-      .setOrigin(0.5, 0.5);
-
-    // Text centred inside the band (bitmap font, 16px)
-    this._text = this.add.bitmapText(W / 2, BY, 'subtitle', 'Test...', 16)
+    // Text centered
+    this._text = this.add.bitmapText(W / 2, BY, 'subtitle', 'Test...', 32)
       .setOrigin(0.5, 0.5)
       .setMaxWidth(BW - 40);
 
     // Listen for events from GameScene
     this.game.events.on('subtitle-show', ({ text }) => {
       this._text.setText(text);
-      this._bg.setAlpha(1);
       this._text.setAlpha(1);
     }, this);
 
     this.game.events.on('subtitle-hide', () => {
       this.tweens.add({
-        targets: [this._bg, this._text],
+        targets: [this._text],
         alpha: 0,
         duration: 800,
       });
