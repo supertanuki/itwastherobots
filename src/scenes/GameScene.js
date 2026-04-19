@@ -1,6 +1,8 @@
 import Phaser from 'phaser';
 import Robot, { RobotState } from '../entities/Robot.js';
 import Skull from '../entities/Skull.js';
+import DeadRobot from '../entities/DeadRobot.js';
+import Wall from '../entities/Wall.js';
 import i18n from '../i18n.js';
 
 /**
@@ -77,6 +79,11 @@ export default class GameScene extends Phaser.Scene {
     this.robot.setDepth(10);
     this.physics.add.collider(this.robot.body_proxy, groundBody);
 
+    // ── Dead robot + wall ─────────────────────────────────────────────────
+    // Wall added first so it renders behind the robot body
+    new Wall(this, 400, GROUND_Y);
+    this._deadRobot = new DeadRobot(this, 400, GROUND_Y);
+
     // ── Skull pyramid ─────────────────────────────────────────────────────
     this._skulls           = [];
     this._pyramidTriggered = false;
@@ -105,9 +112,14 @@ export default class GameScene extends Phaser.Scene {
     this.keyS    = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S);
     this.keyM    = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.M);
 
-    // Crawl combo state (lying only): right → down → left → up
-    this._crawlStep        = 0;  // current position in the 4-step combo
-    this._crawlActiveUntil = 0;  // animation + velocity play while time.now < this value
+    // Crawl combo state (lying only): right → left alternating
+    this._crawlStep        = 0;
+    this._crawlActiveUntil = 0;
+
+    // Leg-retrieval interaction state
+    // null | 'blocked' | 'instruction' | 'pulling' | 'done'
+    this._legState      = null;
+    this._legPressCount = 0;
   }
 
   update() {
@@ -142,10 +154,52 @@ export default class GameScene extends Phaser.Scene {
     }
 
     if (r.state === RobotState.LYING) {
-      // ── Crawl combo: right → down → left → up ──────────────────────────
-      // Each valid step gives a small forward pulse; input is always checked.
-      this._tickCrawlSequence(r);
-      r.setMoveIntent(this.time.now < this._crawlActiveUntil ? 1 : 0);
+      // ── Leg interaction trigger ───────────────────────────────────────
+      if (this._awake && this._legState === null) {
+        const headWorldX = r.x + r.head.x * Math.abs(r.scaleX);
+        if (headWorldX >= this._deadRobot.x - 10) {
+          this._startLegInteraction();
+        }
+      }
+
+      if (this._legState !== null) {
+        // Blocked at dead robot — stop all forward movement
+        r.body_proxy.body.setVelocityX(0);
+        r.setMoveIntent(0);
+
+        // ↑ / ↓ counting during instruction phase
+        if (this._legState === 'instruction') {
+          const pull = Phaser.Input.Keyboard.JustDown(this.cursors.up)
+                    || Phaser.Input.Keyboard.JustDown(this.cursors.down);
+          if (pull) {
+            this._legPressCount++;
+            // Brief lurch (player robot strains)
+            r.body_proxy.body.setVelocityX(25);
+            this.time.delayedCall(120, () => r.body_proxy.body.setVelocityX(0));
+            this._deadRobot.shake();
+
+            if (this._legPressCount >= 3) {
+              this._legState = 'pulling';
+              this.game.events.emit('instr-hide');
+              this._deadRobot.removeLeg(() => {
+                this._deadRobot.collapse();
+                this.time.delayedCall(1000, () => {
+                  this._legState = 'done';
+                  this.robot.getUp();
+                  if (!this._zoomedOut) {
+                    this._zoomedOut = true;
+                    this._zoomOut();
+                  }
+                });
+              });
+            }
+          }
+        }
+      } else {
+        // Normal crawl
+        this._tickCrawlSequence(r);
+        r.setMoveIntent(this.time.now < this._crawlActiveUntil ? 1 : 0);
+      }
 
       // SPACE: continue dialogue if active
       if (Phaser.Input.Keyboard.JustDown(this.keySpace) && this._dlgWaiting) {
@@ -292,12 +346,31 @@ export default class GameScene extends Phaser.Scene {
    * already advanced before the 2s timer fires.
    * @param {string[]} lines
    */
-  _startDialogue(lines) {
-    this._dlgLines   = lines;
-    this._dlgIndex   = 0;
-    this._dlgWaiting = false;      // true while waiting for SPACE
-    this._dlgTimer   = null;       // delayed-call handle for instruction banner
-    this._dlgInstrOn = false;      // true while instruction banner is visible
+  /** Trigger the leg-retrieval sequence. */
+  _startLegInteraction() {
+    this._legState      = 'blocked';
+    this._legPressCount = 0;
+    // Stop any crawl momentum
+    this.robot.body_proxy.body.setVelocityX(0);
+    this._crawlActiveUntil = 0;
+    this._startDialogue(i18n.dialogueLeg, () => {
+      this._legState = 'instruction';
+      this.game.events.emit('instr-show', { text: i18n.instructionLeg });
+    });
+  }
+
+  /**
+   * Play a sequence of robot lines one at a time.
+   * @param {Array<{text:string,speak:boolean}>} lines
+   * @param {(() => void) | null} [onComplete]  called when all lines are done
+   */
+  _startDialogue(lines, onComplete = null) {
+    this._dlgLines      = lines;
+    this._dlgIndex      = 0;
+    this._dlgWaiting    = false;
+    this._dlgTimer      = null;
+    this._dlgInstrOn    = false;
+    this._dlgOnComplete = onComplete;
     this._dlgPlayLine();
   }
 
@@ -331,10 +404,14 @@ export default class GameScene extends Phaser.Scene {
     if (this._dlgIndex < this._dlgLines.length) {
       this._dlgPlayLine();
     } else {
-      // Dialogue finished — hide subtitle and unlock get-up
       this._dlgLines   = null;
       this._dlgWaiting = false;
       this.game.events.emit('subtitle-hide');
+      if (this._dlgOnComplete) {
+        const cb = this._dlgOnComplete;
+        this._dlgOnComplete = null;
+        cb();
+      }
     }
   }
 

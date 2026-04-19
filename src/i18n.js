@@ -18,6 +18,8 @@ const TEXTS = {
       { text: "Je n'arrive pas à me connecter à mon serveur maitre...", speak: true  },
       { text: "Je pense pouvoir avancer en enchainant ← →",           speak: false },
     ],
+    dialogueLeg:     [{ text: "Je peux récupérer la jambe du robot mort.", speak: true }],
+    instructionLeg:  'Appuyer sur ↑ ↓ pour retirer la jambe.',
   },
   en: {
     instructionStart:    'Press the space key several times',
@@ -29,6 +31,8 @@ const TEXTS = {
       { text: "I can't connect to my master server...",             speak: true  },
       { text: "I think I can crawl forward by alternating ← →",    speak: false },
     ],
+    dialogueLeg:     [{ text: "I can take the dead robot's leg.", speak: true }],
+    instructionLeg:  'Press ↑ ↓ to remove the leg.',
   },
 };
 
