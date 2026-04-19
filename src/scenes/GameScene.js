@@ -76,21 +76,29 @@ export default class GameScene extends Phaser.Scene {
     this.robot = new Robot(this, 200, GROUND_Y);
     this.physics.add.collider(this.robot.body_proxy, groundBody);
 
-    // ── Subtitle text — fixed to screen, bottom-center ───────────────────
-    // Placed inside the ground band (GROUND_Y..VH). setScrollFactor(0) fixes
-    // it to the viewport; setDepth(100) keeps it above all world objects.
-    const SUB_Y = VH - 4;   // 4px above the very bottom in virtual space
-    this._subtitleBg = this.add.rectangle(160, SUB_Y, 322, 24, 0xffffff)
-      .setOrigin(0.5, 1)
-      .setScrollFactor(0)
-      .setDepth(100)
-      .setAlpha(1);
+    // ── Subtitle — fixed UI camera (no zoom, screen pixel coords 1280×720) ─
+    // The main camera has zoom=4 which breaks scrollFactor(0) positioning.
+    // A dedicated UI camera with no zoom solves this cleanly.
+    //
+    // Strategy:
+    //   1. Create UI camera
+    //   2. Tell it to ignore everything created so far (world objects)
+    //   3. Add UI elements — they are invisible to main camera, visible to UI camera
+    this._uiCamera = this.cameras.add(0, 0, 1280, 720, false, 'ui');
+    this._uiCamera.ignore(this.children.list);   // ignore all world objects
 
-    this._subtitleText = this.add.text(160, SUB_Y - 4, 'Test...', { fontSize: '12px', color: '#000000' })
+    this._subtitleBg = this.add.rectangle(640, 720, 1280, 80, 0xffffff)
+      .setDepth(100);
+
+    this._subtitleText = this.add.text(640, 690, 'Test...', {
+      fontSize: '24px',
+      color: '#000000',
+    })
       .setOrigin(0.5, 1)
-      .setScrollFactor(0)
-      .setDepth(101)
-      .setAlpha(1);
+      .setDepth(101);
+
+    // Main camera must ignore these UI elements (otherwise they render zoomed)
+    this.cameras.main.ignore([this._subtitleBg, this._subtitleText]);
 
     // ── Robot wakes up — speak with a robotic voice ───────────────────────
     this._robotSpeak('Mais... Où je suis ? ... Que s\'est-il passé ?');
