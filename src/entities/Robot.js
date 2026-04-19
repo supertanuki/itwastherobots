@@ -236,8 +236,13 @@ export default class Robot extends Phaser.GameObjects.Container {
     this.lowerLegR   = add(3,  7, METAL);
     this.footR       = add(4,  2, METAL);
 
-    // Left leg stub
+    // Left leg stub (visible during lying/crawl only)
     this.legLStub    = add(4,  3, METAL);
+
+    // Full left leg — hidden until the robot retrieves the dead robot's leg
+    this.upperLegL   = add(4,  8, METAL);
+    this.lowerLegL   = add(3,  7, METAL);
+    this.footL       = add(4,  2, METAL);
 
     // ── Connectors — small blocks that fill the gaps between limbs ────────
     this.neck        = add(4,  3, METAL); // head ↔ torso
@@ -245,8 +250,9 @@ export default class Robot extends Phaser.GameObjects.Container {
     this.elbowR      = add(2,  1, METAL); // upper arm ↔ lower arm right
     this.hipR        = add(4,  3, METAL); // torso ↔ upper leg right
     this.kneeR       = add(3,  3, METAL); // upper leg ↔ lower leg right
+    this.kneeL       = add(3,  3, METAL); // upper leg ↔ lower leg left
     this.shoulderL   = add(3,  3, METAL); // torso ↔ arm stub left
-    this.hipL        = add(3,  3, METAL); // torso ↔ leg stub left
+    this.hipL        = add(4,  3, METAL); // torso ↔ upper leg left
 
     // Head and eye last — always on top
     this.head        = add(6,  6, METAL);
@@ -288,18 +294,20 @@ export default class Robot extends Phaser.GameObjects.Container {
     this.footR.setPosition(2, 3);
     this.footR.setAngle(0);
 
-    // Left leg stub — hip level
-    this.legLStub.setPosition(-3, -8);
-    this.legLStub.setAngle(10);
+    // Left leg (full — shown after robot retrieves dead robot's leg)
+    this.upperLegL.setPosition(-2, -9);  this.upperLegL.setAngle(0);
+    this.lowerLegL.setAngle(0);
+    this.footL.setAngle(0);
 
     // Connectors
-    this.neck.setPosition(0, -22);      this.neck.setAngle(0);
-    this.shoulderR.setPosition(5, -21); this.shoulderR.setAngle(5);
-    this.elbowR.setPosition(8, -16);    this.elbowR.setAngle(8);
-    this.hipR.setPosition(2, -13);      this.hipR.setAngle(0);
-    this.kneeR.setPosition(2, -5);      this.kneeR.setAngle(0);
+    this.neck.setPosition(0, -22);       this.neck.setAngle(0);
+    this.shoulderR.setPosition(5, -21);  this.shoulderR.setAngle(5);
+    this.elbowR.setPosition(8, -16);     this.elbowR.setAngle(8);
+    this.hipR.setPosition(2, -13);       this.hipR.setAngle(0);
+    this.kneeR.setPosition(2, -5);       this.kneeR.setAngle(0);
+    this.hipL.setPosition(-2, -13);      this.hipL.setAngle(0);
+    this.kneeL.setPosition(-2, -5);      this.kneeL.setAngle(0);
     this.shoulderL.setPosition(-5, -21); this.shoulderL.setAngle(-10);
-    this.hipL.setPosition(-3, -13);     this.hipL.setAngle(5);
 
     // Reset main angles
     this.torso.setAngle(0);
@@ -332,6 +340,12 @@ export default class Robot extends Phaser.GameObjects.Container {
 
     this.legLStub.setPosition(-5, -1);
     this.legLStub.setAngle(-30);
+
+    // Full left leg hidden until retrieved from dead robot
+    this.upperLegL.setVisible(false);
+    this.lowerLegL.setVisible(false);
+    this.footL.setVisible(false);
+    this.kneeL.setVisible(false);
 
     // Connectors — flat, close to adjacent parts
     this.neck.setPosition(5,  -5);     this.neck.setAngle(0);
@@ -409,14 +423,25 @@ export default class Robot extends Phaser.GameObjects.Container {
       T.add({ targets: this.upperArmR, angle: -60, duration: 250, yoyo: true });
     });
 
-    // Phase 5 — settle into standing (after 2500ms)
+    // Phase 5 — settle into standing (after 2500ms); left leg becomes visible
     this.scene.time.delayedCall(2500, () => {
+      this._showLeftLeg();
       this._tweenToStanding(() => {
         this.state = RobotState.STANDING;
         this._startSway();
         this.scene.events.emit('robot-stood-up');
       });
     });
+  }
+
+  /** Make the full left leg appear (retrieved from the dead robot). */
+  _showLeftLeg() {
+    this.legLStub.setVisible(false);
+    this.upperLegL.setPosition(-2, -8).setAngle(-25).setVisible(true);
+    this.lowerLegL.setPosition(-3, -5).setAngle(-15).setVisible(true);
+    this.footL.setPosition(-3, -2).setAngle(0).setVisible(true);
+    this.kneeL.setPosition(-2, -6).setAngle(0).setVisible(true);
+    this.hipL.setPosition(-2, -11).setAngle(-10);
   }
 
   _tweenToStanding(onComplete) {
@@ -426,8 +451,9 @@ export default class Robot extends Phaser.GameObjects.Container {
     // Kill any lingering tweens on every part first — prevents position conflicts
     [this.torso, this.head, this.upperArmR, this.lowerArmR, this.armLStub,
      this.upperLegR, this.lowerLegR, this.footR, this.legLStub,
+     this.upperLegL, this.lowerLegL, this.footL,
      this.neck, this.shoulderR, this.elbowR, this.hipR,
-     this.kneeR, this.shoulderL, this.hipL].forEach(p => {
+     this.kneeR, this.kneeL, this.shoulderL, this.hipL].forEach(p => {
       this.scene.tweens.killTweensOf(p);
     });
 
@@ -438,19 +464,18 @@ export default class Robot extends Phaser.GameObjects.Container {
       { t: this.upperArmR, x: 6,   y: -19, a: 18 },
       { t: this.armLStub,  x: -6,  y: -21, a: -15 },
       { t: this.upperLegR, x: 2,   y: -9,  a: 0 },
-      { t: this.footR,     x: 2,   y: 3,   a: 0 },
-      { t: this.legLStub,  x: -3,  y: -8,  a: 10 },
-      { t: this.neck,      x: 0,   y: -22,   a: 0 },
-      { t: this.shoulderR, x: 5,   y: -21,   a: 12 },
-      { t: this.hipR,      x: 2,   y: -13,   a: 0 },
-      { t: this.shoulderL, x: -5,  y: -21,   a: -10 },
-      { t: this.hipL,      x: -3,  y: -13,   a: 5 },
+      { t: this.upperLegL, x: -2,  y: -9,  a: 0 },
+      { t: this.neck,      x: 0,   y: -22, a: 0 },
+      { t: this.shoulderR, x: 5,   y: -21, a: 12 },
+      { t: this.hipR,      x: 2,   y: -13, a: 0 },
+      { t: this.hipL,      x: -2,  y: -13, a: 0 },
+      { t: this.shoulderL, x: -5,  y: -21, a: -10 },
     ];
 
     // Chain-managed parts — angle ONLY (_syncChain handles their positions every frame)
-    // lowerArmR angle is derived from upperArmR inside _syncChain — not tweened separately
     const chainAngles = [
       { t: this.lowerLegR, a: 0 },
+      { t: this.lowerLegL, a: 0 },
     ];
 
     const total = free.length + chainAngles.length;
@@ -610,36 +635,32 @@ export default class Robot extends Phaser.GameObjects.Container {
     this.hipL.setAngle(this.legLStub.angle * 0.5);
   }
 
-  /** Walk cycle for the broken robot. */
+  /** Walk cycle — pendulum: both legs swing in opposite phase, fully rigid per leg. */
   _updateWalking(delta) {
-    // Walk cycle time
     this._walkTime = (this._walkTime || 0) + delta;
-    const t = this._walkTime;
 
-    // Limp: right leg takes a normal step, left stub just drags
-    const cycle = (t % 600) / 600; // 0..1
-    const legPhase = Math.sin(cycle * Math.PI * 2);
+    const CYCLE = 600;   // ms per full stride
+    const SWING = 25;    // peak angle in degrees
 
-    // Right leg swings
-    this.upperLegR.setAngle(legPhase * 18);
-    this.lowerLegR.setAngle(Math.max(0, legPhase) * 12);
+    // Continuous sine oscillation — right leg forward when phase > 0, back when < 0
+    const phase = Math.sin(this._walkTime / CYCLE * Math.PI * 2);
 
-    // Left leg stub barely moves — drag effect
-    this.legLStub.setAngle(8 + legPhase * 4);
+    // Whole leg rigid — upper and lower share the same angle
+    this.upperLegR.setAngle( phase * SWING);
+    this.lowerLegR.setAngle( phase * SWING);
+    this.upperLegL.setAngle(-phase * SWING);
+    this.lowerLegL.setAngle(-phase * SWING);
 
-    // Body bobs slightly — smooth squared phase avoids derivative discontinuity
-    const smoothAbs = legPhase * legPhase;
-    this.torso.setY(-18 + smoothAbs * 1.5);
-    this.neck.setY(-22 + smoothAbs * 1.5);
-    this.head.setY(-26 + smoothAbs * 1.5);
-    // Keep left shoulder tracking torso vertical motion
-    this.shoulderL.setY(-21 + smoothAbs * 1.5);
+    // Body dips when legs spread, rises when they cross
+    const bob = -Math.abs(phase) * 1.2;
+    this.torso.setY(-18 + bob);
+    this.neck.setY(-22 + bob);
+    this.head.setY(-26 + bob);
+    this.shoulderL.setY(-21 + bob);
 
-    // Right arm swings opposite to leg — lowerArmR locks to upperArmR via _syncChain
-    this.upperArmR.setAngle(18 - legPhase * 14);
-
-    // Left arm stub flails a bit
-    this.armLStub.setAngle(-15 + legPhase * 8);
+    // Arms counter-swing opposite their same-side leg
+    this.upperArmR.setAngle(18 - phase * 12);
+    this.armLStub.setAngle(-15 + phase * 6);
   }
 
   _updateStanding(_delta) {
@@ -775,16 +796,35 @@ export default class Robot extends Phaser.GameObjects.Container {
       elbowTip.y + (this.lowerArmR.height / 2) * Math.cos(fA),
     );
 
-    // ── Leg ───────────────────────────────────────────────────────────────
-    const knee = this._tipOf(this.upperLegR);
-    this.kneeR.setPosition(knee.x, knee.y);
+    // ── Right leg ─────────────────────────────────────────────────────────
+    const kneeR = this._tipOf(this.upperLegR);
+    this.kneeR.setPosition(kneeR.x, kneeR.y);
     this.kneeR.setAngle(this.upperLegR.angle * 0.4);
 
-    const lA = this.lowerLegR.angle * DEG;
+    const lRA = this.lowerLegR.angle * DEG;
     this.lowerLegR.setPosition(
-      knee.x + (this.lowerLegR.height / 2) * Math.sin(lA),
-      knee.y + (this.lowerLegR.height / 2) * Math.cos(lA),
+      kneeR.x + (this.lowerLegR.height / 2) * Math.sin(lRA),
+      kneeR.y + (this.lowerLegR.height / 2) * Math.cos(lRA),
     );
+    const footPosR = this._tipOf(this.lowerLegR);
+    this.footR.setPosition(footPosR.x, footPosR.y);
+    this.footR.setAngle(0);
+
+    // ── Left leg (only when visible) ─────────────────────────────────────
+    if (this.upperLegL.visible) {
+      const kneeL = this._tipOf(this.upperLegL);
+      this.kneeL.setPosition(kneeL.x, kneeL.y);
+      this.kneeL.setAngle(this.upperLegL.angle * 0.4);
+
+      const lLA = this.lowerLegL.angle * DEG;
+      this.lowerLegL.setPosition(
+        kneeL.x + (this.lowerLegL.height / 2) * Math.sin(lLA),
+        kneeL.y + (this.lowerLegL.height / 2) * Math.cos(lLA),
+      );
+      const footPosL = this._tipOf(this.lowerLegL);
+      this.footL.setPosition(footPosL.x, footPosL.y);
+      this.footL.setAngle(0);
+    }
   }
 
   _stopTweens() {
