@@ -50,7 +50,7 @@ export default class UIScene extends Phaser.Scene {
     ctx.fillRect(0, 0, vigSz, vigSz);
     this.textures.addCanvas('vignette', canvas);
     // Robot sits at roughly (560, 480) on screen (camera follow offset –80)
-    this._vignette = this.add.image(560, 480, 'vignette');
+    this.add.image(560, 480, 'vignette');
 
     // ── Instruction band — black bg, white text (shown from the start) ───
     this._instrBg = this.add.rectangle(W / 2, BY, BW, BH, 0x000000)
@@ -60,7 +60,10 @@ export default class UIScene extends Phaser.Scene {
     this._instrText = this.add.bitmapText(W / 2, BY, 'subtitle', i18n.instructionStart, 32)
       .setOrigin(0.5, 0.5)
       .setTint(0xffffff)
+      .setVisible(false)
       .setMaxWidth(BW - 40);
+
+    this.time.delayedCall(2000, () => this._instrText.setVisible(true));
 
     // ── Speech band — white bg, black text (hidden until robot speaks) ───
     this._bg = this.add.rectangle(W / 2, SPEECH_Y, BW, BH, 0xffffff)
@@ -81,11 +84,6 @@ export default class UIScene extends Phaser.Scene {
         targets: [this._instrBg, this._instrText],
         alpha: 0,
         duration: 400,
-      });
-      this.tweens.add({
-        targets:  this._vignette,
-        alpha:    0,
-        duration: 2000,
       });
     }, this);
 

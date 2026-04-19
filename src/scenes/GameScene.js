@@ -20,6 +20,12 @@ export default class GameScene extends Phaser.Scene {
   }
 
   create() {
+    // ── Launch UI overlay (subtitles + instruction) ───────────────────────
+    this.scene.launch('UIScene');
+
+    // FadeIn
+    this.cameras.main.fadeIn(2000, 0, 0, 0);
+
     // ── Virtual world dimensions ──────────────────────────────────────────
     const VW      = 320;
     const VH      = 180;
@@ -75,9 +81,6 @@ export default class GameScene extends Phaser.Scene {
     // ── Wake-up state ─────────────────────────────────────────────────────
     this._wakeCount = 0;   // space presses so far
     this._awake     = false;
-
-    // ── Launch UI overlay (subtitles + instruction) ───────────────────────
-    this.scene.launch('UIScene');
 
     // ── Camera follows the robot ──────────────────────────────────────────
     this.cameras.main.startFollow(this.robot, true);
@@ -137,17 +140,9 @@ export default class GameScene extends Phaser.Scene {
       this._tickCrawlSequence(r);
       r.setMoveIntent(this.time.now < this._crawlActiveUntil ? 1 : 0);
 
-      // SPACE: advance dialogue if active, otherwise get up
-      if (Phaser.Input.Keyboard.JustDown(this.keySpace)) {
-        if (this._dlgWaiting) {
-          this._dlgAdvance();
-        } else {
-          r.getUp();
-          if (!this._zoomedOut) {
-            this._zoomedOut = true;
-            this._zoomOut();
-          }
-        }
+      // SPACE: continue dialogue if active
+      if (Phaser.Input.Keyboard.JustDown(this.keySpace) && this._dlgWaiting) {
+        this._dialogueContinue();
       }
     } else {
       const canMove = r.state === RobotState.STANDING || r.state === RobotState.WALKING;
@@ -202,7 +197,7 @@ export default class GameScene extends Phaser.Scene {
     this._awake = true;
     r.activate();
     this.game.events.emit('instruction-hide');
-    this._startDialogue(i18n.dialogueWakeup);
+    this.time.delayedCall(2000, () => this._startDialogue(i18n.dialogueWakeup));
   }
 
   // ─── Dialogue system ──────────────────────────────────────────────────────
@@ -223,9 +218,9 @@ export default class GameScene extends Phaser.Scene {
   }
 
   _dlgPlayLine() {
-    const text = this._dlgLines[this._dlgIndex];
+    const line = this._dlgLines[this._dlgIndex];
     this._dlgWaiting = false;
-    this._robotSpeak(text, { keepVisible: true });
+    this._robotSpeak(line.text, { keepVisible: true, speak: line.speak });
 
     // Show "press space" 2s after line starts, unless already advanced
     this._dlgTimer = this.time.delayedCall(2000, () => {
@@ -238,7 +233,7 @@ export default class GameScene extends Phaser.Scene {
   }
 
   /** Called from update() when SPACE is pressed during active dialogue. */
-  _dlgAdvance() {
+  _dialogueContinue() {
     this._dlgWaiting = false;
 
     if (this._dlgTimer) { this._dlgTimer.remove(); this._dlgTimer = null; }
@@ -263,9 +258,11 @@ export default class GameScene extends Phaser.Scene {
    * Speak a line using the browser's speech synthesis with a robotic voice.
    * Prefers a French voice; falls back to whatever is available.
    * @param {string} text
-   * @param {{ keepVisible?: boolean }} opts  — keepVisible: don't auto-hide subtitle
+   * @param {{ keepVisible?: boolean, speak?: boolean }} opts
+   *   keepVisible — don't auto-hide subtitle when speech ends
+   *   speak       — pass false to show subtitle only, skip voice synthesis (default true)
    */
-  _robotSpeak(text, { keepVisible = false } = {}) {
+  _robotSpeak(text, { keepVisible = false, speak = true } = {}) {
     // Cancel any ongoing speech before starting a new line
     if (window.speechSynthesis) window.speechSynthesis.cancel();
 
@@ -275,7 +272,7 @@ export default class GameScene extends Phaser.Scene {
       if (!keepVisible) this.game.events.emit('subtitle-hide');
     };
 
-    if (this._silent || !window.speechSynthesis) {
+    if (!speak || this._silent || !window.speechSynthesis) {
       if (!keepVisible) this.time.delayedCall(4000, fadeOut);
       return;
     }

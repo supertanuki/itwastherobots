@@ -14,9 +14,9 @@ const TEXTS = {
     speechLang:          'fr-FR',
     speechLangPrefix:    'fr',
     dialogueWakeup: [
-      "Mais... Où je suis ? ... Que s'est-il passé ?",
-      "Je n'arrive pas à me connecter à mon serveur maitre...",
-      "Je pense pouvoir avancer en enchainant ← →",
+      { text: "Mais... Où je suis ? ... Que s'est-il passé ?",      speak: true  },
+      { text: "Je n'arrive pas à me connecter à mon serveur maitre...", speak: true  },
+      { text: "Je pense pouvoir avancer en enchainant ← →",           speak: false },
     ],
   },
   en: {
@@ -25,9 +25,9 @@ const TEXTS = {
     speechLang:          'en-US',
     speechLangPrefix:    'en',
     dialogueWakeup: [
-      "But... where am I? ... What happened?",
-      "I can't connect to my master server...",
-      "I think I can crawl forward by alternating ← →",
+      { text: "But... where am I? ... What happened?",              speak: true  },
+      { text: "I can't connect to my master server...",             speak: true  },
+      { text: "I think I can crawl forward by alternating ← →",    speak: false },
     ],
   },
 };
