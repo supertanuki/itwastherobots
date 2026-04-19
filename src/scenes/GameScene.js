@@ -86,7 +86,7 @@ export default class GameScene extends Phaser.Scene {
       .setDepth(100)
       .setAlpha(1);
 
-    this._subtitleText = this.add.bitmapText(160, SUB_Y - 4, 'subtitle', 'Test...', 16)
+    this._subtitleText = this.add.text(160, SUB_Y - 4, 'Test...', { fontSize: '12px', color: '#000000' })
       .setOrigin(0.5, 1)
       .setScrollFactor(0)
       .setDepth(101)
