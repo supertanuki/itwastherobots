@@ -105,11 +105,22 @@ export default class GameScene extends Phaser.Scene {
     if (Phaser.Input.Keyboard.JustDown(this.keySpace) && !this._awake) {
       this._wakeCount++;
       r.flickerEye();
-      if (this._wakeCount === 8) this._wakeUp(r);
+      if (this._wakeCount === 8) {
+        this._wakeUp(r);
+        // Don't let this same keypress also trigger get-up below
+        r.setMoveIntent(0);
+        r.update(this.game.loop.delta);
+        return;
+      }
     }
 
+    // debug: test the get up
     if (Phaser.Input.Keyboard.JustDown(this.keyM)) {
       r.getUp();
+      if (!this._zoomedOut) {
+        this._zoomedOut = true;
+        this._zoomOut();
+      }
     }
 
     // Block all movement until the robot is awake
@@ -124,15 +135,6 @@ export default class GameScene extends Phaser.Scene {
       // Each valid step gives a small forward pulse; input is always checked.
       this._tickCrawlSequence(r);
       r.setMoveIntent(this.time.now < this._crawlActiveUntil ? 1 : 0);
-
-      // SPACE triggers get-up and starts zoom-out simultaneously
-      if (Phaser.Input.Keyboard.JustDown(this.keySpace)) {
-        r.getUp();
-        if (!this._zoomedOut) {
-          this._zoomedOut = true;
-          this._zoomOut();
-        }
-      }
     } else {
       const canMove = r.state === RobotState.STANDING || r.state === RobotState.WALKING;
       if (canMove) {
@@ -163,13 +165,17 @@ export default class GameScene extends Phaser.Scene {
     // Allow camera to scroll into negative world-Y (empty space above world)
     cam.setBounds(0, -720, WORLD_W, 900);
 
+    // Tween a plain proxy — tweening cam.zoom directly is unreliable
+    // (Phaser stores zoom internally as _zoomX/_zoomY in newer versions)
+    const proxy = { zoom: cam.zoom };
     this.tweens.add({
-      targets:  cam,
+      targets:  proxy,
       zoom:     2,
       duration: 2800,   // covers the full get-up animation (≈ 2850 ms)
       ease:     'Sine.InOut',
       onUpdate: () => {
-        const viewH = 720 / cam.zoom;
+        cam.setZoom(proxy.zoom);
+        const viewH = 720 / proxy.zoom;
         // Keep ground (VH) at screen bottom: scrollY = VH − viewH
         // Via follow: scrollY = robot.y − viewH/2 + offsetY → offsetY = VH − viewH/2 − robot.y
         cam.setFollowOffset(-80, VH - viewH / 2 - this.robot.y);
