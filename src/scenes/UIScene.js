@@ -37,7 +37,8 @@ export default class UIScene extends Phaser.Scene {
     this._instrBg = this.add.rectangle(W / 2, BY, BW, BH, 0x000000)
       .setOrigin(0.5, 0.5);
 
-    this._instrText = this.add.bitmapText(W / 2, BY, 'subtitle', 'Presser la touche espace plusieurs fois', 16)
+    // 32px instruction text
+    this._instrText = this.add.bitmapText(W / 2, BY, 'subtitle', 'Presser la touche espace plusieurs fois', 32)
       .setOrigin(0.5, 0.5)
       .setTint(0xffffff)
       .setMaxWidth(BW - 40);
@@ -47,7 +48,8 @@ export default class UIScene extends Phaser.Scene {
       .setOrigin(0.5, 0.5)
       .setAlpha(0);
 
-    this._text = this.add.bitmapText(W / 2, BY, 'subtitle', '', 16)
+    // 32px subtitle text
+    this._text = this.add.bitmapText(W / 2, BY, 'subtitle', '', 32)
       .setOrigin(0.5, 0.5)
       .setTintFill(0x000000)
       .setMaxWidth(BW - 40)

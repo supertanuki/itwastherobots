@@ -90,7 +90,7 @@ export default class GameScene extends Phaser.Scene {
     this.keyQ    = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Q);
     this.keySpace = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
     this.keyS    = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S);
-    this.keyF1   = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.F1);
+    this.keyM    = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.M);
 
     // Crawl combo state (lying only): right → down → left → up
     this._crawlStep        = 0;  // current position in the 4-step combo
@@ -100,14 +100,14 @@ export default class GameScene extends Phaser.Scene {
   update() {
     const r = this.robot;
 
-    if (Phaser.Input.Keyboard.JustDown(this.keySpace)) {
-      if (!this._awake) {
-        this._wakeCount++;
-        r.flickerEye();
-        if (this._wakeCount >= 10) this._wakeUp(r);
-      } else if (r.state === RobotState.LYING) {
-        r.getUp();
-      }
+    if (Phaser.Input.Keyboard.JustDown(this.keySpace) && !this._awake) {
+      this._wakeCount++;
+      r.flickerEye();
+      if (this._wakeCount >= 10) this._wakeUp(r);
+    }
+
+    if (Phaser.Input.Keyboard.JustDown(this.keyM)) {
+      r.getUp();
     }
 
     // Block all movement until the robot is awake
