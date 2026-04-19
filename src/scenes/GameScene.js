@@ -31,7 +31,8 @@ export default class GameScene extends Phaser.Scene {
     const VW      = 320;
     const VH      = 180;
     const WORLD_W = 3000;   // scrollable world width
-    const GROUND_Y = VH - 20;
+    const GH       = 60;          // ground height (3× original 20px)
+    const GROUND_Y = VH - GH;    // = 120 — top of ground, robot stands here
 
     // ── Camera zoom x4 — 1 virtual pixel = 4 screen pixels ───────────────
     this.cameras.main.setZoom(4);
@@ -46,12 +47,11 @@ export default class GameScene extends Phaser.Scene {
 
     // ── Ground ────────────────────────────────────────────────────────────
     // Physics ground — static body spanning the full world
-    const groundBody = this.add.rectangle(WORLD_W / 2, GROUND_Y + 10, WORLD_W, 20, 0x000000, 0);
+    const groundBody = this.add.rectangle(WORLD_W / 2, GROUND_Y + GH / 2, WORLD_W, GH, 0x000000, 0);
     this.physics.add.existing(groundBody, true);
 
     // ── Ground plates — metal panels, tiled across the full world ─────────
     const gfx = this.add.graphics();
-    const GH  = 20;
     const platePattern = [40, 54, 36, 62, 44, 38, 46]; // base pattern (sums 320)
     let gx = 0;
     let pi = 0;
@@ -77,17 +77,20 @@ export default class GameScene extends Phaser.Scene {
     this.physics.add.collider(this.robot.body_proxy, groundBody);
 
     // ── Subtitle text — fixed to screen, bottom-center ───────────────────
-    // World coords (160, 174) × camera zoom 4 = screen (640, 696), near bottom.
-    // Black background behind the text (full width, 4px vertical padding).
-    this._subtitleBg = this.add.rectangle(160, 178, 322, 24, 0xffffff)
+    // Placed inside the ground band (GROUND_Y..VH). setScrollFactor(0) fixes
+    // it to the viewport; setDepth(100) keeps it above all world objects.
+    const SUB_Y = VH - 4;   // 4px above the very bottom in virtual space
+    this._subtitleBg = this.add.rectangle(160, SUB_Y, 322, 24, 0xffffff)
       .setOrigin(0.5, 1)
       .setScrollFactor(0)
-      .setAlpha(0);
+      .setDepth(100)
+      .setAlpha(1);
 
-    this._subtitleText = this.add.bitmapText(160, 174, 'subtitle', '', 16)
+    this._subtitleText = this.add.bitmapText(160, SUB_Y - 4, 'subtitle', 'Test...', 16)
       .setOrigin(0.5, 1)
       .setScrollFactor(0)
-      .setAlpha(0);
+      .setDepth(101)
+      .setAlpha(1);
 
     // ── Robot wakes up — speak with a robotic voice ───────────────────────
     this._robotSpeak('Mais... Où je suis ? ... Que s\'est-il passé ?');
@@ -144,9 +147,8 @@ export default class GameScene extends Phaser.Scene {
    * Prefers a French voice; falls back to whatever is available.
    */
   _robotSpeak(text) {
-    // Show subtitle immediately
-    this._subtitleText.setText(text).setAlpha(1);
-    this._subtitleBg.setAlpha(1);
+    // Update subtitle text (band is always visible)
+    this._subtitleText.setText(text);
 
     const fadeOut = () => {
       this.tweens.add({ targets: [this._subtitleBg, this._subtitleText], alpha: 0, duration: 800 });
