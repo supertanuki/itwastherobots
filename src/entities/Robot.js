@@ -640,20 +640,23 @@ export default class Robot extends Phaser.GameObjects.Container {
     this._walkTime = (this._walkTime || 0) + delta;
 
     const CYCLE = 600;   // ms per full stride
-    const SWING = 28;    // peak upper-leg angle in degrees
-    const BEND  = 20;    // max backward knee bend at peak forward swing
+    const SWING = 25;    // peak upper-leg swing in degrees
 
     // Continuous sine — right leg forward when phase > 0, back when phase < 0
     const phase = Math.sin(this._walkTime / CYCLE * Math.PI * 2);
 
-    // Upper legs swing as a pendulum
+    // Upper legs: standard pendulum
     this.upperLegR.setAngle( phase * SWING);
     this.upperLegL.setAngle(-phase * SWING);
 
-    // Forward leg: straight (lower same angle as upper)
-    // Backward leg: lower leg angles further back → foot rises behind the knee
-    this.lowerLegR.setAngle( phase * SWING - BEND * Math.max(0, -phase));
-    this.lowerLegL.setAngle(-phase * SWING - BEND * Math.max(0,  phase));
+    // Lower legs: asymmetric bend matching natural gait (see reference image)
+    //   forward swing → lower leg hangs near-vertical (20% of upper angle)
+    //   backward swing → lower leg kicks far back (180% of upper angle)
+    const lowerAngle = (a) =>
+      0.2 * Math.max(0, a) + 1.8 * Math.min(0, a);
+
+    this.lowerLegR.setAngle(lowerAngle( phase * SWING));
+    this.lowerLegL.setAngle(lowerAngle(-phase * SWING));
 
     // Body dips when legs spread, rises when they cross
     const bob = -Math.abs(phase) * 1.2;
