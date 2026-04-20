@@ -215,6 +215,7 @@ export default class Robot extends Phaser.GameObjects.Container {
     };
 
     const METAL    = 0xffffff;
+    const TORSO    = 0xeeeeee; // torso only — slight gray
     const METAL_BG = 0xaaaaaa; // back leg — slightly grayed for depth (side view)
     const EYE      = 0xff2200;
 
@@ -226,7 +227,7 @@ export default class Robot extends Phaser.GameObjects.Container {
     this.footL       = add(4,  2, METAL_BG);
 
     // ── Torso ─────────────────────────────────────────────────────────────
-    this.torso       = add(8, 10, METAL);
+    this.torso       = add(8, 10, TORSO);
 
     // ── Left arm stub ─────────────────────────────────────────────────────
     this.armLStub    = add(3,  3, METAL);
@@ -249,10 +250,9 @@ export default class Robot extends Phaser.GameObjects.Container {
     this.eye         = add(2,  2, EYE);
 
     // ── Right arm — on top of everything (added last) ─────────────────────
-    const addArm = (w, h) => add(w, h, METAL).setStrokeStyle(0.5, 0x000000);
-    this.upperArmR   = addArm(2,  7);
-    this.elbowR      = addArm(2,  1);
-    this.lowerArmR   = addArm(2,  5);
+    this.upperArmR   = add(2,  7, METAL);
+    this.elbowR      = add(2,  1, METAL);
+    this.lowerArmR   = add(2,  5, METAL);
   }
 
   // ─── Poses — sets each part's x/y/angle within the container ─────────────
@@ -269,8 +269,8 @@ export default class Robot extends Phaser.GameObjects.Container {
     // Head (above torso)
     this.head.setPosition(0, -26);
 
-    // Right arm — shoulder level (top of torso, y≈-21)
-    this.upperArmR.setPosition(0, -20);
+    // Right arm — mid-torso level
+    this.upperArmR.setPosition(0, -18);
     this.upperArmR.setAngle(5);
     // Left arm stub — shoulder level
     this.armLStub.setPosition(-1, -22);
@@ -448,7 +448,7 @@ export default class Robot extends Phaser.GameObjects.Container {
     const free = [
       { t: this.torso,     x: 0,   y: -17, a: 0 },
       { t: this.head,      x: 0,   y: -26, a: 0 },
-      { t: this.upperArmR, x: 0,   y: -20, a: 5 },
+      { t: this.upperArmR, x: 0,   y: -18, a: 5 },
       { t: this.armLStub,  x: -1,  y: -22, a: -15 },
       { t: this.upperLegR, x: 0,   y: -9,  a: 0 },
       { t: this.upperLegL, x: 0,   y: -9,  a: 0 },
@@ -638,14 +638,11 @@ export default class Robot extends Phaser.GameObjects.Container {
     this.neck.setY(-22 + bob);
     this.head.setY(-26 + bob);
 
-    // Arms counter-swing (right arm back when right leg forward)
-    // Back  (sinT=+1): upperArmR=-30° → "/" rigid line
-    // Front (sinT=-1): upperArmR=+10° → "\" then forearm folds to horizontal "_"
-    this.upperArmR.setAngle(-10 - sinT * 20);
-    this.armLStub.setAngle(-15 + sinT * 12);
-
-    // Pass sinT to _syncChain for dynamic elbow bend
-    this._walkSinT = sinT;
+    // Arms swing same side as leg (inverted counter-swing)
+    // sinT=+1 (right leg fwd): arm fwd +10°  → "\" shape
+    // sinT=-1 (right leg back): arm back -30° → "/" shape
+    this.upperArmR.setAngle(-10 + sinT * 20);
+    this.armLStub.setAngle(-15 - sinT * 12);
   }
 
   _updateStanding(_delta) {
@@ -757,15 +754,12 @@ export default class Robot extends Phaser.GameObjects.Container {
   _syncChain() {
     const DEG = Math.PI / 180;
 
-    // ── Arm ───────────────────────────────────────────────────────────────
-    // Elbow bend varies with walk phase:
-    //   arm back  (sinT=+1): bend=0°  → "/" rigid line (upper+lower same angle)
-    //   arm front (sinT=-1): bend=80° → "\_" (upper arm "\" + forearm horizontal "_")
-    const sinT = this._walkSinT || 0;
-    const elbowBend = 40 - 40 * sinT; // 0 at back, 80 at front
-    this.lowerArmR.setAngle(this.upperArmR.angle + elbowBend);
+    // ── Arm — pendulum forearm ────────────────────────────────────────────
+    // Forearm follows upper arm at half amplitude → natural swing, no self-rotation
+    // upper arm at α → forearm at α*0.5 (lags behind, elbow gently bent)
+    this.lowerArmR.setAngle(this.upperArmR.angle * 0.5);
 
-    // Elbow block at tip of upper arm, angled at midpoint for a visible joint
+    // Elbow at tip of upper arm, angled at midpoint to show the joint
     const elbow = this._tipOf(this.upperArmR);
     const eA = this.upperArmR.angle * DEG;
     this.elbowR.setPosition(
