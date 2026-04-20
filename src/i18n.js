@@ -9,7 +9,7 @@
 
 const TEXTS = {
   fr: {
-    instructionStart:    'Presser la touche espace plusieurs fois',
+    instructionStart:    'Pour redémarrer le robot,\npresser la touche espace plusieurs fois.',
     instructionContinue: 'Presser espace pour continuer',
     speechLang:          'fr-FR',
     speechLangPrefix:    'fr',
