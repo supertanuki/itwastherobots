@@ -98,6 +98,13 @@ export default class GameScene extends Phaser.Scene {
     // ── Silent mode — ?nosounds in URL disables all audio ────────────────
     this._silent = new URLSearchParams(window.location.search).has('nosounds');
 
+    // ── Debug mode — ?debug in URL ────────────────────────────────────────
+    this._debug = new URLSearchParams(window.location.search).has('debug');
+    if (this._debug) {
+      this.keyPageUp   = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.PAGE_UP);
+      this.keyPageDown = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.PAGE_DOWN);
+    }
+
     // ── Wake-up state ─────────────────────────────────────────────────────
     this._wakeCount = 0;   // space presses so far
     this._awake     = false;
@@ -160,6 +167,15 @@ export default class GameScene extends Phaser.Scene {
       if (!this._zoomedOut) {
         this._zoomedOut = true;
         this._zoomOut();
+      }
+    }
+
+    // debug: teleport robot ±200px
+    if (this._debug) {
+      if (Phaser.Input.Keyboard.JustDown(this.keyPageDown)) {
+        r.body_proxy.setX(r.body_proxy.x + 200);
+      } else if (Phaser.Input.Keyboard.JustDown(this.keyPageUp)) {
+        r.body_proxy.setX(r.body_proxy.x - 200);
       }
     }
 
