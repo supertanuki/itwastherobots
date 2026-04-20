@@ -639,24 +639,21 @@ export default class Robot extends Phaser.GameObjects.Container {
   _updateWalking(delta) {
     this._walkTime = (this._walkTime || 0) + delta;
 
-    const CYCLE = 600;   // ms per full stride
-    const SWING = 25;    // peak upper-leg swing in degrees
+    const CYCLE = 700;   // ms per full stride
+    const SWING = 18;    // peak leg angle (same forward and back)
+    const BEND  = 10;    // knee bend on the trailing leg (lower leg less backward)
 
-    // Continuous sine — right leg forward when phase > 0, back when phase < 0
+    // Continuous sine — both legs pass through vertical (0°) simultaneously
     const phase = Math.sin(this._walkTime / CYCLE * Math.PI * 2);
 
-    // Upper legs: standard pendulum
+    // Upper legs: symmetric pendulum
     this.upperLegR.setAngle( phase * SWING);
     this.upperLegL.setAngle(-phase * SWING);
 
-    // Lower legs: asymmetric bend matching natural gait (see reference image)
-    //   forward swing → lower leg hangs near-vertical (20% of upper angle)
-    //   backward swing → lower leg kicks far back (180% of upper angle)
-    const lowerAngle = (a) =>
-      0.2 * Math.max(0, a) + 1.8 * Math.min(0, a);
-
-    this.lowerLegR.setAngle(lowerAngle( phase * SWING));
-    this.lowerLegL.setAngle(lowerAngle(-phase * SWING));
+    // Forward leg  → lower leg same angle as upper (straight, extended)
+    // Backward leg → lower leg less backward (slight knee bend)
+    this.lowerLegR.setAngle( phase * SWING + BEND * Math.max(0, -phase));
+    this.lowerLegL.setAngle(-phase * SWING + BEND * Math.max(0,  phase));
 
     // Body dips when legs spread, rises when they cross
     const bob = -Math.abs(phase) * 1.2;
