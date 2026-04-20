@@ -365,38 +365,38 @@ export default class Robot extends Phaser.GameObjects.Container {
   _animateGetUp() {
     const T = this.scene.tweens;
 
-    // Phase 1 — robot stirs, head rises first (600ms)
-    T.add({ targets: this.head,  y: -10, angle: 15, duration: 600, ease: 'Sine.easeOut' });
+    // Phase 1 — robot stirs, head rises first
+    T.add({ targets: this.head,  y: -10, angle: 15, duration: 100, ease: 'Sine.easeOut' });
 
-    // Phase 2 — torso lifts (after 500ms, takes 800ms) — struggle
-    this.scene.time.delayedCall(500, () => {
-      T.add({ targets: this.torso, y: -10, angle: -20, duration: 500, ease: 'Sine.easeOut' });
-      T.add({ targets: this.torso, y: -14, angle: -5,  duration: 400, ease: 'Sine.easeIn', delay: 500 });
+    // Phase 2 — torso lifts — struggle
+    this.scene.time.delayedCall(100, () => {
+      T.add({ targets: this.torso, y: -5, angle: -20, duration: 100, ease: 'Sine.easeOut' });
+      T.add({ targets: this.torso, y: -14, angle: -5,  duration: 80, ease: 'Sine.easeIn', delay: 500 });
     });
 
     // Phase 3 — right leg pushes (after 1000ms)
-    this.scene.time.delayedCall(1000, () => {
-      T.add({ targets: this.upperLegR, angle: -40, y: -6, duration: 500 });
-      T.add({ targets: this.lowerLegR, angle: -20,        duration: 500 });
+    this.scene.time.delayedCall(200, () => {
+      T.add({ targets: this.upperLegR, angle: -40, y: -6, duration: 100 });
+      T.add({ targets: this.lowerLegR, angle: -20,        duration: 100 });
 
       // Left leg stub flails
-      T.add({ targets: this.legLStub, angle: 20, duration: 200, yoyo: true, repeat: 2 });
+      T.add({ targets: this.legLStub, angle: 20, duration: 100, yoyo: true, repeat: 2 });
     });
 
-    // Phase 4 — almost standing but stumbles (after 1800ms)
-    this.scene.time.delayedCall(1800, () => {
+    // Phase 4 — almost standing but stumbles
+    this.scene.time.delayedCall(300, () => {
       // Fake-stand then lurch forward
-      T.add({ targets: this.torso, y: -18, angle: 15, duration: 400, ease: 'Back.easeOut' });
-      T.add({ targets: this.head,  y: -26, angle: 10, duration: 400 });
-      T.add({ targets: this.upperLegR, angle: 0, y: -9, duration: 400 });
-      T.add({ targets: this.lowerLegR, angle: 0,        duration: 400 });
+      T.add({ targets: this.torso, y: -18, angle: 15, duration: 100, ease: 'Back.easeOut' });
+      T.add({ targets: this.head,  y: -10, angle: 10, duration: 100 });
+      T.add({ targets: this.upperLegR, angle: 0, y: -9, duration: 100 });
+      T.add({ targets: this.lowerLegR, angle: 0,        duration: 100 });
 
       // Right arm flings out for balance
-      T.add({ targets: this.upperArmR, angle: -60, duration: 250, yoyo: true });
+      T.add({ targets: this.upperArmR, angle: -60, duration: 50, yoyo: true });
     });
 
-    // Phase 5 — settle into standing (after 2500ms); left leg becomes visible
-    this.scene.time.delayedCall(2500, () => {
+    // Phase 5 — settle into standing ; left leg becomes visible
+    this.scene.time.delayedCall(400, () => {
       this._showLeftLeg();
       this._tweenToStanding(() => {
         this.state = RobotState.STANDING;
@@ -417,7 +417,7 @@ export default class Robot extends Phaser.GameObjects.Container {
   }
 
   _tweenToStanding(onComplete) {
-    const dur = 350;
+    const dur = 200;
     const ease = 'Sine.easeOut';
 
     // Kill any lingering tweens on every part first — prevents position conflicts

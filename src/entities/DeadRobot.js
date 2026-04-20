@@ -41,8 +41,8 @@ export default class DeadRobot extends Phaser.GameObjects.Container {
     head.setAngle(-30);
 
     // ── Eye (grey) ────────────────────────────────────────────────────────
-    const eye = add(2, 1, EYE);
-    eye.setPosition(-4, -20);
+    const eye = add(2, 2, EYE);
+    eye.setPosition(-4, -19);
     eye.setAngle(-30);
 
     // ── Hip connector — bridges torso to horizontal leg ───────────────────

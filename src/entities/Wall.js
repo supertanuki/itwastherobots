@@ -36,7 +36,7 @@ export default class Wall extends Phaser.GameObjects.Container {
     }
 
     // White outline — 1 px, same as ground plates
-    g.lineStyle(1, 0xffffff, 1);
+    g.lineStyle(1, 0xdddddd, 1);
     g.strokeRect(WX, WY, WW, WH);
   }
 }

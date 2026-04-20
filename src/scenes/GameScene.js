@@ -82,18 +82,18 @@ export default class GameScene extends Phaser.Scene {
 
     // ── Dead robot + wall ─────────────────────────────────────────────────
     // Wall added first so it renders behind the robot body
-    new Wall(this, 400, GROUND_Y);
-    this._deadRobot = new DeadRobot(this, 400, GROUND_Y);
+    new Wall(this, 438, GROUND_Y);
+    this._deadRobot = new DeadRobot(this, 440, GROUND_Y);
 
     // ── Chain — hangs from ceiling, reaches robot mid-height ──────────────
     // Robot head world y = GROUND_Y - 26*3 = 42 → mid-height y = (42+120)/2 = 81
     new Chain(this, 260, -180, GROUND_Y - 60, this.robot);
-    new Chain(this, 280, -180, GROUND_Y - 60, this.robot);
+    new Chain(this, 290, -180, GROUND_Y - 60, this.robot);
 
     // ── Skull pyramid ─────────────────────────────────────────────────────
     this._skulls           = [];
     this._pyramidTriggered = false;
-    this._buildSkullPyramid(500, GROUND_Y, groundBody);
+    this._buildSkullPyramid(600, GROUND_Y, groundBody);
 
     // ── Silent mode — ?nosounds in URL disables all audio ────────────────
     this._silent = new URLSearchParams(window.location.search).has('nosounds');
