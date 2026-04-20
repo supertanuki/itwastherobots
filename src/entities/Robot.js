@@ -283,16 +283,16 @@ export default class Robot extends Phaser.GameObjects.Container {
     this.armLStub.setPosition(-6, -21);
     this.armLStub.setAngle(-15);
 
-    // Right leg
-    this.upperLegR.setPosition(2, -9);
+    // Right leg — centered under torso (x=0)
+    this.upperLegR.setPosition(0, -9);
     this.upperLegR.setAngle(0);
-    this.lowerLegR.setPosition(2, -1);
+    this.lowerLegR.setPosition(0, -1);
     this.lowerLegR.setAngle(0);
     this.footR.setPosition(2, 3);
     this.footR.setAngle(0);
 
-    // Left leg (full — side view, stacked behind right leg at same x)
-    this.upperLegL.setPosition(2, -9);   this.upperLegL.setAngle(0);
+    // Left leg (side view — stacked at same x, behind in draw order)
+    this.upperLegL.setPosition(0, -9);   this.upperLegL.setAngle(0);
     this.lowerLegL.setAngle(0);
     this.footL.setAngle(0);
 
@@ -300,10 +300,10 @@ export default class Robot extends Phaser.GameObjects.Container {
     this.neck.setPosition(0, -22);       this.neck.setAngle(0);
     this.shoulderR.setPosition(5, -21);  this.shoulderR.setAngle(5);
     this.elbowR.setPosition(8, -16);     this.elbowR.setAngle(8);
-    this.hipR.setPosition(2, -13);       this.hipR.setAngle(0);
-    this.kneeR.setPosition(2, -5);       this.kneeR.setAngle(0);
-    this.hipL.setPosition(2, -13);       this.hipL.setAngle(0);
-    this.kneeL.setPosition(2, -5);       this.kneeL.setAngle(0);
+    this.hipR.setPosition(0, -13);       this.hipR.setAngle(0);
+    this.kneeR.setPosition(0, -5);       this.kneeR.setAngle(0);
+    this.hipL.setPosition(0, -13);       this.hipL.setAngle(0);
+    this.kneeL.setPosition(0, -5);       this.kneeL.setAngle(0);
     this.shoulderL.setPosition(-5, -21); this.shoulderL.setAngle(-10);
 
     // Reset main angles
@@ -435,11 +435,11 @@ export default class Robot extends Phaser.GameObjects.Container {
   /** Make the full left leg appear (retrieved from the dead robot). */
   _showLeftLeg() {
     this.legLStub.setVisible(false);
-    this.hipL.setPosition(2, -11).setAngle(-10).setVisible(true);
-    this.upperLegL.setPosition(2, -8).setAngle(-25).setVisible(true);
-    this.kneeL.setPosition(2, -6).setAngle(0).setVisible(true);
-    this.lowerLegL.setPosition(2, -5).setAngle(-15).setVisible(true);
-    this.footL.setPosition(4, -2).setAngle(0).setVisible(true);
+    this.hipL.setPosition(0, -11).setAngle(-10).setVisible(true);
+    this.upperLegL.setPosition(0, -8).setAngle(-25).setVisible(true);
+    this.kneeL.setPosition(0, -6).setAngle(0).setVisible(true);
+    this.lowerLegL.setPosition(0, -5).setAngle(-15).setVisible(true);
+    this.footL.setPosition(2, -2).setAngle(0).setVisible(true);
   }
 
   _tweenToStanding(onComplete) {
@@ -461,12 +461,12 @@ export default class Robot extends Phaser.GameObjects.Container {
       { t: this.head,      x: 0,   y: -26, a: 0 },
       { t: this.upperArmR, x: 6,   y: -19, a: 18 },
       { t: this.armLStub,  x: -6,  y: -21, a: -15 },
-      { t: this.upperLegR, x: 2,   y: -9,  a: 0 },
-      { t: this.upperLegL, x: -2,  y: -9,  a: 0 },
+      { t: this.upperLegR, x: 0,   y: -9,  a: 0 },
+      { t: this.upperLegL, x: 0,   y: -9,  a: 0 },
       { t: this.neck,      x: 0,   y: -22, a: 0 },
       { t: this.shoulderR, x: 5,   y: -21, a: 12 },
-      { t: this.hipR,      x: 2,   y: -13, a: 0 },
-      { t: this.hipL,      x: -2,  y: -13, a: 0 },
+      { t: this.hipR,      x: 0,   y: -13, a: 0 },
+      { t: this.hipL,      x: 0,   y: -13, a: 0 },
       { t: this.shoulderL, x: -5,  y: -21, a: -10 },
     ];
 
