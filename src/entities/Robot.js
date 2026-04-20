@@ -663,9 +663,12 @@ export default class Robot extends Phaser.GameObjects.Container {
     this.head.setY(-26 + bob);
     this.shoulderL.setY(-21 + bob);
 
-    // Arms counter-swing
-    this.upperArmR.setAngle(18 - sinT * 12);
-    this.armLStub.setAngle(-15 + sinT * 6);
+    // Arms counter-swing opposite to same-side leg, with larger amplitude
+    this.upperArmR.setAngle(18 - sinT * 22);
+    this.armLStub.setAngle(-15 + sinT * 10);
+
+    // Store cosT so _syncChain can apply forearm follow-through
+    this._walkCosT = cosT;
   }
 
   _updateStanding(_delta) {
@@ -780,8 +783,11 @@ export default class Robot extends Phaser.GameObjects.Container {
     const DEG = Math.PI / 180;
 
     // ── Arm ───────────────────────────────────────────────────────────────
-    // lowerArmR locks to upperArmR with a fixed −30° offset (Λ shape stays rigid)
-    this.lowerArmR.setAngle(this.upperArmR.angle - 30);
+    // lowerArmR = upperArmR − 30° base offset + cosine follow-through
+    // cosT>0 (arm swinging back): forearm lags behind (−10°), elbow leads
+    // cosT<0 (arm swinging forward): forearm extends forward (+10°)
+    const cosFollow = (this._walkCosT || 0) * 10;
+    this.lowerArmR.setAngle(this.upperArmR.angle - 30 - cosFollow);
 
     // Place elbowR so its top edge overlaps the bottom of upperArmR
     // Shifted 8 virtual px left (÷3 scale) so the elbow trails behind the shoulder
