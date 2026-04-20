@@ -645,11 +645,11 @@ export default class Robot extends Phaser.GameObjects.Container {
     // Continuous sine — both legs cross vertical simultaneously
     const phase = Math.sin(this._walkTime / CYCLE * Math.PI * 2);
 
-    // Thigh and lower leg at the exact same angle → one straight rigid line per leg
+    // Upper legs swing as pendulum; lower legs use negated angle to align correctly
     this.upperLegR.setAngle( phase * SWING);
-    this.lowerLegR.setAngle( phase * SWING);
+    this.lowerLegR.setAngle(-phase * SWING);
     this.upperLegL.setAngle(-phase * SWING);
-    this.lowerLegL.setAngle(-phase * SWING);
+    this.lowerLegL.setAngle( phase * SWING);
 
     // Body dips when legs spread, rises when they cross
     const bob = -Math.abs(phase) * 1.2;
