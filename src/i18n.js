@@ -18,8 +18,9 @@ const TEXTS = {
       { text: "Je n'arrive pas à me connecter à mon serveur maitre...", speak: true  },
       { text: "Je pense pouvoir avancer en enchainant ← →",           speak: false },
     ],
-    dialogueLeg:     [{ text: "Je peux récupérer la jambe du robot en panne.", speak: true }],
-    instructionLeg:  'Appuyer sur ↑ ↓ pour retirer la jambe.',
+    dialogueLeg:      [{ text: "Je peux récupérer la jambe du robot en panne.", speak: true }],
+    instructionLeg:   'Appuyer sur ↑ ↓ pour retirer la jambe.',
+    dialogueStandup:  [{ text: "Maintenant, je peux marcher normalement...", speak: true }],
   },
   en: {
     instructionStart:    'To reboot the robot, press the space key several times',
@@ -33,6 +34,7 @@ const TEXTS = {
     ],
     dialogueLeg:     [{ text: "I can take the broken robot's leg.", speak: true }],
     instructionLeg:  'Press ↑ ↓ to remove the leg.',
+    dialogueStandup: [{ text: "Now I can walk normally...", speak: true }],
   },
 };
 

@@ -35,7 +35,7 @@ export default class UIScene extends Phaser.Scene {
 
     // ── Instruction band — black bg, just below dialogue ─────────────────
     const BH_INSTR = 66;
-    const INSTR_Y  = SPEECH_Y + BH_DLG / 2 + 6 + BH_INSTR / 2;
+    const INSTR_Y  = SPEECH_Y + BH_DLG / 2 + 4 + BH_INSTR / 2;
 
     // ── Vignette — radial gradient transparent→black, covers full screen ─
     const vigR   = 800;

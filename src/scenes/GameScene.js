@@ -109,6 +109,11 @@ export default class GameScene extends Phaser.Scene {
 
     this._zoomedOut = false;
 
+    // ── Robot stood up — show post-standup dialogue ───────────────────────
+    this.events.on('robot-stood-up', () => {
+      this.time.delayedCall(600, () => this._startDialogue(i18n.dialogueStandup));
+    }, this);
+
     // ── Input ─────────────────────────────────────────────────────────────
     this.cursors = this.input.keyboard.createCursorKeys();
     this.keyA    = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
@@ -323,7 +328,7 @@ export default class GameScene extends Phaser.Scene {
     const proxy = { zoom: cam.zoom };
     this.tweens.add({
       targets:  proxy,
-      zoom:     2,
+      zoom:     3,
       duration: 2800,   // covers the full get-up animation (≈ 2850 ms)
       ease:     'Sine.InOut',
       onUpdate: () => {
