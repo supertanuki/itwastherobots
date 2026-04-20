@@ -633,35 +633,39 @@ export default class Robot extends Phaser.GameObjects.Container {
     this.hipL.setAngle(this.legLStub.angle * 0.5);
   }
 
-  /** Walk cycle — pendulum with knee bend on forward swing. */
+  /** Walk cycle — thigh sine, shin cosine (90° delayed = natural knee lift). */
   _updateWalking(delta) {
     this._walkTime = (this._walkTime || 0) + delta;
 
     const CYCLE     = 700;  // ms per full stride
-    const SWING     = 22;   // peak thigh angle in degrees
-    const KNEE_BEND = 15;   // lower leg always this many degrees more backward than thigh
+    const SWING     = 28;   // thigh swing amplitude (degrees)
+    const SHIN_AMP  = 20;   // shin oscillation amplitude
+    const SHIN_BIAS = 20;   // shin always this many degrees bent backward
 
-    // Continuous sine — both legs cross vertical simultaneously
-    const phase = Math.sin(this._walkTime / CYCLE * Math.PI * 2);
+    const t    = this._walkTime / CYCLE * Math.PI * 2;
+    const sinT = Math.sin(t);
+    const cosT = Math.cos(t);
 
-    // Lower leg = thigh angle − KNEE_BEND → always bent backward regardless of direction
-    // phase>0 (thigh fwd): lower slightly fwd (+7°), natural swing
-    // phase<0 (thigh back): lower more backward (−37°), heel lifts behind
-    this.upperLegR.setAngle( phase * SWING);
-    this.lowerLegR.setAngle( phase * SWING - KNEE_BEND);
-    this.upperLegL.setAngle(-phase * SWING);
-    this.lowerLegL.setAngle(-phase * SWING - KNEE_BEND);
+    // Thigh: sine wave.  Shin: cosine wave − bias.
+    // When thigh crosses 0 going forward (sinT rising): cosT=+1 → shin=-AMP−BIAS (knee lifts)
+    // When thigh at max forward:                         cosT=0  → shin=−BIAS (slight bend, foot plants)
+    // When thigh crosses 0 going backward (sinT falling): cosT=-1 → shin=+AMP−BIAS ≈ 0 (straight, stance)
+    // When thigh at max backward:                          cosT=0  → shin=−BIAS (bent back, push-off)
+    this.upperLegR.setAngle( sinT * SWING);
+    this.lowerLegR.setAngle(-cosT * SHIN_AMP - SHIN_BIAS);
+    this.upperLegL.setAngle(-sinT * SWING);
+    this.lowerLegL.setAngle( cosT * SHIN_AMP - SHIN_BIAS);
 
-    // Body dips when legs spread, rises when they cross
-    const bob = -Math.abs(phase) * 1.2;
+    // Body dips at max extension, rises when legs cross
+    const bob = -Math.abs(sinT) * 1.2;
     this.torso.setY(-18 + bob);
     this.neck.setY(-22 + bob);
     this.head.setY(-26 + bob);
     this.shoulderL.setY(-21 + bob);
 
-    // Arms counter-swing opposite their same-side leg
-    this.upperArmR.setAngle(18 - phase * 12);
-    this.armLStub.setAngle(-15 + phase * 6);
+    // Arms counter-swing
+    this.upperArmR.setAngle(18 - sinT * 12);
+    this.armLStub.setAngle(-15 + sinT * 6);
   }
 
   _updateStanding(_delta) {
