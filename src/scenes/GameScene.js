@@ -111,7 +111,10 @@ export default class GameScene extends Phaser.Scene {
 
     // ── Robot stood up — show post-standup dialogue ───────────────────────
     this.events.on('robot-stood-up', () => {
-      this.time.delayedCall(600, () => this._startDialogue(i18n.dialogueStandup));
+      this.time.delayedCall(600, () => {
+        this._startDialogue(i18n.dialogueStandup);
+        this._dlgDismissOnWalk = true;
+      });
     }, this);
 
     // ── Input ─────────────────────────────────────────────────────────────
@@ -129,8 +132,9 @@ export default class GameScene extends Phaser.Scene {
 
     // Leg-retrieval interaction state
     // null | 'blocked' | 'instruction' | 'pulling' | 'done'
-    this._legState      = null;
-    this._legPressCount = 0;
+    this._legState         = null;
+    this._legPressCount    = 0;
+    this._dlgDismissOnWalk = false;
   }
 
   update() {
@@ -226,6 +230,19 @@ export default class GameScene extends Phaser.Scene {
         else                     r.setMoveIntent(0);
       } else {
         r.setMoveIntent(0);
+      }
+
+      // SPACE: continue dialogue if active while standing/walking
+      if (Phaser.Input.Keyboard.JustDown(this.keySpace) && this._dlgWaiting) {
+        this._dialogueContinue();
+      }
+
+      // Auto-dismiss standup dialogue 2s after the robot starts walking
+      if (this._dlgDismissOnWalk && this._dlgWaiting && r.state === RobotState.WALKING) {
+        this._dlgDismissOnWalk = false;
+        this.time.delayedCall(2000, () => {
+          if (this._dlgWaiting) this._dialogueContinue();
+        });
       }
     }
 
