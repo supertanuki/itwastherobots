@@ -15,7 +15,7 @@ const TEXTS = {
     speechLangPrefix:    'fr',
     dialogueWakeup: [
       { text: "Mais... Où je suis ? ... Que s'est-il passé ?",          speak: true  },
-      { text: "Je n'arrive pas à me connecter à mon serveur maitre...", speak: true  },
+      { text: "Je n'arrive pas à me connecter à mon serveur...", speak: true  },
       { text: "Tiens, il me manque un bras et une jambe !",             speak: true },
       { text: "Je pense pouvoir ramper en enchainant ← →",              speak: false },
     ],
@@ -35,7 +35,7 @@ const TEXTS = {
     speechLangPrefix:    'en',
     dialogueWakeup: [
       { text: "But... where am I? ... What happened?",          speak: true  },
-      { text: "I can't connect to my master server...",         speak: true  },
+      { text: "I can't connect to my server...",         speak: true  },
       { text: "I'm missing an arm and a leg!",                  speak: true },
       { text: "I think I can crawl forward by alternating ← →", speak: false },
     ],
