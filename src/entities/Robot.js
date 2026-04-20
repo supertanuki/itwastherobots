@@ -270,17 +270,13 @@ export default class Robot extends Phaser.GameObjects.Container {
     // Head (above torso)
     this.head.setPosition(0, -26);
 
-    // Right arm — inverted V (Λ): upper arm angles out, forearm angles back in
-    this.upperArmR.setPosition(6, -19);
-    this.upperArmR.setAngle(18);
-    this.elbowR.setPosition(7, -16);
-    this.elbowR.setAngle(5);
-    this.lowerArmR.setPosition(6, -13);
-    this.lowerArmR.setAngle(-12);
-    this.shoulderR.setPosition(5, -21);
-    this.shoulderR.setAngle(12);
-    // Left arm stub — shoulder level
-    this.armLStub.setPosition(-6, -21);
+    // Right arm — alongside body (x=0), neutral hanging position
+    this.upperArmR.setPosition(0, -16);
+    this.upperArmR.setAngle(5);
+    this.shoulderR.setPosition(0, -20);
+    this.shoulderR.setAngle(5);
+    // Left arm stub — alongside body
+    this.armLStub.setPosition(-1, -20);
     this.armLStub.setAngle(-15);
 
     // Right leg — centered under torso (x=0)
@@ -298,8 +294,7 @@ export default class Robot extends Phaser.GameObjects.Container {
 
     // Connectors
     this.neck.setPosition(0, -22);       this.neck.setAngle(0);
-    this.shoulderR.setPosition(5, -21);  this.shoulderR.setAngle(5);
-    this.elbowR.setPosition(8, -16);     this.elbowR.setAngle(8);
+    this.elbowR.setPosition(0, -13);     this.elbowR.setAngle(5);
     this.hipR.setPosition(0, -13);       this.hipR.setAngle(0);
     this.kneeR.setPosition(0, -5);       this.kneeR.setAngle(0);
     this.hipL.setPosition(0, -13);       this.hipL.setAngle(0);
@@ -459,8 +454,8 @@ export default class Robot extends Phaser.GameObjects.Container {
     const free = [
       { t: this.torso,     x: 0,   y: -18, a: 0 },
       { t: this.head,      x: 0,   y: -26, a: 0 },
-      { t: this.upperArmR, x: 6,   y: -19, a: 18 },
-      { t: this.armLStub,  x: -6,  y: -21, a: -15 },
+      { t: this.upperArmR, x: 0,   y: -16, a: 5 },
+      { t: this.armLStub,  x: -1,  y: -20, a: -15 },
       { t: this.upperLegR, x: 0,   y: -9,  a: 0 },
       { t: this.upperLegL, x: 0,   y: -9,  a: 0 },
       { t: this.neck,      x: 0,   y: -22, a: 0 },
@@ -663,9 +658,14 @@ export default class Robot extends Phaser.GameObjects.Container {
     this.head.setY(-26 + bob);
     this.shoulderL.setY(-21 + bob);
 
-    // Arms counter-swing opposite to same-side leg
-    this.upperArmR.setAngle(18 - sinT * 22);
-    this.armLStub.setAngle(-15 + sinT * 10);
+    // Arms counter-swing (right arm back when right leg forward)
+    // Back  (sinT=+1): upperArmR=-30° → "/" rigid line
+    // Front (sinT=-1): upperArmR=+10° → "\" then forearm folds to horizontal "_"
+    this.upperArmR.setAngle(-10 - sinT * 20);
+    this.armLStub.setAngle(-15 + sinT * 12);
+
+    // Pass sinT to _syncChain for dynamic elbow bend
+    this._walkSinT = sinT;
   }
 
   _updateStanding(_delta) {
@@ -779,17 +779,22 @@ export default class Robot extends Phaser.GameObjects.Container {
   _syncChain() {
     const DEG = Math.PI / 180;
 
-    // ── Arm — rigid unit: forearm keeps a fixed angle relative to upper arm ──
-    this.lowerArmR.setAngle(this.upperArmR.angle - 30);
+    // ── Arm ───────────────────────────────────────────────────────────────
+    // Elbow bend varies with walk phase:
+    //   arm back  (sinT=+1): bend=0°  → "/" rigid line (upper+lower same angle)
+    //   arm front (sinT=-1): bend=80° → "\_" (upper arm "\" + forearm horizontal "_")
+    const sinT = this._walkSinT || 0;
+    const elbowBend = 40 - 40 * sinT; // 0 at back, 80 at front
+    this.lowerArmR.setAngle(this.upperArmR.angle + elbowBend);
 
-    // Elbow sits exactly at the tip of upperArmR (no lateral offset)
+    // Elbow block at tip of upper arm, angled at midpoint for a visible joint
     const elbow = this._tipOf(this.upperArmR);
     const eA = this.upperArmR.angle * DEG;
     this.elbowR.setPosition(
       elbow.x + (this.elbowR.height / 2) * Math.sin(eA),
       elbow.y + (this.elbowR.height / 2) * Math.cos(eA),
     );
-    this.elbowR.setAngle(this.upperArmR.angle);
+    this.elbowR.setAngle((this.upperArmR.angle + this.lowerArmR.angle) / 2);
 
     // lowerArmR top flush with elbowR bottom
     const elbowTip = this._tipOf(this.elbowR);
