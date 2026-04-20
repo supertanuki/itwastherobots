@@ -98,8 +98,10 @@ export default class GameScene extends Phaser.Scene {
 
     // ── Wide wall + computer terminal at mid-height ───────────────────────
     const COMP_WALL_H = 70;
-    new Wall(this, 750, GROUND_Y, { width: 60, height: COMP_WALL_H, offsetX: 0 });
-    new Computer(this, 780, GROUND_Y - COMP_WALL_H / 2);
+    const COMP_X      = 750;
+    new Wall(this, COMP_X, GROUND_Y, { width: 60, height: COMP_WALL_H, offsetX: 0 });
+    this._computer = new Computer(this, COMP_X + 30, GROUND_Y - COMP_WALL_H / 2);
+    this._computerState = null;  // null | 'active' | 'done'
 
     // ── Silent mode — ?nosounds in URL disables all audio ────────────────
     this._silent = new URLSearchParams(window.location.search).has('nosounds');
@@ -271,6 +273,7 @@ export default class GameScene extends Phaser.Scene {
       }
 
       this._inFrontOfSkulls();
+      this._checkComputerProximity();
     }
 
     r.update(this.game.loop.delta);
@@ -435,6 +438,37 @@ export default class GameScene extends Phaser.Scene {
     this.robot.body_proxy.body.setVelocityX(0);
     this._startDialogue(i18n.dialogueSkullsFound, () => {
       this._robotWaiting = false;
+    });
+  }
+
+  /** Trigger when the robot reaches the computer wall. */
+  _checkComputerProximity() {
+    if (this._computerState !== null) return;
+    const r = this.robot;
+    const gap = this._computer.x - r.body_proxy.body.right;
+    if (gap < 10 && gap > -10) {
+      this._startComputerInteraction();
+    }
+  }
+
+  _startComputerInteraction() {
+    this._computerState = 'active';
+    this._robotWaiting  = true;
+    this.robot.setMoveIntent(0);
+    this.robot.body_proxy.body.setVelocityX(0);
+
+    // Phase 1 — robot spots the computer
+    this._startDialogue(i18n.dialogueComputer1, () => {
+      // Space pressed → start blinking screen, then 2s later: second dialogue
+      this._computer.startHacking();
+      this.time.delayedCall(2000, () => {
+        this._startDialogue(i18n.dialogueComputer2, () => {
+          // Space pressed → restore movement
+          this._computer.stopHacking();
+          this._computerState = 'done';
+          this._robotWaiting  = false;
+        });
+      });
     });
   }
 

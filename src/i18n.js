@@ -26,7 +26,9 @@ const TEXTS = {
       { text: "Au moins maintenant, je peux marcher normalement.", speak: true },
     ],
     dialogueSkullsFound: [{ text: "Que s'est-il passé ? Pourquoi tous les humains sont morts ?", speak: true }],
-    dialogueSkullFall: [{ text: "Oups !", speak: true }],
+    dialogueSkullFall:   [{ text: "Oups !", speak: true }],
+    dialogueComputer1:   [{ text: "Je peux me brancher sur cet ordinateur.", speak: true }],
+    dialogueComputer2:   [{ text: "Ce sont les robots...", speak: true }],
   },
   en: {
     instructionStart:    'To reboot the robot, press the space key several times',
@@ -46,7 +48,9 @@ const TEXTS = {
       { text: "At least now I can walk normally.", speak: true },
     ],
     dialogueSkullsFound: [{ text: "What happened? Why did all the humans die?", speak: true }],
-    dialogueSkullFall: [{ text: "Oops!", speak: true }],
+    dialogueSkullFall:   [{ text: "Oops!", speak: true }],
+    dialogueComputer1:   [{ text: "I can connect to this computer.", speak: true }],
+    dialogueComputer2:   [{ text: "It's the robots...", speak: true }],
   },
 };
 
