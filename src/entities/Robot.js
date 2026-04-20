@@ -226,7 +226,7 @@ export default class Robot extends Phaser.GameObjects.Container {
     this.footL       = add(4,  2, METAL_BG);
 
     // ── Torso ─────────────────────────────────────────────────────────────
-    this.torso       = add(8,  7, METAL);
+    this.torso       = add(8, 10, METAL);
 
     // ── Left arm stub ─────────────────────────────────────────────────────
     this.shoulderL   = add(3,  3, METAL);
@@ -264,8 +264,8 @@ export default class Robot extends Phaser.GameObjects.Container {
    * but Phaser Y grows DOWN, so "above feet" = negative Y.
    */
   _poseStanding() {
-    // Torso — height 7, bottom kept at -14 so hips stay connected
-    this.torso.setPosition(0, -18);      // center of torso (was -19 with height 10)
+    // Torso — height 10, center at -17 → top≈-22, bottom≈-12 (covers hip gap)
+    this.torso.setPosition(0, -17);
 
     // Head (above torso)
     this.head.setPosition(0, -26);
@@ -299,7 +299,7 @@ export default class Robot extends Phaser.GameObjects.Container {
     this.kneeR.setPosition(0, -5);       this.kneeR.setAngle(0);
     this.hipL.setPosition(0, -13);       this.hipL.setAngle(0);
     this.kneeL.setPosition(0, -5);       this.kneeL.setAngle(0);
-    this.shoulderL.setPosition(-5, -21); this.shoulderL.setAngle(-10);
+    this.shoulderL.setPosition(0, -21);  this.shoulderL.setAngle(-10);
 
     // Reset main angles
     this.torso.setAngle(0);
@@ -452,7 +452,7 @@ export default class Robot extends Phaser.GameObjects.Container {
 
     // Parts tweened freely (position + angle) — NOT managed by _syncChain
     const free = [
-      { t: this.torso,     x: 0,   y: -18, a: 0 },
+      { t: this.torso,     x: 0,   y: -17, a: 0 },
       { t: this.head,      x: 0,   y: -26, a: 0 },
       { t: this.upperArmR, x: 0,   y: -20, a: 5 },
       { t: this.armLStub,  x: -1,  y: -22, a: -15 },
@@ -462,7 +462,7 @@ export default class Robot extends Phaser.GameObjects.Container {
       { t: this.shoulderR, x: 5,   y: -21, a: 12 },
       { t: this.hipR,      x: 0,   y: -13, a: 0 },
       { t: this.hipL,      x: 0,   y: -13, a: 0 },
-      { t: this.shoulderL, x: -5,  y: -21, a: -10 },
+      { t: this.shoulderL, x: 0,   y: -21, a: -10 },
     ];
 
     // Chain-managed parts — angle ONLY (_syncChain handles their positions every frame)
@@ -651,9 +651,9 @@ export default class Robot extends Phaser.GameObjects.Container {
     this.upperLegL.setAngle(-sinT * SWING);
     this.lowerLegL.setAngle( cosT * SHIN_AMP - SHIN_BIAS);
 
-    // Body dips at max extension, rises when legs cross
-    const bob = -Math.abs(sinT) * 1.2;
-    this.torso.setY(-18 + bob);
+    // Subtle downward dip at max leg extension (no upward rise)
+    const bob = Math.abs(sinT) * 0.5;
+    this.torso.setY(-17 + bob);
     this.neck.setY(-22 + bob);
     this.head.setY(-26 + bob);
     this.shoulderL.setY(-21 + bob);
