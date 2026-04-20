@@ -365,45 +365,38 @@ export default class Robot extends Phaser.GameObjects.Container {
   _animateGetUp() {
     const T = this.scene.tweens;
 
-    // Phase 1 — stirs: head lifts, arm starts repositioning toward floor (0ms, 600ms)
-    T.add({ targets: this.head,      y: -6,  angle: 20,  duration: 600, ease: 'Sine.easeOut' });
-    // Arm swings from crawl position (~-75°) toward pressing-floor position
-    T.add({ targets: this.upperArmR, x: 4,   y: -4,  angle: 55,  duration: 700, ease: 'Sine.easeOut' });
+    // Phase 1 — robot stirs, head rises first (600ms)
+    T.add({ targets: this.head,  y: -10, angle: 15, duration: 600, ease: 'Sine.easeOut' });
 
-    // Phase 2 — arm presses floor, torso begins to tilt upward (700ms, 600ms)
-    this.scene.time.delayedCall(700, () => {
-      // Arm nearly vertical, pressing down
-      T.add({ targets: this.upperArmR, x: 5,   y: -2,  angle: 85,  duration: 500, ease: 'Sine.easeIn' });
-      // Torso starts rising from horizontal (90°) toward diagonal
-      T.add({ targets: this.torso,     y: -4,  angle: 50, duration: 600, ease: 'Sine.easeOut' });
-      T.add({ targets: this.head,      y: -10, angle: 10, duration: 600, ease: 'Sine.easeOut' });
+    // Phase 2 — torso lifts (after 500ms, takes 800ms) — struggle
+    this.scene.time.delayedCall(500, () => {
+      T.add({ targets: this.torso, y: -10, angle: -20, duration: 500, ease: 'Sine.easeOut' });
+      T.add({ targets: this.torso, y: -14, angle: -5,  duration: 400, ease: 'Sine.easeIn', delay: 500 });
     });
 
-    // Phase 3 — push up: arm straightens upward, torso tilts past vertical (1300ms, 600ms)
-    this.scene.time.delayedCall(1300, () => {
-      // Arm lifts away from floor, rising to body side
-      T.add({ targets: this.upperArmR, x: 2,   y: -10, angle: 20,  duration: 600, ease: 'Sine.easeOut' });
-      // Torso now mostly upright
-      T.add({ targets: this.torso,     y: -12, angle: -15, duration: 600, ease: 'Sine.easeOut' });
-      T.add({ targets: this.head,      y: -20, angle: 5,   duration: 600, ease: 'Sine.easeOut' });
-      // Leg folds under body to push up
-      T.add({ targets: this.upperLegR, angle: -50, y: -6, duration: 600 });
-      T.add({ targets: this.lowerLegR, angle: -30,         duration: 600 });
+    // Phase 3 — right leg pushes (after 1000ms)
+    this.scene.time.delayedCall(1000, () => {
+      T.add({ targets: this.upperLegR, angle: -40, y: -6, duration: 500 });
+      T.add({ targets: this.lowerLegR, angle: -20,        duration: 500 });
+
+      // Left leg stub flails
+      T.add({ targets: this.legLStub, angle: 20, duration: 200, yoyo: true, repeat: 2 });
     });
 
-    // Phase 4 — legs straighten, robot rises to standing (1900ms, 500ms)
-    this.scene.time.delayedCall(1900, () => {
-      T.add({ targets: this.torso,     y: -16, angle: 10,  duration: 500, ease: 'Back.easeOut' });
-      T.add({ targets: this.head,      y: -24, angle: 8,   duration: 500 });
-      T.add({ targets: this.upperArmR, x: 0,   y: -16, angle: -20, duration: 400, ease: 'Sine.easeOut' });
-      T.add({ targets: this.upperLegR, angle: -10, y: -8,  duration: 500 });
-      T.add({ targets: this.lowerLegR, angle: -5,           duration: 500 });
-      // Left leg stub kicks for balance
-      T.add({ targets: this.legLStub, angle: 15, duration: 200, yoyo: true, repeat: 1 });
+    // Phase 4 — almost standing but stumbles (after 1800ms)
+    this.scene.time.delayedCall(1800, () => {
+      // Fake-stand then lurch forward
+      T.add({ targets: this.torso, y: -18, angle: 15, duration: 400, ease: 'Back.easeOut' });
+      T.add({ targets: this.head,  y: -26, angle: 10, duration: 400 });
+      T.add({ targets: this.upperLegR, angle: 0, y: -9, duration: 400 });
+      T.add({ targets: this.lowerLegR, angle: 0,        duration: 400 });
+
+      // Right arm flings out for balance
+      T.add({ targets: this.upperArmR, angle: -60, duration: 250, yoyo: true });
     });
 
-    // Phase 5 — settle into standing (2700ms); left leg becomes visible
-    this.scene.time.delayedCall(2700, () => {
+    // Phase 5 — settle into standing (after 2500ms); left leg becomes visible
+    this.scene.time.delayedCall(2500, () => {
       this._showLeftLeg();
       this._tweenToStanding(() => {
         this.state = RobotState.STANDING;
