@@ -27,16 +27,17 @@ export default class UIScene extends Phaser.Scene {
   create() {
     const W  = 1280;
     const H  = 720;
-    const BW = W * 0.8;  // 80% of screen width = 1024px
-    const BH = 80;       // band height
+    const BW = W * 0.8;   // 1024px
 
-    // Instruction band: ~1/3 from top. Speech band: near bottom with margin.
-    const BY       = 240;
-    const SPEECH_Y = H - BH / 2 - 24;  // bottom-aligned, 24px margin
+    // ── Speech (dialogue) band — slightly raised, reduced height ─────────
+    const BH_DLG   = 50;
+    const SPEECH_Y = H - 110;   // center of dialogue band (≈ 610)
+
+    // ── Instruction band — black bg, just below dialogue ─────────────────
+    const BH_INSTR = 36;
+    const INSTR_Y  = SPEECH_Y + BH_DLG / 2 + 6 + BH_INSTR / 2;
 
     // ── Vignette — radial gradient transparent→black, covers full screen ─
-    // Large enough so all four corners of 1280×720 are fully black.
-    // (max corner distance from center ≈ 724 px; use 800px radius to be safe)
     const vigR   = 800;
     const vigSz  = vigR * 2;
     const canvas = document.createElement('canvas');
@@ -49,34 +50,31 @@ export default class UIScene extends Phaser.Scene {
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, vigSz, vigSz);
     this.textures.addCanvas('vignette', canvas);
-    // Robot sits at roughly (560, 480) on screen (camera follow offset –80)
     this.add.image(560, 480, 'vignette');
 
-    // ── Instruction band — black bg, white text (shown from the start) ───
-    this._instrBg = this.add.rectangle(W / 2, BY, BW, BH, 0x000000)
+    // ── Speech band — white bg, black text ───────────────────────────────
+    this._bg = this.add.rectangle(W / 2, SPEECH_Y, BW, BH_DLG, 0xffffff)
       .setOrigin(0.5, 0.5)
       .setAlpha(0);
 
-    // 32px instruction text
-    this._instrText = this.add.bitmapText(W / 2, BY, 'subtitle', i18n.instructionStart, 32)
-      .setOrigin(0.5, 0.5)
-      .setTint(0xffffff)
-      .setVisible(false)
-      .setMaxWidth(BW - 40);
-
-    this.time.delayedCall(2000, () => this._instrText.setVisible(true));
-
-    // ── Speech band — white bg, black text (hidden until robot speaks) ───
-    this._bg = this.add.rectangle(W / 2, SPEECH_Y, BW, BH, 0xffffff)
-      .setOrigin(0.5, 0.5)
-      .setAlpha(0);
-
-    // 32px subtitle text
     this._text = this.add.bitmapText(W / 2, SPEECH_Y, 'subtitle', '', 32)
       .setOrigin(0.5, 0.5)
       .setTintFill(0x000000)
-      .setMaxWidth(BW - 40)
+      .setMaxWidth(BW - 20)
       .setAlpha(0);
+
+    // ── Instruction band — black bg, white text, below dialogue ──────────
+    this._instrBg = this.add.rectangle(W / 2, INSTR_Y, BW, BH_INSTR, 0x000000)
+      .setOrigin(0.5, 0.5)
+      .setAlpha(0);
+
+    this._instrText = this.add.bitmapText(W / 2, INSTR_Y, 'subtitle', i18n.instructionStart, 24)
+      .setOrigin(0.5, 0.5)
+      .setTint(0xffffff)
+      .setVisible(false)
+      .setMaxWidth(BW - 20);
+
+    this.time.delayedCall(2000, () => this._instrText.setVisible(true));
 
     // ── Events ────────────────────────────────────────────────────────────
     // Initial instruction fade-out on wake-up
