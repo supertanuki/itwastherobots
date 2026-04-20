@@ -11,19 +11,22 @@
 export default class Chain {
   /**
    * @param {Phaser.Scene} scene
-   * @param {number} x     world x of the chain
-   * @param {number} fromY world y of the ceiling anchor
-   * @param {number} toY   world y where the chain ends
+   * @param {number} x      world x of the chain
+   * @param {number} fromY  world y of the ceiling anchor
+   * @param {number} toY    world y where the chain ends
+   * @param {Robot}  [robot] optional robot to collide against
    */
-  constructor(scene, x, fromY, toY) {
+  constructor(scene, x, fromY, toY, robot = null) {
     const RADIUS  = 3;   // link radius in virtual px
     const SPACING = 7;   // rest length between consecutive link centres
     const count   = Math.max(2, Math.round((toY - fromY) / SPACING));
 
     this._scene   = scene;
+    this._robot   = robot;
     this._links   = [];
     this._gfx     = [];
     this._SPACING = SPACING;
+    this._RADIUS  = RADIUS;
 
     for (let i = 0; i < count; i++) {
       // Slight rightward offset on lower links → natural pendulum swing on start
@@ -76,6 +79,25 @@ export default class Chain {
         const corr = (dist - rest) / dist * 0.5;
         if (!a.fixed) { a.x += dx * corr; a.y += dy * corr; }
         if (!b.fixed) { b.x -= dx * corr; b.y -= dy * corr; }
+      }
+    }
+
+    // ── Robot collision ───────────────────────────────────────────────────
+    if (this._robot) {
+      const rb  = this._robot.body_proxy;
+      const cx  = rb.x;
+      const cy  = rb.y;
+      /** @type {Phaser.Physics.Arcade.Body} */
+      const ab  = rb.body;
+      const hw  = ab.halfWidth  + this._RADIUS;
+      const hh  = ab.halfHeight + this._RADIUS;
+
+      for (const lk of this._links) {
+        if (lk.fixed) continue;
+        if (Math.abs(lk.x - cx) < hw && Math.abs(lk.y - cy) < hh) {
+          // Push link to the nearest horizontal edge of the robot
+          lk.x = lk.x < cx ? cx - hw : cx + hw;
+        }
       }
     }
 

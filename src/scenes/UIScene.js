@@ -54,7 +54,8 @@ export default class UIScene extends Phaser.Scene {
 
     // ── Instruction band — black bg, white text (shown from the start) ───
     this._instrBg = this.add.rectangle(W / 2, BY, BW, BH, 0x000000)
-      .setOrigin(0.5, 0.5);
+      .setOrigin(0.5, 0.5)
+      .setAlpha(0);
 
     // 32px instruction text
     this._instrText = this.add.bitmapText(W / 2, BY, 'subtitle', i18n.instructionStart, 32)

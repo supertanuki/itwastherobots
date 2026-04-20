@@ -87,7 +87,7 @@ export default class GameScene extends Phaser.Scene {
 
     // ── Chain — hangs from ceiling, reaches robot mid-height ──────────────
     // Robot head world y = GROUND_Y - 26*3 = 42 → mid-height y = (42+120)/2 = 81
-    new Chain(this, 260, 2, 81);
+    new Chain(this, 260, -180, GROUND_Y - 30, this.robot);
 
     // ── Skull pyramid ─────────────────────────────────────────────────────
     this._skulls           = [];
