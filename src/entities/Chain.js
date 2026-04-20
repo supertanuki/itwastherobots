@@ -18,7 +18,7 @@ export default class Chain {
    */
   constructor(scene, x, fromY, toY, robot = null) {
     const RADIUS  = 3;   // link radius in virtual px
-    const SPACING = 7;   // rest length between consecutive link centres
+    const SPACING = 5;   // rest length between consecutive link centres
     const count   = Math.max(2, Math.round((toY - fromY) / SPACING));
 
     this._scene   = scene;
