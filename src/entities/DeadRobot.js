@@ -18,7 +18,7 @@ export default class DeadRobot extends Phaser.GameObjects.Container {
     super(scene, x, groundY);
     scene.add.existing(this);
 
-    const METAL = 0xffffff;
+    const METAL = 0xeeeeee;
     const EYE   = 0x999999;
 
     const add = (w, h, color) => {
