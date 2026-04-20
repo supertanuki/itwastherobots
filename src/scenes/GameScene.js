@@ -108,6 +108,7 @@ export default class GameScene extends Phaser.Scene {
     this.cameras.main.setFollowOffset(-80, 0);
 
     this._zoomedOut = false;
+    this._skullFall = false;
 
     // ── Robot stood up — show post-standup dialogue ───────────────────────
     this.events.on('robot-stood-up', () => {
@@ -297,6 +298,14 @@ export default class GameScene extends Phaser.Scene {
       if (skull._activated) continue;
       const gap = skull.proxy.body.left - robotRight;
       if (gap < 4 && gap > -12) {
+
+        if (!this._skullFall) {
+          this._startDialogue(i18n.dialogueSkullFall, () => {
+            this.game.events.emit('instr-show', { text: i18n.instructionContinue });
+          });
+          this._skullFall = true;
+        }
+
         this._pyramidTriggered = true;
         this._triggerCascade(skull);
         return;
@@ -376,6 +385,19 @@ export default class GameScene extends Phaser.Scene {
    */
   /** Trigger the leg-retrieval sequence. */
   _startLegInteraction() {
+    this._legState      = 'blocked';
+    this._legPressCount = 0;
+    // Stop any crawl momentum
+    this.robot.body_proxy.body.setVelocityX(0);
+    this._crawlActiveUntil = 0;
+    this._startDialogue(i18n.dialogueLeg, () => {
+      this._legState = 'instruction';
+      this.game.events.emit('instr-show', { text: i18n.instructionLeg });
+    });
+  }
+
+  /** Trigger the skull sequence. */
+  _startSkullInteraction() {
     this._legState      = 'blocked';
     this._legPressCount = 0;
     // Stop any crawl momentum

@@ -25,6 +25,7 @@ const TEXTS = {
       { text: "Même s'il me manque un bras...", speak: true },
       { text: "Au moins maintenant, je peux marcher normalement.", speak: true },
     ],
+    dialogueSkullFall: [{ text: "Oups !", speak: true }],
   },
   en: {
     instructionStart:    'To reboot the robot, press the space key several times',
@@ -43,6 +44,7 @@ const TEXTS = {
       { text: "Even though I'm missing an arm...", speak: true },
       { text: "At least now I can walk normally.", speak: true },
     ],
+    dialogueSkullFall: [{ text: "Oops!", speak: true }],
   },
 };
 
