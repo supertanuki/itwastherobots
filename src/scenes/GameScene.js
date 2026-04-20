@@ -245,11 +245,24 @@ export default class GameScene extends Phaser.Scene {
           if (this._dlgWaiting) this._dialogueContinue();
         });
       }
+
+      this._inFrontOfSkulls();
     }
 
     r.update(this.game.loop.delta);
 
     this._checkSkullCollision();
+  }
+
+  _inFrontOfSkulls() {
+    if (this._pyramidTriggered || !this._skulls.length) return;
+
+    const r = this.robot;
+    const proxyRight = r.body_proxy.body.right;
+    const gap = this._skulls[0].proxy.body.left - proxyRight;
+    if (gap < 20 && gap > 1) {
+      this._startSkullInteraction();
+    }
   }
 
   /**
@@ -398,14 +411,10 @@ export default class GameScene extends Phaser.Scene {
 
   /** Trigger the skull sequence. */
   _startSkullInteraction() {
-    this._legState      = 'blocked';
-    this._legPressCount = 0;
-    // Stop any crawl momentum
     this.robot.body_proxy.body.setVelocityX(0);
     this._crawlActiveUntil = 0;
-    this._startDialogue(i18n.dialogueLeg, () => {
-      this._legState = 'instruction';
-      this.game.events.emit('instr-show', { text: i18n.instructionLeg });
+    this._startDialogue(i18n.dialogueSkullsFound, () => {
+      this.game.events.emit('instr-show', { text: i18n.instructionContinue });
     });
   }
 
