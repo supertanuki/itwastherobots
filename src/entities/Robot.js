@@ -215,7 +215,7 @@ export default class Robot extends Phaser.GameObjects.Container {
     };
 
     const METAL    = 0xffffff;
-    const TORSO    = 0xeeeeee; // torso only — slight gray
+    const TORSO    = 0xffffff; // torso only — slight gray
     const METAL_BG = 0xaaaaaa; // back leg — slightly grayed for depth (side view)
     const EYE      = 0xff2200;
 
@@ -227,7 +227,7 @@ export default class Robot extends Phaser.GameObjects.Container {
     this.footL       = add(4,  2, METAL_BG);
 
     // ── Torso ─────────────────────────────────────────────────────────────
-    this.torso       = add(8, 10, TORSO);
+    this.torso       = add(6, 10, TORSO);
 
     // ── Left arm stub ─────────────────────────────────────────────────────
     this.armLStub    = add(3,  3, METAL);
@@ -641,8 +641,8 @@ export default class Robot extends Phaser.GameObjects.Container {
     // Arms swing same side as leg (inverted counter-swing)
     // sinT=+1 (right leg fwd): arm fwd +10°  → "\" shape
     // sinT=-1 (right leg back): arm back -30° → "/" shape
-    this.upperArmR.setAngle(-10 + sinT * 20);
-    this.armLStub.setAngle(-15 - sinT * 12);
+    this.upperArmR.setAngle(-10 + sinT * 32);
+    this.armLStub.setAngle(-15 - sinT * 18);
   }
 
   _updateStanding(_delta) {
