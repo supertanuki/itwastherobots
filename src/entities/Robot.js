@@ -270,13 +270,13 @@ export default class Robot extends Phaser.GameObjects.Container {
     // Head (above torso)
     this.head.setPosition(0, -26);
 
-    // Right arm — alongside body (x=0), neutral hanging position
-    this.upperArmR.setPosition(0, -16);
+    // Right arm — shoulder level (top of torso, y≈-21)
+    this.upperArmR.setPosition(0, -20);
     this.upperArmR.setAngle(5);
-    this.shoulderR.setPosition(0, -20);
+    this.shoulderR.setPosition(0, -22);
     this.shoulderR.setAngle(5);
-    // Left arm stub — alongside body
-    this.armLStub.setPosition(-1, -20);
+    // Left arm stub — shoulder level
+    this.armLStub.setPosition(-1, -22);
     this.armLStub.setAngle(-15);
 
     // Right leg — centered under torso (x=0)
@@ -454,8 +454,8 @@ export default class Robot extends Phaser.GameObjects.Container {
     const free = [
       { t: this.torso,     x: 0,   y: -18, a: 0 },
       { t: this.head,      x: 0,   y: -26, a: 0 },
-      { t: this.upperArmR, x: 0,   y: -16, a: 5 },
-      { t: this.armLStub,  x: -1,  y: -20, a: -15 },
+      { t: this.upperArmR, x: 0,   y: -20, a: 5 },
+      { t: this.armLStub,  x: -1,  y: -22, a: -15 },
       { t: this.upperLegR, x: 0,   y: -9,  a: 0 },
       { t: this.upperLegL, x: 0,   y: -9,  a: 0 },
       { t: this.neck,      x: 0,   y: -22, a: 0 },
