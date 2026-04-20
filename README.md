@@ -1,4 +1,4 @@
-# It Was The Robots
+# It was the Robots
 
 A damaged, dormant robot reactivates and discovers the terrifying truth.
 
