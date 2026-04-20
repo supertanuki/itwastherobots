@@ -108,7 +108,6 @@ export default class GameScene extends Phaser.Scene {
     this.cameras.main.setFollowOffset(-80, 0);
 
     this._zoomedOut = false;
-    this._skullFall = false;
 
     // ── Robot stood up — show post-standup dialogue ───────────────────────
     this.events.on('robot-stood-up', () => {
@@ -135,7 +134,9 @@ export default class GameScene extends Phaser.Scene {
     // null | 'blocked' | 'instruction' | 'pulling' | 'done'
     this._legState         = null;
     this._legPressCount    = 0;
-    this._dlgDismissOnWalk = false;
+    this._dlgDismissOnWalk  = false;
+    this._robotWaiting      = false;  // true while a blocking dialogue is active
+    this._skullDialogueDone = false;  // true once dialogueSkullsFound has fired
   }
 
   update() {
@@ -222,7 +223,8 @@ export default class GameScene extends Phaser.Scene {
         this._dialogueContinue();
       }
     } else {
-      const canMove = r.state === RobotState.STANDING || r.state === RobotState.WALKING;
+      const canMove = !this._robotWaiting
+        && (r.state === RobotState.STANDING || r.state === RobotState.WALKING);
       if (canMove) {
         const left  = this.cursors.left.isDown  || this.keyA.isDown || this.keyQ.isDown;
         const right = this.cursors.right.isDown || this.keyD.isDown;
@@ -255,7 +257,7 @@ export default class GameScene extends Phaser.Scene {
   }
 
   _inFrontOfSkulls() {
-    if (this._pyramidTriggered || !this._skulls.length) return;
+    if (this._skullDialogueDone || this._pyramidTriggered || !this._skulls.length) return;
 
     const r = this.robot;
     const proxyRight = r.body_proxy.body.right;
@@ -278,7 +280,7 @@ export default class GameScene extends Phaser.Scene {
 
     for (let row = 0; row < ROWS; row++) {
       const count = ROWS - row;           // 8, 7, 6 … 1
-      const y     = groundY - row * SKULL_H;
+      const y     = groundY - row * SKULL_H + 3;
       // Centre the row horizontally
       const startX = centerX - ((count - 1) * SKULL_W) / 2;
 
@@ -311,13 +313,7 @@ export default class GameScene extends Phaser.Scene {
       if (skull._activated) continue;
       const gap = skull.proxy.body.left - robotRight;
       if (gap < 4 && gap > -12) {
-
-        if (!this._skullFall) {
-          this._startDialogue(i18n.dialogueSkullFall, () => {
-            this.game.events.emit('instr-show', { text: i18n.instructionContinue });
-          });
-          this._skullFall = true;
-        }
+        this._startDialogue(i18n.dialogueSkullFall);
 
         this._pyramidTriggered = true;
         this._triggerCascade(skull);
@@ -409,12 +405,14 @@ export default class GameScene extends Phaser.Scene {
     });
   }
 
-  /** Trigger the skull sequence. */
+  /** Trigger the skull sequence — freezes the robot until the dialogue is dismissed. */
   _startSkullInteraction() {
+    this._skullDialogueDone = true;  // prevent re-triggering this dialogue
+    this._robotWaiting      = true;
+    this.robot.setMoveIntent(0);
     this.robot.body_proxy.body.setVelocityX(0);
-    this._crawlActiveUntil = 0;
     this._startDialogue(i18n.dialogueSkullsFound, () => {
-      this.game.events.emit('instr-show', { text: i18n.instructionContinue });
+      this._robotWaiting = false;
     });
   }
 
