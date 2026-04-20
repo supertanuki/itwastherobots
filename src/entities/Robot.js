@@ -650,10 +650,10 @@ export default class Robot extends Phaser.GameObjects.Container {
     this.upperLegR.setAngle( phase * SWING);
     this.upperLegL.setAngle(-phase * SWING);
 
-    // Lower legs: same base as upper leg + backward bend only during the forward swing
-    // max(0, phase) is 0 when the leg trails back → leg fully extended on push-off
-    this.lowerLegR.setAngle( phase * SWING - BEND * Math.max(0,  phase));
-    this.lowerLegL.setAngle(-phase * SWING - BEND * Math.max(0, -phase));
+    // Lower legs: straight when forward, bent (lower leg kicks up) when trailing behind
+    // max(0, -phase) is 0 when the leg is forward → fully extended toward front
+    this.lowerLegR.setAngle( phase * SWING + BEND * Math.max(0, -phase));
+    this.lowerLegL.setAngle(-phase * SWING + BEND * Math.max(0,  phase));
 
     // Body dips when legs spread, rises when they cross
     const bob = -Math.abs(phase) * 1.2;
