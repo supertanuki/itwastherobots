@@ -214,7 +214,7 @@ export default class Robot extends Phaser.GameObjects.Container {
       return r;
     };
 
-    const METAL    = 0xeeeeee; // slight gray for torso and front limbs
+    const METAL    = 0xffffff;
     const METAL_BG = 0xaaaaaa; // back leg — slightly grayed for depth (side view)
     const EYE      = 0xff2200;
 
@@ -232,11 +232,13 @@ export default class Robot extends Phaser.GameObjects.Container {
     this.shoulderL   = add(3,  3, METAL);
     this.armLStub    = add(3,  3, METAL);
 
-    // ── Right arm ─────────────────────────────────────────────────────────
+    // ── Right arm — thin black outline to stand out from torso ───────────
+    // stroke 0.5 local units × scale 3 ≈ 1.5 virtual px → fine visible line
+    const addArm = (w, h) => add(w, h, METAL).setStrokeStyle(0.5, 0x000000);
     this.shoulderR   = add(3,  4, METAL);
-    this.upperArmR   = add(2,  7, METAL);
-    this.elbowR      = add(2,  1, METAL);
-    this.lowerArmR   = add(2,  5, METAL);
+    this.upperArmR   = addArm(2,  7);
+    this.elbowR      = addArm(2,  1);
+    this.lowerArmR   = addArm(2,  5);
 
     // ── Front leg (right) — over torso ────────────────────────────────────
     this.hipR        = add(4,  3, METAL);
