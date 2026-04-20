@@ -3,21 +3,31 @@ import Phaser from 'phaser';
 /**
  * Wall — static striped-hazard wall prop.
  * Black/white 45° stripes with a white outline.
- * Scale ×3 to match the rest of the world.
  * Container origin = ground level.
+ *
+ * @param {number}  x
+ * @param {number}  groundY
+ * @param {object}  [opts]
+ * @param {number}  [opts.width=18]    wall width in virtual pixels
+ * @param {number}  [opts.height=102]  wall height in virtual pixels
+ * @param {number}  [opts.offsetX=15]  horizontal offset from container origin
+ * @param {number}  [opts.stripeEvery=4] stripe period in pixels
  */
 export default class Wall extends Phaser.GameObjects.Container {
-  /**
-   * @param {Phaser.Scene} scene
-   * @param {number} x       world x (virtual pixels)
-   * @param {number} groundY world y of the ground surface
-   */
-  constructor(scene, x, groundY) {
+  constructor(scene, x, groundY, {
+    width     = 18,
+    height    = 102,
+    offsetX   = 15,
+    stripeEvery = 4,
+  } = {}) {
     super(scene, x, groundY);
     scene.add.existing(this);
 
-    // Wall bounds in world space (×3 — no container scale): x 15→33, y -102→0
-    const WX = 15, WY = -102, WW = 18, WH = 102, PERIOD = 4;
+    const WX = offsetX;
+    const WY = -height;
+    const WW = width;
+    const WH = height;
+    const PERIOD = stripeEvery;
 
     const g = scene.add.graphics();
     this.add(g);
@@ -26,7 +36,7 @@ export default class Wall extends Phaser.GameObjects.Container {
     g.fillStyle(0x000000, 1);
     g.fillRect(WX, WY, WW, WH);
 
-    // White 45° diagonal stripes — 1 px wide, drawn directly in world space
+    // White 45° diagonal stripes — 1 px wide
     g.fillStyle(0xffffff, 1);
     for (let dy = 0; dy < WH; dy++) {
       for (let dx = 0; dx < WW; dx++) {
@@ -35,7 +45,7 @@ export default class Wall extends Phaser.GameObjects.Container {
       }
     }
 
-    // White outline — 1 px, same as ground plates
+    // White outline
     g.lineStyle(1, 0xdddddd, 1);
     g.strokeRect(WX, WY, WW, WH);
   }

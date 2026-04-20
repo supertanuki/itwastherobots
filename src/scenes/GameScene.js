@@ -4,6 +4,7 @@ import Skull from '../entities/Skull.js';
 import DeadRobot from '../entities/DeadRobot.js';
 import Wall from '../entities/Wall.js';
 import Chain from '../entities/Chain.js';
+import Computer from '../entities/Computer.js';
 import i18n from '../i18n.js';
 
 /**
@@ -94,6 +95,11 @@ export default class GameScene extends Phaser.Scene {
     this._skulls           = [];
     this._pyramidTriggered = false;
     this._buildSkullPyramid(600, GROUND_Y, groundBody);
+
+    // ── Wide wall + computer terminal at mid-height ───────────────────────
+    const COMP_WALL_H = 70;
+    new Wall(this, 750, GROUND_Y, { width: 60, height: COMP_WALL_H, offsetX: 0 });
+    new Computer(this, 780, GROUND_Y - COMP_WALL_H / 2);
 
     // ── Silent mode — ?nosounds in URL disables all audio ────────────────
     this._silent = new URLSearchParams(window.location.search).has('nosounds');
