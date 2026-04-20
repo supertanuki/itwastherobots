@@ -3,6 +3,7 @@ import Robot, { RobotState } from '../entities/Robot.js';
 import Skull from '../entities/Skull.js';
 import DeadRobot from '../entities/DeadRobot.js';
 import Wall from '../entities/Wall.js';
+import Chain from '../entities/Chain.js';
 import i18n from '../i18n.js';
 
 /**
@@ -83,6 +84,10 @@ export default class GameScene extends Phaser.Scene {
     // Wall added first so it renders behind the robot body
     new Wall(this, 400, GROUND_Y);
     this._deadRobot = new DeadRobot(this, 400, GROUND_Y);
+
+    // ── Chain — hangs from ceiling, reaches robot mid-height ──────────────
+    // Robot head world y = GROUND_Y - 26*3 = 42 → mid-height y = (42+120)/2 = 81
+    new Chain(this, 260, 2, 81);
 
     // ── Skull pyramid ─────────────────────────────────────────────────────
     this._skulls           = [];
