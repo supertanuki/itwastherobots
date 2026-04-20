@@ -27,14 +27,14 @@ export default class UIScene extends Phaser.Scene {
   create() {
     const W  = 1280;
     const H  = 720;
-    const BW = W * 0.8;   // 1024px
+    const BW = W * 0.9;   // 1024px
 
     // ── Speech (dialogue) band — slightly raised, reduced height ─────────
     const BH_DLG   = 50;
     const SPEECH_Y = H - 110;   // center of dialogue band (≈ 610)
 
     // ── Instruction band — black bg, just below dialogue ─────────────────
-    const BH_INSTR = 36;
+    const BH_INSTR = 66;
     const INSTR_Y  = SPEECH_Y + BH_DLG / 2 + 6 + BH_INSTR / 2;
 
     // ── Vignette — radial gradient transparent→black, covers full screen ─
@@ -66,13 +66,13 @@ export default class UIScene extends Phaser.Scene {
     // ── Instruction band — black bg, white text, below dialogue ──────────
     this._instrBg = this.add.rectangle(W / 2, INSTR_Y, BW, BH_INSTR, 0x000000)
       .setOrigin(0.5, 0.5)
-      .setAlpha(0);
+      //.setAlpha(0);
 
-    this._instrText = this.add.bitmapText(W / 2, INSTR_Y, 'subtitle', i18n.instructionStart, 24)
+    this._instrText = this.add.bitmapText(W / 2, INSTR_Y, 'subtitle', i18n.instructionStart, 32)
       .setOrigin(0.5, 0.5)
       .setTint(0xffffff)
       .setVisible(false)
-      .setMaxWidth(BW - 20);
+      .setMaxWidth(BW - 10);
 
     this.time.delayedCall(2000, () => this._instrText.setVisible(true));
 
