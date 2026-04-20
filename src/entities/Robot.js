@@ -229,16 +229,7 @@ export default class Robot extends Phaser.GameObjects.Container {
     this.torso       = add(8, 10, METAL);
 
     // ── Left arm stub ─────────────────────────────────────────────────────
-    this.shoulderL   = add(3,  3, METAL);
     this.armLStub    = add(3,  3, METAL);
-
-    // ── Right arm — thin black outline to stand out from torso ───────────
-    // stroke 0.5 local units × scale 3 ≈ 1.5 virtual px → fine visible line
-    const addArm = (w, h) => add(w, h, METAL).setStrokeStyle(0.5, 0x000000);
-    this.shoulderR   = add(3,  4, METAL);
-    this.upperArmR   = addArm(2,  7);
-    this.elbowR      = addArm(2,  1);
-    this.lowerArmR   = addArm(2,  5);
 
     // ── Front leg (right) — over torso ────────────────────────────────────
     this.hipR        = add(4,  3, METAL);
@@ -253,9 +244,15 @@ export default class Robot extends Phaser.GameObjects.Container {
     // ── Neck ──────────────────────────────────────────────────────────────
     this.neck        = add(4,  3, METAL);
 
-    // ── Head and eye — always on top ──────────────────────────────────────
+    // ── Head and eye ──────────────────────────────────────────────────────
     this.head        = add(6,  6, METAL);
     this.eye         = add(2,  2, EYE);
+
+    // ── Right arm — on top of everything (added last) ─────────────────────
+    const addArm = (w, h) => add(w, h, METAL).setStrokeStyle(0.5, 0x000000);
+    this.upperArmR   = addArm(2,  7);
+    this.elbowR      = addArm(2,  1);
+    this.lowerArmR   = addArm(2,  5);
   }
 
   // ─── Poses — sets each part's x/y/angle within the container ─────────────
@@ -275,8 +272,6 @@ export default class Robot extends Phaser.GameObjects.Container {
     // Right arm — shoulder level (top of torso, y≈-21)
     this.upperArmR.setPosition(0, -20);
     this.upperArmR.setAngle(5);
-    this.shoulderR.setPosition(0, -22);
-    this.shoulderR.setAngle(5);
     // Left arm stub — shoulder level
     this.armLStub.setPosition(-1, -22);
     this.armLStub.setAngle(-15);
@@ -301,7 +296,6 @@ export default class Robot extends Phaser.GameObjects.Container {
     this.kneeR.setPosition(0, -5);       this.kneeR.setAngle(0);
     this.hipL.setPosition(0, -13);       this.hipL.setAngle(0);
     this.kneeL.setPosition(0, -5);       this.kneeL.setAngle(0);
-    this.shoulderL.setPosition(0, -21);  this.shoulderL.setAngle(-10);
 
     // Reset main angles
     this.torso.setAngle(0);
@@ -344,11 +338,9 @@ export default class Robot extends Phaser.GameObjects.Container {
 
     // Connectors — flat, close to adjacent parts
     this.neck.setPosition(5,  -5);     this.neck.setAngle(0);
-    this.shoulderR.setPosition(5, -2); this.shoulderR.setAngle(50);
     this.elbowR.setPosition(8,  -2);   this.elbowR.setAngle(45);
     this.hipR.setPosition(-2,  -3);    this.hipR.setAngle(-80);
     this.kneeR.setPosition(-7,  -3);   this.kneeR.setAngle(-75);
-    this.shoulderL.setPosition(-3, -2); this.shoulderL.setAngle(-20);
     this.hipL.setPosition(-4,  -2);    this.hipL.setAngle(-25);
   }
 
@@ -447,8 +439,8 @@ export default class Robot extends Phaser.GameObjects.Container {
     [this.torso, this.head, this.upperArmR, this.lowerArmR, this.armLStub,
      this.upperLegR, this.lowerLegR, this.footR, this.legLStub,
      this.upperLegL, this.lowerLegL, this.footL,
-     this.neck, this.shoulderR, this.elbowR, this.hipR,
-     this.kneeR, this.kneeL, this.shoulderL, this.hipL].forEach(p => {
+     this.neck, this.elbowR, this.hipR,
+     this.kneeR, this.kneeL, this.hipL].forEach(p => {
       this.scene.tweens.killTweensOf(p);
     });
 
@@ -461,10 +453,8 @@ export default class Robot extends Phaser.GameObjects.Container {
       { t: this.upperLegR, x: 0,   y: -9,  a: 0 },
       { t: this.upperLegL, x: 0,   y: -9,  a: 0 },
       { t: this.neck,      x: 0,   y: -22, a: 0 },
-      { t: this.shoulderR, x: 5,   y: -21, a: 12 },
       { t: this.hipR,      x: 0,   y: -13, a: 0 },
       { t: this.hipL,      x: 0,   y: -13, a: 0 },
-      { t: this.shoulderL, x: 0,   y: -21, a: -10 },
     ];
 
     // Chain-managed parts — angle ONLY (_syncChain handles their positions every frame)
@@ -602,12 +592,6 @@ export default class Robot extends Phaser.GameObjects.Container {
       clampY((this.head.y + this.torso.y) / 2)
     );
     this.neck.setAngle(this.torso.angle);
-    this.shoulderR.setPosition(
-      (this.torso.x + this.upperArmR.x) / 2 + 1,
-      clampY((this.torso.y + this.upperArmR.y) / 2)
-    );
-    this.shoulderR.setAngle(this.upperArmR.angle * 0.5);
-    // elbowR and lowerArmR are already chained above — skip midpoint for these
     this.hipR.setPosition(
       (this.torso.x + this.upperLegR.x) / 2,
       clampY((this.torso.y + this.upperLegR.y) / 2)
@@ -618,11 +602,6 @@ export default class Robot extends Phaser.GameObjects.Container {
       clampY((this.upperLegR.y + this.lowerLegR.y) / 2)
     );
     this.kneeR.setAngle(this.lowerLegR.angle);
-    this.shoulderL.setPosition(
-      (this.torso.x + this.armLStub.x) / 2,
-      clampY((this.torso.y + this.armLStub.y) / 2)
-    );
-    this.shoulderL.setAngle(this.armLStub.angle * 0.5);
     this.hipL.setPosition(
       (this.torso.x + this.legLStub.x) / 2,
       clampY((this.torso.y + this.legLStub.y) / 2)
@@ -658,7 +637,6 @@ export default class Robot extends Phaser.GameObjects.Container {
     this.torso.setY(-17 + bob);
     this.neck.setY(-22 + bob);
     this.head.setY(-26 + bob);
-    this.shoulderL.setY(-21 + bob);
 
     // Arms counter-swing (right arm back when right leg forward)
     // Back  (sinT=+1): upperArmR=-30° → "/" rigid line
@@ -671,8 +649,6 @@ export default class Robot extends Phaser.GameObjects.Container {
   }
 
   _updateStanding(_delta) {
-    // Sync left shoulder connector with torso sway so it doesn't visually disconnect
-    this.shoulderL.setAngle(-10 + this.torso.angle * 0.8);
   }
 
   // ─── Stumble system ───────────────────────────────────────────────────────
