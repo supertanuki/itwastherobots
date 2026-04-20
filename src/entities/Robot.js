@@ -214,47 +214,44 @@ export default class Robot extends Phaser.GameObjects.Container {
       return r;
     };
 
-    // Colors
-    const METAL     = 0xffffff;
-    const METAL_DRK = 0xffffff;
-    const JOINT     = 0xffffff;
-    const EYE       = 0xff2200;
-    const STUB      = 0xffffff; // missing-limb stub color
+    const METAL    = 0xffffff;
+    const METAL_BG = 0xaaaaaa; // back leg — slightly grayed for depth (side view)
+    const EYE      = 0xff2200;
 
-    // Torso
+    // ── Back leg (left) — added first so it renders behind everything ─────
+    this.hipL        = add(4,  3, METAL_BG);
+    this.upperLegL   = add(4,  8, METAL_BG);
+    this.kneeL       = add(3,  3, METAL_BG);
+    this.lowerLegL   = add(3,  7, METAL_BG);
+    this.footL       = add(4,  2, METAL_BG);
+
+    // ── Torso ─────────────────────────────────────────────────────────────
     this.torso       = add(8,  7, METAL);
 
-    // Right arm
-    this.upperArmR   = add(2,  7, METAL);
-    this.lowerArmR   = add(2,  5, METAL);
-
-    // Left arm stub
+    // ── Left arm stub ─────────────────────────────────────────────────────
+    this.shoulderL   = add(3,  3, METAL);
     this.armLStub    = add(3,  3, METAL);
 
-    // Right leg
+    // ── Right arm ─────────────────────────────────────────────────────────
+    this.shoulderR   = add(3,  4, METAL);
+    this.upperArmR   = add(2,  7, METAL);
+    this.elbowR      = add(2,  1, METAL);
+    this.lowerArmR   = add(2,  5, METAL);
+
+    // ── Front leg (right) — over torso ────────────────────────────────────
+    this.hipR        = add(4,  3, METAL);
     this.upperLegR   = add(4,  8, METAL);
+    this.kneeR       = add(3,  3, METAL);
     this.lowerLegR   = add(3,  7, METAL);
     this.footR       = add(4,  2, METAL);
 
-    // Left leg stub (visible during lying/crawl only)
+    // ── Left leg stub (crawl only) ────────────────────────────────────────
     this.legLStub    = add(4,  3, METAL);
 
-    // Full left leg — hidden until the robot retrieves the dead robot's leg
-    this.upperLegL   = add(4,  8, METAL);
-    this.lowerLegL   = add(3,  7, METAL);
-    this.footL       = add(4,  2, METAL);
+    // ── Neck ──────────────────────────────────────────────────────────────
+    this.neck        = add(4,  3, METAL);
 
-    // ── Connectors — small blocks that fill the gaps between limbs ────────
-    this.neck        = add(4,  3, METAL); // head ↔ torso
-    this.shoulderR   = add(3,  4, METAL); // torso ↔ upper arm right
-    this.elbowR      = add(2,  1, METAL); // upper arm ↔ lower arm right
-    this.hipR        = add(4,  3, METAL); // torso ↔ upper leg right
-    this.kneeR       = add(3,  3, METAL); // upper leg ↔ lower leg right
-    this.kneeL       = add(3,  3, METAL); // upper leg ↔ lower leg left
-    this.shoulderL   = add(3,  3, METAL); // torso ↔ arm stub left
-    this.hipL        = add(4,  3, METAL); // torso ↔ upper leg left
-
-    // Head and eye last — always on top
+    // ── Head and eye — always on top ──────────────────────────────────────
     this.head        = add(6,  6, METAL);
     this.eye         = add(2,  2, EYE);
   }
@@ -294,8 +291,8 @@ export default class Robot extends Phaser.GameObjects.Container {
     this.footR.setPosition(2, 3);
     this.footR.setAngle(0);
 
-    // Left leg (full — shown after robot retrieves dead robot's leg)
-    this.upperLegL.setPosition(-2, -9);  this.upperLegL.setAngle(0);
+    // Left leg (full — side view, stacked behind right leg at same x)
+    this.upperLegL.setPosition(2, -9);   this.upperLegL.setAngle(0);
     this.lowerLegL.setAngle(0);
     this.footL.setAngle(0);
 
@@ -305,8 +302,8 @@ export default class Robot extends Phaser.GameObjects.Container {
     this.elbowR.setPosition(8, -16);     this.elbowR.setAngle(8);
     this.hipR.setPosition(2, -13);       this.hipR.setAngle(0);
     this.kneeR.setPosition(2, -5);       this.kneeR.setAngle(0);
-    this.hipL.setPosition(-2, -13);      this.hipL.setAngle(0);
-    this.kneeL.setPosition(-2, -5);      this.kneeL.setAngle(0);
+    this.hipL.setPosition(2, -13);       this.hipL.setAngle(0);
+    this.kneeL.setPosition(2, -5);       this.kneeL.setAngle(0);
     this.shoulderL.setPosition(-5, -21); this.shoulderL.setAngle(-10);
 
     // Reset main angles
@@ -342,6 +339,7 @@ export default class Robot extends Phaser.GameObjects.Container {
     this.legLStub.setAngle(-30);
 
     // Full left leg hidden until retrieved from dead robot
+    this.hipL.setVisible(false);
     this.upperLegL.setVisible(false);
     this.lowerLegL.setVisible(false);
     this.footL.setVisible(false);
@@ -437,11 +435,11 @@ export default class Robot extends Phaser.GameObjects.Container {
   /** Make the full left leg appear (retrieved from the dead robot). */
   _showLeftLeg() {
     this.legLStub.setVisible(false);
-    this.upperLegL.setPosition(-2, -8).setAngle(-25).setVisible(true);
-    this.lowerLegL.setPosition(-3, -5).setAngle(-15).setVisible(true);
-    this.footL.setPosition(-3, -2).setAngle(0).setVisible(true);
-    this.kneeL.setPosition(-2, -6).setAngle(0).setVisible(true);
-    this.hipL.setPosition(-2, -11).setAngle(-10);
+    this.hipL.setPosition(2, -11).setAngle(-10).setVisible(true);
+    this.upperLegL.setPosition(2, -8).setAngle(-25).setVisible(true);
+    this.kneeL.setPosition(2, -6).setAngle(0).setVisible(true);
+    this.lowerLegL.setPosition(2, -5).setAngle(-15).setVisible(true);
+    this.footL.setPosition(4, -2).setAngle(0).setVisible(true);
   }
 
   _tweenToStanding(onComplete) {
@@ -807,7 +805,7 @@ export default class Robot extends Phaser.GameObjects.Container {
       kneeR.y + (this.lowerLegR.height / 2) * Math.cos(lRA),
     );
     const footPosR = this._tipOf(this.lowerLegR);
-    this.footR.setPosition(footPosR.x, footPosR.y);
+    this.footR.setPosition(footPosR.x + 2, footPosR.y); // +2 so foot points forward (right)
     this.footR.setAngle(0);
 
     // ── Left leg (only when visible) ─────────────────────────────────────
@@ -822,7 +820,7 @@ export default class Robot extends Phaser.GameObjects.Container {
         kneeL.y + (this.lowerLegL.height / 2) * Math.cos(lLA),
       );
       const footPosL = this._tipOf(this.lowerLegL);
-      this.footL.setPosition(footPosL.x, footPosL.y);
+      this.footL.setPosition(footPosL.x + 2, footPosL.y); // +2 so foot points forward
       this.footL.setAngle(0);
     }
   }
