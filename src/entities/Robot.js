@@ -663,12 +663,9 @@ export default class Robot extends Phaser.GameObjects.Container {
     this.head.setY(-26 + bob);
     this.shoulderL.setY(-21 + bob);
 
-    // Arms counter-swing opposite to same-side leg, with larger amplitude
+    // Arms counter-swing opposite to same-side leg
     this.upperArmR.setAngle(18 - sinT * 22);
     this.armLStub.setAngle(-15 + sinT * 10);
-
-    // Store cosT so _syncChain can apply forearm follow-through
-    this._walkCosT = cosT;
   }
 
   _updateStanding(_delta) {
@@ -782,19 +779,14 @@ export default class Robot extends Phaser.GameObjects.Container {
   _syncChain() {
     const DEG = Math.PI / 180;
 
-    // ── Arm ───────────────────────────────────────────────────────────────
-    // lowerArmR = upperArmR − 30° base offset + cosine follow-through
-    // cosT>0 (arm swinging back): forearm lags behind (−10°), elbow leads
-    // cosT<0 (arm swinging forward): forearm extends forward (+10°)
-    const cosFollow = (this._walkCosT || 0) * 10;
-    this.lowerArmR.setAngle(this.upperArmR.angle - 30 - cosFollow);
+    // ── Arm — rigid unit: forearm keeps a fixed angle relative to upper arm ──
+    this.lowerArmR.setAngle(this.upperArmR.angle - 30);
 
-    // Place elbowR so its top edge overlaps the bottom of upperArmR
-    // Shifted 8 virtual px left (÷3 scale) so the elbow trails behind the shoulder
+    // Elbow sits exactly at the tip of upperArmR (no lateral offset)
     const elbow = this._tipOf(this.upperArmR);
     const eA = this.upperArmR.angle * DEG;
     this.elbowR.setPosition(
-      elbow.x + (this.elbowR.height / 2) * Math.sin(eA) - 8 / 3,
+      elbow.x + (this.elbowR.height / 2) * Math.sin(eA),
       elbow.y + (this.elbowR.height / 2) * Math.cos(eA),
     );
     this.elbowR.setAngle(this.upperArmR.angle);
