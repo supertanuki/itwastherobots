@@ -5,6 +5,7 @@ import DeadRobot from '../entities/DeadRobot.js';
 import Wall from '../entities/Wall.js';
 import Chain from '../entities/Chain.js';
 import Computer from '../entities/Computer.js';
+import SurveillanceCamera from '../entities/SurveillanceCamera.js';
 import i18n from '../i18n.js';
 
 /**
@@ -102,6 +103,10 @@ export default class GameScene extends Phaser.Scene {
     new Wall(this, COMP_X, GROUND_Y, { width: 60, height: COMP_WALL_H, offsetX: 0 });
     this._computer = new Computer(this, COMP_X + 30, GROUND_Y - COMP_WALL_H / 2);
     this._computerState = null;  // null | 'active' | 'done'
+
+    // ── Surveillance camera — low ceiling at x=900 ────────────────────────
+    const CEIL_BOTTOM = 8;
+    new SurveillanceCamera(this, 900, CEIL_BOTTOM, 80, CEIL_BOTTOM);
 
     // ── Silent mode — ?nosounds in URL disables all audio ────────────────
     this._silent = new URLSearchParams(window.location.search).has('nosounds');
