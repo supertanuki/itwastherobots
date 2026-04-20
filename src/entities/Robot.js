@@ -214,7 +214,7 @@ export default class Robot extends Phaser.GameObjects.Container {
       return r;
     };
 
-    const METAL    = 0xffffff;
+    const METAL    = 0xeeeeee; // slight gray for torso and front limbs
     const METAL_BG = 0xaaaaaa; // back leg — slightly grayed for depth (side view)
     const EYE      = 0xff2200;
 
