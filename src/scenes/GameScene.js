@@ -875,7 +875,7 @@ export default class GameScene extends Phaser.Scene {
 
     // Fadeout then respawn at nearest checkpoint behind explosion
     const CHECKPOINTS = [900, 1300];
-    const spawnX = [...CHECKPOINTS].reverse().find(cpX => cpX < cx) ?? 200;
+    const spawnX = [...CHECKPOINTS].reverse().find(cpX => cpX < r.x) ?? 200;
 
     this.cameras.main.fadeOut(1000, 0, 0, 0);
     this.cameras.main.once('camerafadeoutcomplete', () => {
