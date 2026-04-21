@@ -1,64 +1,29 @@
 import Phaser from 'phaser';
 
 /**
- * SurveillanceCamera — low ceiling strip + hanging camera + spotlight beam.
+ * SurveillanceCamera — hanging camera with a sweeping spotlight beam.
  *
- * Container origin = bottom edge of the ceiling panel (world y = ceilBottom).
+ * Container origin = top of the camera housing (world x, y).
  * Positive Y goes down (Phaser convention).
  *
  * Beam: 45° sector with true radial gradient (canvas texture), center at lens,
- * radius reaching the floor surface. Rotates -80°↔+80° in sync with the lens.
+ * radius 150 px. Rotates -80°↔+80° in sync with the lens sweep.
+ * When the robot head enters the visible sector, the beam tints red for 1 s.
  */
 export default class SurveillanceCamera extends Phaser.GameObjects.Container {
-  /**
-   * @param {Phaser.Scene} scene
-   * @param {number} x           world x centre of the ceiling strip
-   * @param {number} ceilBottom  world y of the ceiling's bottom edge
-   * @param {number} [ceilWidth=80]
-   * @param {number} [ceilHeight=20]
-   */
-  constructor(scene, x, ceilBottom, ceilWidth = 80, ceilHeight = 20) {
-    super(scene, x, ceilBottom);
+  constructor(scene, x, y) {
+    super(scene, x, y);
     scene.add.existing(this);
 
-    const HALF = Math.floor(ceilWidth / 2);
-
-    // ── Ceiling strip — diagonal hazard stripes ───────────────────────────
-    const g = scene.add.graphics();
-    this.add(g);
-
-    const WX = -HALF, WY = -ceilHeight, WW = ceilWidth, WH = ceilHeight;
-    const PERIOD = 4;
-
-    g.fillStyle(0x000000, 1);
-    g.fillRect(WX, WY, WW, WH);
-
-    g.fillStyle(0xffffff, 1);
-    for (let dy = 0; dy < WH; dy++) {
-      for (let dx = 0; dx < WW; dx++) {
-        const phase = ((dx - dy) % PERIOD + PERIOD) % PERIOD;
-        if (phase < PERIOD / 2) g.fillRect(WX + dx, WY + dy, 1, 1);
-      }
-    }
-
-    g.lineStyle(1, 0xdddddd, 1);
-    g.strokeRect(WX, WY, WW, WH);
-
-    // ── Mount bracket ─────────────────────────────────────────────────────
-    g.fillStyle(0xffffff, 1);
-    g.fillRect(-2, 0, 4, 6);
-
-    // ── Geometry constants ────────────────────────────────────────────────
     const HOUSING_R = 7;
-    const HOUSING_Y = 5 + HOUSING_R;          // = 12
+    const HOUSING_Y = HOUSING_R;
     const LENS_R    = 3;
     const LENS_AMP  = HOUSING_R - LENS_R - 1; // = 3
-    const BEAM_OY   = HOUSING_Y + 2;          // lens centre y = 14
+    const BEAM_OY   = HOUSING_Y + 2;          // lens centre y = 9
 
-    // Radius: extends past the floor so the gradient is still visible at ground level.
-    // Floor local y = GROUND_Y(120) - ceilBottom(8) = 112. Lens at 14 → floor dist = 98.
-    // R > 98 so the gradient has non-zero opacity at the floor surface.
-    const R = 150;
+    const R         = 150;
+    const HALF_DEG  = 22.5;
+    const MAX_DEG   = 80;
 
     // ── Spotlight beam — 45° sector, true radial gradient ─────────────────
     if (!scene.textures.exists('cam_beam')) {
@@ -67,13 +32,11 @@ export default class SurveillanceCamera extends Phaser.GameObjects.Container {
       canvas.width = canvas.height = size;
       const ctx    = canvas.getContext('2d');
 
-      // White-centre → transparent-edge radial gradient
       const grd = ctx.createRadialGradient(R, R, 0, R, R, R);
-      grd.addColorStop(0,   'rgba(255,255,255,0.75)');
-      grd.addColorStop(1,   'rgba(255,255,255,0)');
+      grd.addColorStop(0, 'rgba(255,255,255,0.75)');
+      grd.addColorStop(1, 'rgba(255,255,255,0)');
 
-      // 45° sector pointing downward (canvas +y = down, angle π/2)
-      const half = 22.5 * (Math.PI / 180);
+      const half = HALF_DEG * (Math.PI / 180);
       ctx.beginPath();
       ctx.moveTo(R, R);
       ctx.arc(R, R, R, Math.PI / 2 - half, Math.PI / 2 + half);
@@ -84,11 +47,10 @@ export default class SurveillanceCamera extends Phaser.GameObjects.Container {
       scene.textures.addCanvas('cam_beam', canvas);
     }
 
-    // Image pivot = canvas centre = lens world position
     const spotlight = scene.add.image(-LENS_AMP, BEAM_OY, 'cam_beam');
     spotlight.setOrigin(0.5, 0.5);
-    spotlight.setAngle(80); // initial: lens at far-left → beam tilts right (inverted)
-    this.add(spotlight);     // before housing → renders behind it
+    spotlight.setAngle(MAX_DEG);
+    this.add(spotlight);
 
     // ── Housing ───────────────────────────────────────────────────────────
     const housing = scene.add.arc(0, HOUSING_Y, HOUSING_R, 0, 360, false, 0xffffff);
@@ -101,14 +63,55 @@ export default class SurveillanceCamera extends Phaser.GameObjects.Container {
     scene.tweens.add({
       targets:  lens,
       x:        { from: -LENS_AMP, to: LENS_AMP },
-      duration: 2000,
+      duration: 4000,
       yoyo:     true,
       repeat:   -1,
       ease:     'Sine.easeInOut',
       onUpdate: () => {
         spotlight.setPosition(lens.x, BEAM_OY);
-        spotlight.setAngle(-(lens.x / LENS_AMP) * 80);
+        spotlight.setAngle(-(lens.x / LENS_AMP) * MAX_DEG);
       },
+    });
+
+    // Store refs needed for head detection
+    this._lens      = lens;
+    this._spotlight = spotlight;
+    this._lensAmp   = LENS_AMP;
+    this._beamOY    = BEAM_OY;
+    this._beamR     = R - 50;
+    this._halfRad   = HALF_DEG * (Math.PI / 180);
+    this._maxDeg    = MAX_DEG;
+    this._alerted   = false;
+  }
+
+  /**
+   * Call every frame with the robot head's world position.
+   * Tints the beam red for 1 s when the head enters the visible sector.
+   */
+  checkHead(headX, headY) {
+    if (this._alerted) return;
+
+    // Apex = lens world position
+    const ax = this.x + this._lens.x;
+    const ay = this.y + this._beamOY;
+    const dy = headY - ay;
+    const dx = headX - ax;
+
+    if (dy <= 0) return; // beam goes downward only
+    if (Math.abs(dy) > this._beamR || Math.abs(dx) > this._beamR) return; // beyond beam length
+
+    // At depth dy, beam spans horizontally around its center angle
+    const theta   = (this._lens.x / this._lensAmp) * this._maxDeg * (Math.PI / 180);
+    const centerX = ax + dy * Math.tan(theta);
+    const halfW   = dy * Math.tan(this._halfRad);
+
+    if (headX < centerX - halfW || headX > centerX + halfW) return;
+
+    this._alerted = true;
+    this._spotlight.setTint(0xff2200);
+    this.scene.time.delayedCall(200, () => {
+      this._spotlight.clearTint();
+      this._alerted = false;
     });
   }
 }

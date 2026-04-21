@@ -104,9 +104,8 @@ export default class GameScene extends Phaser.Scene {
     this._computer = new Computer(this, COMP_X + 30, GROUND_Y - COMP_WALL_H / 2);
     this._computerState = null;  // null | 'active' | 'done'
 
-    // ── Surveillance camera — low ceiling at x=900 ────────────────────────
-    const CEIL_BOTTOM = 18;
-    new SurveillanceCamera(this, 900, CEIL_BOTTOM, 80, CEIL_BOTTOM);
+    // ── Surveillance camera ───────────────────────────────────────────────
+    this._surveillanceCam = new SurveillanceCamera(this, 1100, -50);
 
     // ── Silent mode — ?nosounds in URL disables all audio ────────────────
     this._silent = new URLSearchParams(window.location.search).has('nosounds');
@@ -284,6 +283,10 @@ export default class GameScene extends Phaser.Scene {
     }
 
     r.update(this.game.loop.delta);
+
+    const headWorldX = r.x + r.head.x * r.scaleX;
+    const headWorldY = r.y + r.head.y * r.scaleY;
+    this._surveillanceCam.checkHead(headWorldX, headWorldY);
 
     this._checkSkullCollision();
   }

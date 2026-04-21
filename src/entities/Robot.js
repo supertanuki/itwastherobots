@@ -695,7 +695,7 @@ export default class Robot extends Phaser.GameObjects.Container {
   // ─── Physics / movement ───────────────────────────────────────────────────
 
   _applyMovement(intent) {
-    const speed = this.state === RobotState.LYING ? 18 : 55; // crawl slower, walk faster
+    const speed = this.state === RobotState.LYING ? 18 : 83; // crawl slower, walk faster
     if (intent !== 0) {
       this.body_proxy.body.setVelocityX(intent * speed);
       this.facingRight = intent > 0;
