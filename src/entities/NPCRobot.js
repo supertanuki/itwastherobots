@@ -136,7 +136,6 @@ export default class NPCRobot extends Robot {
 
   _lowerArm() {
     this._armRaised = false;
-    if (this._fireTimer) { this._fireTimer.remove(); this._fireTimer = null; }
     this.scene.tweens.killTweensOf(this.upperArmR);
     this.scene.tweens.add({
       targets:  this.upperArmR,
