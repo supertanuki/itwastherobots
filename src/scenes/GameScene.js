@@ -115,7 +115,8 @@ export default class GameScene extends Phaser.Scene {
     this.physics.add.collider(this._npcRobot.body_proxy, groundBody);
 
     // ── Surveillance camera ───────────────────────────────────────────────
-    this._surveillanceCam = new SurveillanceCamera(this, 1100, -50);
+    this._surveillanceCam = new SurveillanceCamera(this, 1100, -50, GROUND_Y);
+    this.events.on('camera-hit', () => this._robotExplode());
 
     // ── Silent mode — ?nosounds in URL disables all audio ────────────────
     this._silent = new URLSearchParams(window.location.search).has('nosounds');
@@ -675,5 +676,44 @@ export default class GameScene extends Phaser.Scene {
       case 0: if (right) ok(1); else if (any) fail(); break;
       case 1: if (left)  ok(0); else if (any) fail(); break;
     }
+  }
+
+  _robotExplode() {
+    const r = this.robot;
+    r.setMoveIntent(0);
+    if (r.body_proxy && r.body_proxy.body) /** @type {Phaser.Physics.Arcade.Body} */ (r.body_proxy.body).setVelocityX(0);
+    this._robotWaiting = true;
+
+    if (!this.textures.exists('pixel_spark')) {
+      const g = this.make.graphics({ add: false });
+      g.fillStyle(0xffffff, 1);
+      g.fillRect(0, 0, 1, 1);
+      g.generateTexture('pixel_spark', 1, 1);
+      g.destroy();
+    }
+
+    const cx = r.x;
+    const cy = r.y - 40;
+
+    const emitter = this.add.particles(cx, cy, 'pixel_spark', {
+      speed:    { min: 30, max: 120 },
+      angle:    { min: 0, max: 360 },
+      scale:    { start: 4, end: 0 },
+      alpha:    { start: 1, end: 0 },
+      tint:     [0xffffff, 0xff8800, 0xff2200],
+      lifespan: 1200,
+      emitting: false,
+    });
+    emitter.setDepth(30);
+    emitter.explode(40, cx, cy);
+
+    this.tweens.add({
+      targets:  r,
+      alpha:    0,
+      duration: 100,
+      ease:     'Linear',
+    });
+
+    this.time.delayedCall(700, () => emitter.destroy());
   }
 }

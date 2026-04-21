@@ -8,11 +8,13 @@ import Phaser from 'phaser';
  *
  * Beam: 45° sector with true radial gradient (canvas texture), center at lens,
  * radius 150 px. Rotates -80°↔+80° in sync with the lens sweep.
- * When the robot head enters the visible sector, the beam tints red for 1 s.
+ * On detection: beam turns red and tracks the robot for 500 ms, then fires a
+ * guaranteed-hit laser that explodes at the robot's current position.
  */
 export default class SurveillanceCamera extends Phaser.GameObjects.Container {
-  constructor(scene, x, y) {
+  constructor(scene, x, y, groundY = 120) {
     super(scene, x, y);
+    this._groundY = groundY;
     scene.add.existing(this);
 
     const HOUSING_R = 7;
@@ -60,7 +62,7 @@ export default class SurveillanceCamera extends Phaser.GameObjects.Container {
     const lens = scene.add.arc(0, HOUSING_Y + 2, LENS_R, 0, 360, false, 0x111111);
     this.add(lens);
 
-    scene.tweens.add({
+    this._lensTween = scene.tweens.add({
       targets:  lens,
       x:        { from: -LENS_AMP, to: LENS_AMP },
       duration: 4000,
@@ -82,36 +84,114 @@ export default class SurveillanceCamera extends Phaser.GameObjects.Container {
     this._halfRad   = HALF_DEG * (Math.PI / 180);
     this._maxDeg    = MAX_DEG;
     this._alerted   = false;
+    this._tracking  = false;
+    this._lastHeadX = 0;
+    this._lastHeadY = 0;
   }
 
   /**
    * Call every frame with the robot head's world position.
-   * Tints the beam red for 1 s when the head enters the visible sector.
+   * Phase 1 (normal): sweeping beam, detect on entry → go to phase 2.
+   * Phase 2 (tracking, 500 ms): beam follows robot, then fires.
    */
   checkHead(headX, headY) {
     if (this._alerted) return;
 
-    // Apex = lens world position
+    if (this._tracking) {
+      this._updateBeamToTarget(headX, headY);
+      this._lastHeadX = headX;
+      this._lastHeadY = headY;
+      return;
+    }
+
+    // ── Detection check ───────────────────────────────────────────────────
     const ax = this.x + this._lens.x;
     const ay = this.y + this._beamOY;
     const dy = headY - ay;
     const dx = headX - ax;
 
-    if (dy <= 0) return; // beam goes downward only
-    if (Math.abs(dy) > this._beamR || Math.abs(dx) > this._beamR) return; // beyond beam length
+    if (dy <= 0) return;
+    if (Math.abs(dy) > this._beamR || Math.abs(dx) > this._beamR) return;
 
-    // At depth dy, beam spans horizontally around its center angle
     const theta   = (this._lens.x / this._lensAmp) * this._maxDeg * (Math.PI / 180);
     const centerX = ax + dy * Math.tan(theta);
     const halfW   = dy * Math.tan(this._halfRad);
 
     if (headX < centerX - halfW || headX > centerX + halfW) return;
 
-    this._alerted = true;
+    // ── Detected — start tracking phase ──────────────────────────────────
+    this._tracking  = true;
+    this._lastHeadX = headX;
+    this._lastHeadY = headY;
     this._spotlight.setTint(0xff2200);
-    this.scene.time.delayedCall(200, () => {
-      this._spotlight.clearTint();
-      this._alerted = false;
+    this._lensTween.pause();
+    this.scene.time.delayedCall(500, () => this._fire());
+  }
+
+  _updateBeamToTarget(headX, headY) {
+    const ax  = this.x;
+    const ay  = this.y + this._beamOY;
+    const dx  = headX - ax;
+    const dy  = headY - ay;
+    const deg = Math.atan2(dx, dy) * (180 / Math.PI);
+    const clamped = Phaser.Math.Clamp(deg, -this._maxDeg, this._maxDeg);
+
+    this._lens.x = (clamped / this._maxDeg) * this._lensAmp;
+    this._spotlight.setPosition(this._lens.x, this._beamOY);
+    this._spotlight.setAngle(-clamped);
+  }
+
+  _fire() {
+    this._alerted = true;
+
+    const startX = this.x + this._lens.x;
+    const startY = this.y + this._beamOY;
+    const headX  = this._lastHeadX;
+    const headY  = this._lastHeadY;
+
+    const dx    = headX - startX;
+    const dy    = headY - startY;
+    const dist  = Math.sqrt(dx * dx + dy * dy);
+    const speed = 400; // px/s in virtual coords
+    const duration = (dist / speed) * 1000;
+
+    const angle = Math.atan2(dy, dx) * (180 / Math.PI);
+    const bolt  = this.scene.add.rectangle(startX, startY, 8, 1, 0x4499ff);
+    bolt.setAngle(angle);
+    bolt.setDepth(20);
+
+    this.scene.tweens.add({
+      targets:  bolt,
+      x:        headX,
+      y:        headY,
+      duration,
+      ease:     'Linear',
+      onComplete: () => {
+        bolt.destroy();
+        this._explode(headX, headY);
+        this.scene.events.emit('camera-hit', headX, headY);
+      },
     });
+  }
+
+  _explode(x, y) {
+    if (!this.scene.textures.exists('pixel_spark')) {
+      const g = this.scene.make.graphics({ add: false });
+      g.fillStyle(0xffffff, 1);
+      g.fillRect(0, 0, 1, 1);
+      g.generateTexture('pixel_spark', 1, 1);
+      g.destroy();
+    }
+    const emitter = this.scene.add.particles(x, y, 'pixel_spark', {
+      speed:    { min: 20, max: 80 },
+      angle:    { min: 0, max: 360 },
+      scale:    { start: 3, end: 0 },
+      alpha:    { start: 1, end: 0 },
+      lifespan: 500,
+      emitting: false,
+    });
+    emitter.setDepth(25);
+    emitter.explode(15, x, y);
+    this.scene.time.delayedCall(600, () => emitter.destroy());
   }
 }
