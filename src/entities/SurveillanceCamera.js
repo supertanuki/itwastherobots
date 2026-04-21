@@ -123,8 +123,16 @@ export default class SurveillanceCamera extends Phaser.GameObjects.Container {
     this._tracking  = true;
     this._lastHeadX = headX;
     this._lastHeadY = headY;
-    this._spotlight.setTint(0xff2200);
+    this._spotlight.clearTint();
     this._lensTween.pause();
+    this._alertTween = this.scene.tweens.add({
+      targets:  this._spotlight,
+      alpha:    0,
+      duration: 80,
+      yoyo:     true,
+      repeat:   -1,
+      ease:     'Linear',
+    });
     this.scene.time.delayedCall(500, () => this._fire());
   }
 
@@ -143,6 +151,8 @@ export default class SurveillanceCamera extends Phaser.GameObjects.Container {
 
   _fire() {
     this._alerted = true;
+    if (this._alertTween) { this._alertTween.stop(); this._alertTween = null; }
+    this._spotlight.setAlpha(0);
 
     const startX = this.x + this._lens.x;
     const startY = this.y + this._beamOY;
