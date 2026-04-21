@@ -86,6 +86,31 @@ export default class Robot extends Phaser.GameObjects.Container {
     this._animateGetUp();
   }
 
+  /** Shake torso/head/neck for ~1s without moving the container (camera unaffected). */
+  shake(onComplete) {
+    const torsoX = this.torso.x;
+    const headX  = this.head.x;
+    const neckX  = this.neck.x;
+    const lowerLegRX  = this.lowerLegR.x;
+    const footRX  = this.footR.x;
+    this.scene.tweens.add({
+      targets:  [this.torso, this.head, this.neck, this.lowerLegR, this.footR],
+      x:        '+=1',
+      duration: 50,
+      yoyo:     true,
+      repeat:   9,
+      ease:     'Sine.easeInOut',
+      onComplete: () => {
+        this.torso.setX(torsoX);
+        this.head.setX(headX);
+        this.neck.setX(neckX);
+        this.lowerLegR.setX(lowerLegRX);
+        this.footR.setX(footRX);
+        if (onComplete) onComplete();
+      },
+    });
+  }
+
   update(delta) {
     this._syncToProxy();
 

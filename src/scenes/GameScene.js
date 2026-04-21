@@ -231,11 +231,13 @@ export default class GameScene extends Phaser.Scene {
                 this._deadRobot.collapse();
                 this.time.delayedCall(1000, () => {
                   this._legState = 'done';
-                  this.robot.getUp();
-                  if (!this._zoomedOut) {
-                    this._zoomedOut = true;
-                    this._zoomOut();
-                  }
+                  this.robot.shake(() => {
+                    this.robot.getUp();
+                    if (!this._zoomedOut) {
+                      this._zoomedOut = true;
+                      this._zoomOut();
+                    }
+                  });
                 });
               });
             }
