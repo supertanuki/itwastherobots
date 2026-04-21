@@ -108,7 +108,7 @@ export default class GameScene extends Phaser.Scene {
     this._computerState = null;  // null | 'active' | 'done'
 
     // ── Armed dead robot + wall ───────────────────────────────────────────
-    new Wall(this, 1298, GROUND_Y);
+    new Wall(this, 1400, GROUND_Y);
     this._armedDeadRobot = new ArmedDeadRobot(this, 1400, GROUND_Y);
 
     // ── NPC robot — patrols 100 px left of spawn, raises arm on player proximity
@@ -761,6 +761,7 @@ export default class GameScene extends Phaser.Scene {
       r.setAlpha(1);
       this._robotWaiting = false;
       this._surveillanceCam.reset();
+      this._npcRobot.reset();
 
       this.cameras.main.fadeIn(1000, 0, 0, 0);
     });
