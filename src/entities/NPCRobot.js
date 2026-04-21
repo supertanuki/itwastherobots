@@ -105,15 +105,16 @@ export default class NPCRobot extends Robot {
 
     const dist = Math.abs(this.x - playerX);
 
-    if (dist < 200) {
+    if (this._armRaised) {
+      // Once arm is raised, stop forever and face the player
       this.facingRight = playerX > this.x;
-      if (!this._armRaised) {
-        this._armRaised = true;
-        this.scene.time.delayedCall(260, () => this._raiseArm());
-      }
+      this.setMoveIntent(0);
+    } else if (dist < 200) {
+      this.facingRight = playerX > this.x;
+      this._armRaised  = true;
+      this.scene.time.delayedCall(260, () => this._raiseArm());
       this.setMoveIntent(0);
     } else {
-      if (this._armRaised) this._lowerArm();
       const leftBound  = this._patrolOrigin - 100;
       const rightBound = this._patrolOrigin;
       if (this.x <= leftBound)  this._patrolDir = 1;
