@@ -80,7 +80,7 @@ export default class SurveillanceCamera extends Phaser.GameObjects.Container {
     this._spotlight = spotlight;
     this._lensAmp   = LENS_AMP;
     this._beamOY    = BEAM_OY;
-    this._beamR     = R - 50;
+    this._beamR     = R - 20;
     this._halfRad   = HALF_DEG * (Math.PI / 180);
     this._maxDeg    = MAX_DEG;
     this._alerted   = false;

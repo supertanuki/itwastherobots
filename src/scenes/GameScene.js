@@ -108,7 +108,7 @@ export default class GameScene extends Phaser.Scene {
 
     // ── Armed dead robot + wall ───────────────────────────────────────────
     new Wall(this, 1298, GROUND_Y);
-    this._armedDeadRobot = new ArmedDeadRobot(this, 1300, GROUND_Y);
+    this._armedDeadRobot = new ArmedDeadRobot(this, 1400, GROUND_Y);
 
     // ── NPC robot — patrols 100 px left of spawn, raises arm on player proximity
     this._npcRobot = new NPCRobot(this, 1700, GROUND_Y);
