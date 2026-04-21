@@ -179,6 +179,7 @@ export default class GameScene extends Phaser.Scene {
     this._armPressCount = 0;
 
     // Charge-shot state (available once armed arm is retrieved)
+    this._npcDestroyed = false;
     this._chargingShot = false;
     this._chargeStart  = 0;
     this._chargeFired  = false;
@@ -759,36 +760,37 @@ export default class GameScene extends Phaser.Scene {
     this._restoreArm(r);
     this._chargingShot = false;
 
-    // Fire from arm-tip world position toward NPC robot
+    // Fire horizontally from arm-tip world position
     const startX = r.x + (r.facingRight ? 10 : -10);
     const startY = r.y - 54;
-    const targetX = this._npcRobot.x;
-    const targetY = this._npcRobot.y - 30;
+    const targetX = r.facingRight ? 4000 : -400;
 
-    const dx = targetX - startX;
-    const dy = targetY - startY;
-    const dist = Math.sqrt(dx * dx + dy * dy);
+    const dist = Math.abs(targetX - startX);
     const duration = (dist / 500) * 1000;
-    const angle = Math.atan2(dy, dx) * (180 / Math.PI);
 
     const bolt = this.add.rectangle(startX, startY, 8, 2, 0xffffff);
-    bolt.setAngle(angle);
+    bolt.setAngle(r.facingRight ? 0 : 180);
     bolt.setDepth(20);
+
+    // Detect NPC hit along the horizontal path
+    const npcX = this._npcRobot.x;
+    const hitTime = (Math.abs(npcX - startX) / 500) * 1000;
+    this.time.delayedCall(hitTime, () => {
+      if (!this._npcDestroyed) this._npcRobotExplode();
+    });
 
     this.tweens.add({
       targets:  bolt,
       x:        targetX,
-      y:        targetY,
       duration,
       ease:     'Linear',
-      onComplete: () => {
-        bolt.destroy();
-        this._npcRobotExplode();
-      },
+      onComplete: () => bolt.destroy(),
     });
   }
 
   _npcRobotExplode() {
+    if (this._npcDestroyed) return;
+    this._npcDestroyed = true;
     const npc = this._npcRobot;
     npc._fired = true;
     npc.setMoveIntent(0);
@@ -900,7 +902,7 @@ export default class GameScene extends Phaser.Scene {
       r.setAlpha(1);
       this._robotWaiting = false;
       this._surveillanceCam.reset();
-      this._npcRobot.reset();
+      if (!this._npcDestroyed) this._npcRobot.reset();
       this._cancelCharge(r);
 
       this.cameras.main.fadeIn(1000, 0, 0, 0);
