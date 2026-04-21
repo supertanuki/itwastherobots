@@ -933,7 +933,10 @@ export default class GameScene extends Phaser.Scene {
       r.setAlpha(1);
       this._robotWaiting = false;
       this._surveillanceCams.forEach(cam => cam.reset());
-      this._npcRobots.forEach(npc => { if (!npc._destroyed) npc.reset(); });
+      this._npcRobots.forEach(npc => {
+        if (npc._destroyed && npc.x >= spawnX) npc.reset();
+        else if (!npc._destroyed) npc.reset();
+      });
       this._cancelCharge(r);
 
       this.cameras.main.fadeIn(1000, 0, 0, 0);
