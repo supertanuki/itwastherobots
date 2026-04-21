@@ -6,6 +6,7 @@ import Wall from '../entities/Wall.js';
 import Chain from '../entities/Chain.js';
 import Computer from '../entities/Computer.js';
 import SurveillanceCamera from '../entities/SurveillanceCamera.js';
+import ArmedDeadRobot from '../entities/ArmedDeadRobot.js';
 import i18n from '../i18n.js';
 
 /**
@@ -104,6 +105,10 @@ export default class GameScene extends Phaser.Scene {
     this._computer = new Computer(this, COMP_X + 30, GROUND_Y - COMP_WALL_H / 2);
     this._computerState = null;  // null | 'active' | 'done'
 
+    // ── Armed dead robot + wall ───────────────────────────────────────────
+    new Wall(this, 1298, GROUND_Y);
+    this._armedDeadRobot = new ArmedDeadRobot(this, 1300, GROUND_Y);
+
     // ── Surveillance camera ───────────────────────────────────────────────
     this._surveillanceCam = new SurveillanceCamera(this, 1100, -50);
 
@@ -156,6 +161,10 @@ export default class GameScene extends Phaser.Scene {
     this._dlgDismissOnWalk  = false;
     this._robotWaiting      = false;  // true while a blocking dialogue is active
     this._skullDialogueDone = false;  // true once dialogueSkullsFound has fired
+
+    // Arm-retrieval interaction state (armed dead robot, standing phase)
+    this._armState      = null;  // null | 'blocked' | 'instruction' | 'pulling' | 'done'
+    this._armPressCount = 0;
   }
 
   update() {
@@ -280,6 +289,35 @@ export default class GameScene extends Phaser.Scene {
 
       this._inFrontOfSkulls();
       this._checkComputerProximity();
+      this._checkArmProximity();
+
+      // ── Arm pulling (↑↓) ───────────────────────────────────────────────
+      if (this._armState === 'instruction') {
+        const pull = Phaser.Input.Keyboard.JustDown(this.cursors.up)
+                  || Phaser.Input.Keyboard.JustDown(this.cursors.down);
+        if (pull) {
+          this._armPressCount++;
+          this._armedDeadRobot.shake();
+          r.body_proxy.body.setVelocityX(-15);
+          this.time.delayedCall(120, () => r.body_proxy.body.setVelocityX(0));
+
+          if (this._armPressCount >= 3) {
+            this._armState = 'pulling';
+            this.game.events.emit('instr-hide');
+            this._armedDeadRobot.removeArm(() => {
+              this._armedDeadRobot.collapse();
+              this.time.delayedCall(1000, () => {
+                this._armState = 'done';
+                this.robot.shake(() => {
+                  this._startDialogue(i18n.dialogueArmDone, () => {
+                    this._robotWaiting = false;
+                  });
+                });
+              });
+            });
+          }
+        }
+      }
     }
 
     r.update(this.game.loop.delta);
@@ -436,6 +474,28 @@ export default class GameScene extends Phaser.Scene {
     this._startDialogue(i18n.dialogueLeg, () => {
       this._legState = 'instruction';
       this.game.events.emit('instr-show', { text: i18n.instructionLeg });
+    });
+  }
+
+  /** Trigger the arm-retrieval sequence (standing robot). */
+  _checkArmProximity() {
+    if (this._armState !== null) return;
+    const r   = this.robot;
+    const gap = this._armedDeadRobot.x - r.body_proxy.body.right;
+    if (gap < 30 && gap > -50) {
+      this._startArmInteraction();
+    }
+  }
+
+  _startArmInteraction() {
+    this._armState      = 'blocked';
+    this._armPressCount = 0;
+    this._robotWaiting  = true;
+    this.robot.setMoveIntent(0);
+    this.robot.body_proxy.body.setVelocityX(0);
+    this._startDialogue(i18n.dialogueArm, () => {
+      this._armState = 'instruction';
+      this.game.events.emit('instr-show', { text: i18n.instructionArm });
     });
   }
 

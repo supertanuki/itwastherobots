@@ -21,6 +21,9 @@ const TEXTS = {
     ],
     dialogueLeg:      [{ text: "Je peux récupérer la jambe du robot en panne.", speak: true }],
     instructionLeg:   'Appuyer sur ↑ ↓ pour retirer la jambe.',
+    dialogueArm:      [{ text: "Je peux récupérer le bras armé du robot en panne.", speak: true }],
+    instructionArm:   'Appuyer sur ↑ ↓ pour retirer le bras.',
+    dialogueArmDone:  [{ text: "Je me sens bien mieux maintenant avec un nouveau bras.", speak: true }],
     dialogueStandup:  [
       { text: "Même s'il me manque un bras...", speak: true },
       { text: "Au moins maintenant, je peux marcher normalement.", speak: true },
@@ -43,6 +46,9 @@ const TEXTS = {
     ],
     dialogueLeg:     [{ text: "I can take the broken robot's leg.", speak: true }],
     instructionLeg:  'Press ↑ ↓ to remove the leg.',
+    dialogueArm:     [{ text: "I can take the armed arm from the broken robot.", speak: true }],
+    instructionArm:  'Press ↑ ↓ to remove the arm.',
+    dialogueArmDone: [{ text: "I feel much better now with a new arm.", speak: true }],
     dialogueStandup: [
       { text: "Even though I'm missing an arm...", speak: true },
       { text: "At least now I can walk normally.", speak: true },
