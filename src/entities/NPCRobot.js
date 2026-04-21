@@ -74,6 +74,7 @@ export default class NPCRobot extends Robot {
     this._patrolOrigin = x;
     this._patrolDir    = -1;
     this._armRaised    = false;
+    this._fired        = false;
   }
 
   // ── Override blink to keep blue eye instead of red ────────────────────────
@@ -96,6 +97,12 @@ export default class NPCRobot extends Robot {
 
   // ── Called every frame from GameScene ────────────────────────────────────
   npcUpdate(delta, playerX) {
+    if (this._fired) {
+      this.setMoveIntent(0);
+      this.update(delta);
+      return;
+    }
+
     const dist = Math.abs(this.x - playerX);
 
     if (dist < 200) {
@@ -127,6 +134,7 @@ export default class NPCRobot extends Robot {
       onComplete: () => {
         this._fireTimer = this.scene.time.delayedCall(500, () => {
           this._fireTimer = null;
+          this._fired = true;
           const armWorldY = this.y + this.upperArmR.y;
           this.scene.events.emit('npc-fire', this.x, armWorldY, this.facingRight);
         });
