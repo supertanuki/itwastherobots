@@ -348,8 +348,7 @@ export default class GameScene extends Phaser.Scene {
     r.update(this.game.loop.delta);
 
     if (this._chargingShot) {
-      const targetAngle = r.facingRight ? -90 : 90;
-      this._chargeAngle = Phaser.Math.Linear(this._chargeAngle, targetAngle, 0.15);
+      this._chargeAngle = Phaser.Math.Linear(this._chargeAngle, -90, 0.15);
       r.upperArmR.setAngle(this._chargeAngle);
     }
 
