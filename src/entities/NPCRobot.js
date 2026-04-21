@@ -139,6 +139,17 @@ export default class NPCRobot extends Robot {
           this._fired = true;
           const armWorldY = this.y + this.upperArmR.y;
           this.scene.events.emit('npc-fire', this, this.x, armWorldY, this.facingRight);
+          // Recoil: kick arm back from -90° then return
+          this.scene.tweens.killTweensOf(this.upperArmR);
+          this.scene.tweens.add({
+            targets:  this.upperArmR,
+            angle:    -70,
+            duration: 60,
+            ease:     'Sine.easeOut',
+            onComplete: () => {
+              this.scene.tweens.add({ targets: this.upperArmR, angle: -90, duration: 200, ease: 'Sine.easeOut' });
+            },
+          });
         });
       },
     });

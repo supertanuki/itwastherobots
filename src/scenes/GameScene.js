@@ -740,6 +740,7 @@ export default class GameScene extends Phaser.Scene {
       return;
     }
     if (!this._chargingShot) {
+      if (this.time.now < (this._shotCooldownUntil || 0)) return;
       this._startCharge(r);
       return;
     }
@@ -796,16 +797,18 @@ export default class GameScene extends Phaser.Scene {
   _firePlayerShot(r) {
     this._restoreArm(r);
     this._chargingShot = false;
+    this._shotCooldownUntil = this.time.now + 400;
 
-    // Recoil shake: arm kicks back then returns
-    const recoilAngle = r.facingRight ? -110 : -70;
+    // Recoil: arm kicks past -90° then returns to rest
+    this.tweens.killTweensOf(r.upperArmR);
+    r.upperArmR.setAngle(-90);
     this.tweens.add({
       targets:  r.upperArmR,
-      angle:    recoilAngle,
+      angle:    -110,
       duration: 60,
       ease:     'Sine.easeOut',
       onComplete: () => {
-        this.tweens.add({ targets: r.upperArmR, angle: 5, duration: 200, ease: 'Sine.easeOut' });
+        this.tweens.add({ targets: r.upperArmR, angle: 5, duration: 250, ease: 'Sine.easeOut' });
       },
     });
 
