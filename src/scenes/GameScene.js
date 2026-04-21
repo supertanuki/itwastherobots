@@ -797,6 +797,18 @@ export default class GameScene extends Phaser.Scene {
     this._restoreArm(r);
     this._chargingShot = false;
 
+    // Recoil shake: arm kicks back then returns
+    const recoilAngle = r.facingRight ? -110 : -70;
+    this.tweens.add({
+      targets:  r.upperArmR,
+      angle:    recoilAngle,
+      duration: 60,
+      ease:     'Sine.easeOut',
+      onComplete: () => {
+        this.tweens.add({ targets: r.upperArmR, angle: 5, duration: 200, ease: 'Sine.easeOut' });
+      },
+    });
+
     // Fire horizontally from arm-tip world position
     const startX = r.x + (r.facingRight ? 10 : -10);
     const startY = r.y - 54;
@@ -814,7 +826,7 @@ export default class GameScene extends Phaser.Scene {
     const firstNpc = this._npcRobots
       .filter(n => !n._destroyed
         && Math.sign(n.x - startX) === dir
-        && Math.abs(n.x - r.x) < 300)
+        && Math.abs(n.x - r.x) < 350)
       .sort((a, b) => dir * (a.x - b.x))[0];
 
     if (firstNpc) {
