@@ -785,9 +785,13 @@ export default class GameScene extends Phaser.Scene {
     bolt.setDepth(20);
 
     // Hit the first non-destroyed NPC in the firing direction
-    const dir = r.facingRight ? 1 : -1;
+    const dir     = r.facingRight ? 1 : -1;
+    const camLeft = this.cameras.main.scrollX;
+    const camRight = camLeft + 320;
     const firstNpc = this._npcRobots
-      .filter(n => !n._destroyed && Math.sign(n.x - startX) === dir)
+      .filter(n => !n._destroyed
+        && Math.sign(n.x - startX) === dir
+        && n.x >= camLeft && n.x <= camRight)
       .sort((a, b) => dir * (a.x - b.x))[0];
 
     if (firstNpc) {
@@ -825,7 +829,7 @@ export default class GameScene extends Phaser.Scene {
   _npcShoot(npc, npcX, npcY, facingRight) {
     if (npc._destroyed) return;
     const startX = npcX + (facingRight ? 14 : -14);
-    const startY = npcY;
+    const startY = npcY - 35;
     const dist   = Math.abs(this.robot.x - startX);
 
     const bolt = this.add.rectangle(startX, startY, 8, 2, 0xffffff);
