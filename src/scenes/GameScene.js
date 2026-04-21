@@ -53,6 +53,9 @@ export default class GameScene extends Phaser.Scene {
     // ── Background (full world width) ─────────────────────────────────────
     this.add.rectangle(WORLD_W / 2, VH / 2, WORLD_W, VH, 0x000000);
 
+    // ── Pipe background — procedural, parallax ────────────────────────────
+    this._buildPipeBackground(WORLD_W, GROUND_Y);
+
     // ── Ground ────────────────────────────────────────────────────────────
     // Physics ground — static body spanning the full world
     const groundBody = this.add.rectangle(WORLD_W / 2, GROUND_Y + GH / 2, WORLD_W, GH, 0x000000, 0);
@@ -907,6 +910,88 @@ export default class GameScene extends Phaser.Scene {
     emitter.setDepth(30);
     emitter.explode(200, cx, cy);
     this.time.delayedCall(900, () => emitter.destroy());
+  }
+
+  _buildPipeBackground(worldW, groundY) {
+    const FACTOR = 0.35;
+    // Width needed: camera scrolls up to (worldW - 320), background shifts FACTOR of that
+    const BG_W = Math.ceil((worldW - 320) * FACTOR) + 360;
+
+    const gfx = this.add.graphics();
+    gfx.setScrollFactor(FACTOR, 1); // parallax on X only
+    gfx.setDepth(1);
+
+    const rng = new Phaser.Math.RandomDataGenerator(['pipes_v1']);
+
+    const PIPE  = 0x252525;
+    const JOINT = 0x383838;
+    const BOLT  = 0x2f2f2f;
+
+    const hpipe = (x, y, len, thick) => {
+      gfx.fillStyle(PIPE, 1);
+      gfx.fillRect(x, y, len, thick);
+    };
+    const vpipe = (x, y, len, thick) => {
+      gfx.fillStyle(PIPE, 1);
+      gfx.fillRect(x, y, thick, len);
+    };
+    const joint = (x, y, s) => {
+      gfx.fillStyle(JOINT, 1);
+      gfx.fillRect(x - 1, y - 1, s + 2, s + 2);
+    };
+    const bolt = (x, y) => {
+      gfx.fillStyle(BOLT, 1);
+      gfx.fillRect(x, y, 2, 2);
+    };
+
+    // ── Horizontal pipe layers ─────────────────────────────────────────────
+    const layers = [
+      { y: 8,   thick: 4 },
+      { y: 22,  thick: 2 },
+      { y: 40,  thick: 3 },
+      { y: 58,  thick: 2 },
+      { y: 74,  thick: 4 },
+      { y: 90,  thick: 2 },
+      { y: 108, thick: 3 },
+    ];
+
+    layers.forEach(({ y, thick }) => {
+      let x = 0;
+      while (x < BG_W) {
+        const len = rng.between(50, 260);
+        const end = Math.min(x + len, BG_W);
+        hpipe(x, y, end - x, thick);
+        // bolts near each end of segment
+        if (len > 20) {
+          bolt(x + 3,       y + Math.floor(thick / 2) - 1);
+          bolt(end - 5,     y + Math.floor(thick / 2) - 1);
+        }
+        x = end + rng.between(0, 25);
+      }
+    });
+
+    // ── Vertical connectors between adjacent layers ────────────────────────
+    for (let li = 0; li < layers.length - 1; li++) {
+      const { y: y1, thick: t1 } = layers[li];
+      const { y: y2 } = layers[li + 1];
+      let x = rng.between(15, 70);
+      while (x < BG_W) {
+        const thick = rng.pick([2, 2, 3]);
+        vpipe(x, y1 + t1, y2 - y1 - t1, thick);
+        joint(x, y1, thick);
+        joint(x, y2, thick);
+        x += rng.between(60, 200);
+      }
+    }
+
+    // ── Scattered short stub pipes (horizontal, random heights) ───────────
+    for (let i = 0; i < 60; i++) {
+      const sx = rng.between(0, BG_W);
+      const sy = rng.between(5, groundY - 15);
+      const sw = rng.between(8, 30);
+      const st = rng.pick([1, 2]);
+      hpipe(sx, sy, sw, st);
+    }
   }
 
   _robotExplode() {
