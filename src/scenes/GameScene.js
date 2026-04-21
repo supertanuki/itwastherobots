@@ -54,7 +54,7 @@ export default class GameScene extends Phaser.Scene {
     this.add.rectangle(WORLD_W / 2, VH / 2, WORLD_W, VH, 0x000000);
 
     // ── Pipe background — procedural, parallax ────────────────────────────
-    this._buildPipeBackground(WORLD_W, GROUND_Y);
+    this._buildPipeBackground(WORLD_W * 2, GROUND_Y);
 
     // ── Ground ────────────────────────────────────────────────────────────
     // Physics ground — static body spanning the full world
@@ -919,12 +919,12 @@ export default class GameScene extends Phaser.Scene {
 
     const gfx = this.add.graphics();
     gfx.setScrollFactor(FACTOR, 1); // parallax on X only
-    gfx.setDepth(1);
+    gfx.setDepth(0);
 
     const rng = new Phaser.Math.RandomDataGenerator(['pipes_v1']);
 
     const PIPE  = 0x252525;
-    const JOINT = 0x383838;
+    const JOINT = 0x282828;
     const BOLT  = 0x2f2f2f;
 
     const hpipe = (x, y, len, thick) => {
@@ -946,12 +946,12 @@ export default class GameScene extends Phaser.Scene {
 
     // ── Horizontal pipe layers ─────────────────────────────────────────────
     const layers = [
-      { y: 8,   thick: 4 },
-      { y: 22,  thick: 2 },
-      { y: 40,  thick: 3 },
-      { y: 58,  thick: 2 },
-      { y: 74,  thick: 4 },
-      { y: 90,  thick: 2 },
+      { y: -48,   thick: 4 },
+      { y: -22,  thick: 2 },
+      { y: -2,  thick: 3 },
+      { y: 18,  thick: 2 },
+      { y: 54,  thick: 4 },
+      { y: 80,  thick: 2 },
       { y: 108, thick: 3 },
     ];
 
