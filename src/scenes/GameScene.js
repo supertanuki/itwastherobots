@@ -136,7 +136,7 @@ export default class GameScene extends Phaser.Scene {
     {
       const maskGfx = this.make.graphics({ add: false });
       maskGfx.fillStyle(0xffffff);
-      maskGfx.fillRect(2630, 0, 40, 25);
+      maskGfx.fillTriangle(2630, 10, 2670, 10, 2650, 180);
       const beamMask = maskGfx.createGeometryMask();
       beamMask.invertAlpha = true;
       this._surveillanceCams[1]._spotlight.setMask(beamMask);
