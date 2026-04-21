@@ -98,7 +98,7 @@ export default class NPCRobot extends Robot {
   npcUpdate(delta, playerX) {
     const dist = Math.abs(this.x - playerX);
 
-    if (dist < 100) {
+    if (dist < 200) {
       this.facingRight = playerX > this.x;
       if (!this._armRaised) {
         this._armRaised = true;
@@ -120,15 +120,23 @@ export default class NPCRobot extends Robot {
   _raiseArm() {
     this.scene.tweens.killTweensOf(this.upperArmR);
     this.scene.tweens.add({
-      targets:  this.upperArmR,
-      angle:    -90,
-      duration: 400,
-      ease:     'Sine.easeOut',
+      targets:    this.upperArmR,
+      angle:      -90,
+      duration:   400,
+      ease:       'Sine.easeOut',
+      onComplete: () => {
+        this._fireTimer = this.scene.time.delayedCall(500, () => {
+          this._fireTimer = null;
+          const armWorldY = this.y + this.upperArmR.y;
+          this.scene.events.emit('npc-fire', this.x, armWorldY, this.facingRight);
+        });
+      },
     });
   }
 
   _lowerArm() {
     this._armRaised = false;
+    if (this._fireTimer) { this._fireTimer.remove(); this._fireTimer = null; }
     this.scene.tweens.killTweensOf(this.upperArmR);
     this.scene.tweens.add({
       targets:  this.upperArmR,

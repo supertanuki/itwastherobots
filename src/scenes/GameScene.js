@@ -111,12 +111,13 @@ export default class GameScene extends Phaser.Scene {
     this._armedDeadRobot = new ArmedDeadRobot(this, 1400, GROUND_Y);
 
     // ── NPC robot — patrols 100 px left of spawn, raises arm on player proximity
-    this._npcRobot = new NPCRobot(this, 1700, GROUND_Y);
+    this._npcRobot = new NPCRobot(this, 1800, GROUND_Y);
     this.physics.add.collider(this._npcRobot.body_proxy, groundBody);
 
     // ── Surveillance camera ───────────────────────────────────────────────
     this._surveillanceCam = new SurveillanceCamera(this, 1100, -50, GROUND_Y);
     this.events.on('camera-hit', () => this._robotExplode());
+    this.events.on('npc-fire', (npcX, npcY, facingRight) => this._npcShoot(npcX, npcY, facingRight));
 
     // ── Silent mode — ?nosounds in URL disables all audio ────────────────
     this._silent = new URLSearchParams(window.location.search).has('nosounds');
@@ -677,6 +678,34 @@ export default class GameScene extends Phaser.Scene {
       case 0: if (right) ok(1); else if (any) fail(); break;
       case 1: if (left)  ok(0); else if (any) fail(); break;
     }
+  }
+
+  _npcShoot(npcX, npcY, facingRight) {
+    const armOffsetX = facingRight ? 14 : -14;
+    const startX = npcX + armOffsetX;
+    const startY = npcY;
+
+    const targetX = this.robot.x;
+    const targetY = this.robot.y - 20;
+
+    const dx = targetX - startX;
+    const dy = targetY - startY;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    const duration = (dist / 400) * 1000;
+
+    const bolt = this.add.rectangle(startX, 65, 8, 2, 0xffffff);
+    bolt.setDepth(20);
+
+    this.tweens.add({
+      targets:  bolt,
+      x:        targetX,
+      duration,
+      ease:     'Linear',
+      onComplete: () => {
+        bolt.destroy();
+        this._robotExplode();
+      },
+    });
   }
 
   _robotExplode() {
