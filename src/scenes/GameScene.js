@@ -693,19 +693,18 @@ export default class GameScene extends Phaser.Scene {
     }
 
     const cx = r.x;
-    const cy = r.y - 40;
+    const cy = r.y - 20;
 
-    const emitter = this.add.particles(cx, cy, 'pixel_spark', {
-      speed:    { min: 30, max: 120 },
+    const emitter = this.add.particles(0, 0, 'pixel_spark', {
+      speed:    { min: 40, max: 150 },
       angle:    { min: 0, max: 360 },
-      scale:    { start: 4, end: 0 },
+      scale:    { start: 5, end: 0 },
       alpha:    { start: 1, end: 0 },
-      tint:     [0xffffff, 0xff8800, 0xff2200],
-      lifespan: 1200,
+      lifespan: 1000,
       emitting: false,
     });
     emitter.setDepth(30);
-    emitter.explode(40, cx, cy);
+    emitter.explode(150, cx, cy);
 
     this.tweens.add({
       targets:  r,
@@ -714,6 +713,6 @@ export default class GameScene extends Phaser.Scene {
       ease:     'Linear',
     });
 
-    this.time.delayedCall(700, () => emitter.destroy());
+    this.time.delayedCall(1000, () => emitter.destroy());
   }
 }

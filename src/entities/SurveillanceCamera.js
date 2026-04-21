@@ -156,7 +156,7 @@ export default class SurveillanceCamera extends Phaser.GameObjects.Container {
     const duration = (dist / speed) * 1000;
 
     const angle = Math.atan2(dy, dx) * (180 / Math.PI);
-    const bolt  = this.scene.add.rectangle(startX, startY, 8, 1, 0x4499ff);
+    const bolt  = this.scene.add.rectangle(startX, startY, 8, 4, 0xffffff);
     bolt.setAngle(angle);
     bolt.setDepth(20);
 
@@ -182,7 +182,7 @@ export default class SurveillanceCamera extends Phaser.GameObjects.Container {
       g.generateTexture('pixel_spark', 1, 1);
       g.destroy();
     }
-    const emitter = this.scene.add.particles(x, y, 'pixel_spark', {
+    const emitter = this.scene.add.particles(0, 0, 'pixel_spark', {
       speed:    { min: 20, max: 80 },
       angle:    { min: 0, max: 360 },
       scale:    { start: 3, end: 0 },
