@@ -7,6 +7,7 @@ import Chain from '../entities/Chain.js';
 import Computer from '../entities/Computer.js';
 import SurveillanceCamera from '../entities/SurveillanceCamera.js';
 import ArmedDeadRobot from '../entities/ArmedDeadRobot.js';
+import NPCRobot from '../entities/NPCRobot.js';
 import i18n from '../i18n.js';
 
 /**
@@ -108,6 +109,10 @@ export default class GameScene extends Phaser.Scene {
     // ── Armed dead robot + wall ───────────────────────────────────────────
     new Wall(this, 1298, GROUND_Y);
     this._armedDeadRobot = new ArmedDeadRobot(this, 1300, GROUND_Y);
+
+    // ── NPC robot — patrols 100 px left of spawn, raises arm on player proximity
+    this._npcRobot = new NPCRobot(this, 1700, GROUND_Y);
+    this.physics.add.collider(this._npcRobot.body_proxy, groundBody);
 
     // ── Surveillance camera ───────────────────────────────────────────────
     this._surveillanceCam = new SurveillanceCamera(this, 1100, -50);
@@ -327,6 +332,7 @@ export default class GameScene extends Phaser.Scene {
     this._surveillanceCam.checkHead(headWorldX, headWorldY);
 
     this._checkSkullCollision();
+    this._npcRobot.npcUpdate(this.game.loop.delta, this.robot.x);
   }
 
   _inFrontOfSkulls() {

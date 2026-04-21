@@ -18,13 +18,16 @@ export default class ArmedDeadRobot extends DeadRobot {
     };
 
     // ── Armed arm — extends leftward from upper torso ─────────────────────
-    // Blue stripe at the top (shoulder attachment — weapon marker)
-    const armStripe = addPart(5, 2, ARM_BLUE);
-    armStripe.setPosition(-3, -18);
-
     const armUpper = addPart(3, 8, METAL);
     armUpper.setPosition(-5, -15);
     armUpper.setAngle(82);
+
+    // 1 px blue line on the top face of the arm
+    // Top of armUpper in container coords: rotate (0, -4) by 82° around (-5,-15)
+    // → (-5 + 4*sin82°, -15 - 4*cos82°) ≈ (-1, -16)
+    const armStripe = addPart(3, 1, ARM_BLUE);
+    armStripe.setPosition(-1, -16);
+    armStripe.setAngle(82);
 
     const armLower = addPart(3, 7, METAL);
     armLower.setPosition(-10, -12);
