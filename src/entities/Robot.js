@@ -172,6 +172,12 @@ export default class Robot extends Phaser.GameObjects.Container {
     });
   }
 
+  /** Prevent walk/crawl from overriding arm angle for durationMs. */
+  lockArm(durationMs) {
+    this._armLocked = true;
+    this.scene.time.delayedCall(durationMs, () => { this._armLocked = false; });
+  }
+
   /** Wake the robot up: eye stays red, normal blink cycle resumes. */
   activate() {
     this._dormant = false;
@@ -548,7 +554,7 @@ export default class Robot extends Phaser.GameObjects.Container {
     }
 
     // Right arm: reach forward then pull — chained like _syncChain
-    this.upperArmR.setAngle(-75 + phase * 5);
+    if (!this._armLocked) this.upperArmR.setAngle(-75 + phase * 5);
 
     // Right leg: pushes backward to propel
     this.upperLegR.setAngle(-70 + phase * 20);       // -90°..-50°
@@ -631,7 +637,7 @@ export default class Robot extends Phaser.GameObjects.Container {
     // Arms swing same side as leg (inverted counter-swing)
     // sinT=+1 (right leg fwd): arm fwd +10°  → "\" shape
     // sinT=-1 (right leg back): arm back -30° → "/" shape
-    this.upperArmR.setAngle(-10 + sinT * 42);
+    if (!this._armLocked) this.upperArmR.setAngle(-10 + sinT * 42);
     this.armLStub.setAngle(-15 - sinT * 28);
   }
 

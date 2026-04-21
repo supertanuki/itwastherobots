@@ -799,6 +799,9 @@ export default class GameScene extends Phaser.Scene {
     this._chargingShot = false;
     this._shotCooldownUntil = this.time.now + 400;
 
+    // Lock arm so _updateWalking doesn't override the recoil tween
+    r.lockArm(400);
+
     // Recoil: arm kicks past -90° then returns to rest
     this.tweens.killTweensOf(r.upperArmR);
     r.upperArmR.setAngle(-90);
