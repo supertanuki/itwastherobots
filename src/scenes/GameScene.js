@@ -123,14 +123,27 @@ export default class GameScene extends Phaser.Scene {
       new SurveillanceCamera(this, x, -60, GROUND_Y)
     );
 
-    // ── Ceiling wall — hangs from top, x 2640–2660, 20 px tall ──────────
-    // Wall origin = bottom of wall (y=20), height=20 → draws up to y=0
+    // ── Ceiling wall — hangs from top, x 2630–2670, 10 px tall ──────────
+    // Wall origin = bottom of wall (y=20), height=10 → draws from y=10 to y=20
     new Wall(this, 2630, 20, { width: 40, height: 10, offsetX: 0 }).setDepth(6);
     {
-      const ceilBody = this.add.rectangle(2650, 10, 20, 20, 0x000000, 0);
+      const ceilBody = this.add.rectangle(2650, 15, 40, 10, 0x000000, 0);
       this.physics.add.existing(ceilBody, true);
       this.physics.add.collider(this.robot.body_proxy, ceilBody);
     }
+
+    // Mask: hide camera beams (2600, 2700) in the ceiling wall zone
+    {
+      const maskGfx = this.make.graphics({ add: false });
+      maskGfx.fillStyle(0xffffff);
+      maskGfx.fillRect(2630, 0, 40, 25);
+      const beamMask = maskGfx.createGeometryMask();
+      beamMask.invertAlpha = true;
+      this._surveillanceCams[1]._spotlight.setMask(beamMask);
+      this._surveillanceCams[2]._spotlight.setMask(beamMask);
+    }
+    this._ceilWallMinX = 2630;
+    this._ceilWallMaxX = 2670;
     this.events.on('camera-hit', () => this._robotExplode());
     this.events.on('npc-fire', (npc, npcX, npcY, facingRight) => this._npcShoot(npc, npcX, npcY, facingRight));
 
@@ -372,7 +385,8 @@ export default class GameScene extends Phaser.Scene {
 
     const headWorldX = r.x + r.head.x * r.scaleX;
     const headWorldY = r.y + r.head.y * r.scaleY;
-    this._surveillanceCams.forEach(cam => cam.checkHead(headWorldX, headWorldY));
+    const underCeiling = headWorldX >= this._ceilWallMinX && headWorldX <= this._ceilWallMaxX;
+    this._surveillanceCams.forEach(cam => { if (!underCeiling) cam.checkHead(headWorldX, headWorldY); });
 
     this._checkSkullCollision();
     this._npcRobots.forEach(npc => npc.npcUpdate(this.game.loop.delta, this.robot.x));
