@@ -177,6 +177,12 @@ export default class GameScene extends Phaser.Scene {
     // Arm-retrieval interaction state (armed dead robot, standing phase)
     this._armState      = null;  // null | 'blocked' | 'instruction' | 'pulling' | 'done'
     this._armPressCount = 0;
+
+    // Charge-shot state (available once armed arm is retrieved)
+    this._chargingShot = false;
+    this._chargeStart  = 0;
+    this._chargeFired  = false;
+    this._chargeAngle  = 5;
   }
 
   update() {
@@ -288,8 +294,8 @@ export default class GameScene extends Phaser.Scene {
         r.setMoveIntent(0);
       }
 
-      // SPACE: continue dialogue if active while standing/walking
-      if (Phaser.Input.Keyboard.JustDown(this.keySpace) && this._dlgWaiting) {
+      // SPACE: continue dialogue if active while standing/walking (not while charging)
+      if (!this._chargingShot && Phaser.Input.Keyboard.JustDown(this.keySpace) && this._dlgWaiting) {
         this._dialogueContinue();
       }
 
@@ -304,6 +310,10 @@ export default class GameScene extends Phaser.Scene {
       this._inFrontOfSkulls();
       this._checkComputerProximity();
       this._checkArmProximity();
+
+      if (this._armState === 'done' && !this._robotWaiting && !this._dlgWaiting) {
+        this._tickChargeShot(r);
+      }
 
       // ── Arm pulling (↑↓) ───────────────────────────────────────────────
       if (this._armState === 'instruction') {
@@ -335,6 +345,12 @@ export default class GameScene extends Phaser.Scene {
     }
 
     r.update(this.game.loop.delta);
+
+    if (this._chargingShot) {
+      const targetAngle = r.facingRight ? -90 : 90;
+      this._chargeAngle = Phaser.Math.Linear(this._chargeAngle, targetAngle, 0.15);
+      r.upperArmR.setAngle(this._chargeAngle);
+    }
 
     const headWorldX = r.x + r.head.x * r.scaleX;
     const headWorldY = r.y + r.head.y * r.scaleY;
@@ -686,6 +702,129 @@ export default class GameScene extends Phaser.Scene {
     }
   }
 
+  _tickChargeShot(r) {
+    if (!this.keySpace.isDown) {
+      if (this._chargingShot) this._cancelCharge(r);
+      return;
+    }
+    if (!this._chargingShot) {
+      this._startCharge(r);
+      return;
+    }
+    if (!this._chargeFired && this.time.now - this._chargeStart >= 1000) {
+      this._chargeFired = true;
+      this._firePlayerShot(r);
+    }
+  }
+
+  _startCharge(r) {
+    this._chargingShot = true;
+    this._chargeStart  = this.time.now;
+    this._chargeFired  = false;
+    this._chargeAngle  = r.upperArmR.angle ?? 5;
+
+    // Replace plain arm rect with sub-container holding arm + red stripe
+    const savedPos = { x: r.upperArmR.x, y: r.upperArmR.y };
+    const savedAng = r.upperArmR.angle;
+    r.remove(r.upperArmR, true);
+
+    const armRect   = this.add.rectangle(0, 0, 3, 10, 0xeeeeee).setOrigin(0.5, 0);
+    const armStripe = this.add.rectangle(1, 5, 1, 10, 0xff2200).setOrigin(0.5, 0.5);
+    const armCont   = this.add.container(savedPos.x, savedPos.y, [armRect, armStripe]);
+    armCont.setAngle(savedAng);
+    r.add(armCont);
+    r.upperArmR = armCont;
+  }
+
+  _cancelCharge(r) {
+    if (!this._chargingShot) return;
+    this._chargingShot = false;
+    this._restoreArm(r);
+  }
+
+  _restoreArm(r) {
+    if (!r.upperArmR) return;
+    const pos = { x: r.upperArmR.x, y: r.upperArmR.y };
+    const ang = r.upperArmR.angle;
+    r.remove(r.upperArmR, true);
+    const newArm = this.add.rectangle(0, 0, 3, 10, 0xeeeeee).setOrigin(0.5, 0);
+    newArm.setPosition(pos.x, pos.y);
+    newArm.setAngle(ang);
+    r.add(newArm);
+    r.upperArmR = newArm;
+    this._chargeAngle = 5;
+  }
+
+  _firePlayerShot(r) {
+    this._restoreArm(r);
+    this._chargingShot = false;
+
+    // Fire from arm-tip world position toward NPC robot
+    const startX = r.x + (r.facingRight ? 10 : -10);
+    const startY = r.y - 54;
+    const targetX = this._npcRobot.x;
+    const targetY = this._npcRobot.y - 30;
+
+    const dx = targetX - startX;
+    const dy = targetY - startY;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    const duration = (dist / 500) * 1000;
+    const angle = Math.atan2(dy, dx) * (180 / Math.PI);
+
+    const bolt = this.add.rectangle(startX, startY, 8, 2, 0xffffff);
+    bolt.setAngle(angle);
+    bolt.setDepth(20);
+
+    this.tweens.add({
+      targets:  bolt,
+      x:        targetX,
+      y:        targetY,
+      duration,
+      ease:     'Linear',
+      onComplete: () => {
+        bolt.destroy();
+        this._npcRobotExplode();
+      },
+    });
+  }
+
+  _npcRobotExplode() {
+    const npc = this._npcRobot;
+    npc._fired = true;
+    npc.setMoveIntent(0);
+    if (npc._fireTimer) { npc._fireTimer.remove(); npc._fireTimer = null; }
+
+    if (!this.textures.exists('pixel_spark')) {
+      const g = this.make.graphics({ add: false });
+      g.fillStyle(0xffffff, 1);
+      g.fillRect(0, 0, 1, 1);
+      g.generateTexture('pixel_spark', 1, 1);
+      g.destroy();
+    }
+
+    const cx = npc.x;
+    const cy = npc.y - 20;
+    const emitter = this.add.particles(0, 0, 'pixel_spark', {
+      speed:    { min: 40, max: 150 },
+      angle:    { min: 0, max: 360 },
+      scale:    { start: 5, end: 0 },
+      alpha:    { start: 1, end: 0 },
+      lifespan: 800,
+      emitting: false,
+    });
+    emitter.setDepth(30);
+    emitter.explode(50, cx, cy);
+
+    this.tweens.add({
+      targets:  npc,
+      alpha:    0,
+      duration: 400,
+      ease:     'Linear',
+      onComplete: () => npc.setVisible(false),
+    });
+    this.time.delayedCall(900, () => emitter.destroy());
+  }
+
   _npcShoot(npcX, npcY, facingRight) {
     const armOffsetX = facingRight ? 14 : -14;
     const startX = npcX + armOffsetX;
@@ -762,6 +901,7 @@ export default class GameScene extends Phaser.Scene {
       this._robotWaiting = false;
       this._surveillanceCam.reset();
       this._npcRobot.reset();
+      this._cancelCharge(r);
 
       this.cameras.main.fadeIn(1000, 0, 0, 0);
     });
