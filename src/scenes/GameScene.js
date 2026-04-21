@@ -119,7 +119,9 @@ export default class GameScene extends Phaser.Scene {
     });
 
     // ── Surveillance camera ───────────────────────────────────────────────
-    this._surveillanceCam = new SurveillanceCamera(this, 1100, -50, GROUND_Y);
+    this._surveillanceCams = [1100, 2600, 2700].map(x =>
+      new SurveillanceCamera(this, x, -60, GROUND_Y)
+    );
     this.events.on('camera-hit', () => this._robotExplode());
     this.events.on('npc-fire', (npc, npcX, npcY, facingRight) => this._npcShoot(npc, npcX, npcY, facingRight));
 
@@ -361,7 +363,7 @@ export default class GameScene extends Phaser.Scene {
 
     const headWorldX = r.x + r.head.x * r.scaleX;
     const headWorldY = r.y + r.head.y * r.scaleY;
-    this._surveillanceCam.checkHead(headWorldX, headWorldY);
+    this._surveillanceCams.forEach(cam => cam.checkHead(headWorldX, headWorldY));
 
     this._checkSkullCollision();
     this._npcRobots.forEach(npc => npc.npcUpdate(this.game.loop.delta, this.robot.x));
@@ -889,7 +891,7 @@ export default class GameScene extends Phaser.Scene {
       r.setScale(3, 3);
       r.setAlpha(1);
       this._robotWaiting = false;
-      this._surveillanceCam.reset();
+      this._surveillanceCams.forEach(cam => cam.reset());
       this._npcRobots.forEach(npc => { if (!npc._destroyed) npc.reset(); });
       this._cancelCharge(r);
 
