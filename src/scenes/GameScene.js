@@ -111,14 +111,17 @@ export default class GameScene extends Phaser.Scene {
     new Wall(this, 1400, GROUND_Y);
     this._armedDeadRobot = new ArmedDeadRobot(this, 1400, GROUND_Y);
 
-    // ── NPC robot — patrols 100 px left of spawn, raises arm on player proximity
-    this._npcRobot = new NPCRobot(this, 1800, GROUND_Y);
-    this.physics.add.collider(this._npcRobot.body_proxy, groundBody);
+    // ── NPC robots ────────────────────────────────────────────────────────
+    this._npcRobots = [1800, 2000, 2300].map(x => {
+      const npc = new NPCRobot(this, x, GROUND_Y);
+      this.physics.add.collider(npc.body_proxy, groundBody);
+      return npc;
+    });
 
     // ── Surveillance camera ───────────────────────────────────────────────
     this._surveillanceCam = new SurveillanceCamera(this, 1100, -50, GROUND_Y);
     this.events.on('camera-hit', () => this._robotExplode());
-    this.events.on('npc-fire', (npcX, npcY, facingRight) => this._npcShoot(npcX, npcY, facingRight));
+    this.events.on('npc-fire', (npc, npcX, npcY, facingRight) => this._npcShoot(npc, npcX, npcY, facingRight));
 
     // ── Silent mode — ?nosounds in URL disables all audio ────────────────
     this._silent = new URLSearchParams(window.location.search).has('nosounds');
@@ -179,7 +182,6 @@ export default class GameScene extends Phaser.Scene {
     this._armPressCount = 0;
 
     // Charge-shot state (available once armed arm is retrieved)
-    this._npcDestroyed = false;
     this._chargingShot = false;
     this._chargeStart  = 0;
     this._chargeFired  = false;
@@ -362,7 +364,7 @@ export default class GameScene extends Phaser.Scene {
     this._surveillanceCam.checkHead(headWorldX, headWorldY);
 
     this._checkSkullCollision();
-    this._npcRobot.npcUpdate(this.game.loop.delta, this.robot.x);
+    this._npcRobots.forEach(npc => npc.npcUpdate(this.game.loop.delta, this.robot.x));
   }
 
   _inFrontOfSkulls() {
@@ -782,12 +784,16 @@ export default class GameScene extends Phaser.Scene {
     bolt.setAngle(r.facingRight ? 0 : 180);
     bolt.setDepth(20);
 
-    // Detect NPC hit along the horizontal path
-    const npcX = this._npcRobot.x;
-    const hitTime = (Math.abs(npcX - startX) / 500) * 1000;
-    this.time.delayedCall(hitTime, () => {
-      if (!this._npcDestroyed) this._npcRobotExplode();
-    });
+    // Hit the first non-destroyed NPC in the firing direction
+    const dir = r.facingRight ? 1 : -1;
+    const firstNpc = this._npcRobots
+      .filter(n => !n._destroyed && Math.sign(n.x - startX) === dir)
+      .sort((a, b) => dir * (a.x - b.x))[0];
+
+    if (firstNpc) {
+      const hitTime = (Math.abs(firstNpc.x - startX) / 500) * 1000;
+      this.time.delayedCall(hitTime, () => this._npcRobotExplode(firstNpc));
+    }
 
     this.tweens.add({
       targets:  bolt,
@@ -798,14 +804,46 @@ export default class GameScene extends Phaser.Scene {
     });
   }
 
-  _npcRobotExplode() {
-    if (this._npcDestroyed) return;
-    this._npcDestroyed = true;
-    const npc = this._npcRobot;
+  _npcRobotExplode(npc) {
+    if (npc._destroyed) return;
+    npc._destroyed = true;
     npc._fired = true;
     npc.setMoveIntent(0);
     if (npc._fireTimer) { npc._fireTimer.remove(); npc._fireTimer = null; }
 
+    this._spawnExplosion(npc.x, npc.y - 20);
+
+    this.tweens.add({
+      targets:  npc,
+      alpha:    0,
+      duration: 400,
+      ease:     'Linear',
+      onComplete: () => npc.setVisible(false),
+    });
+  }
+
+  _npcShoot(npc, npcX, npcY, facingRight) {
+    if (npc._destroyed) return;
+    const startX = npcX + (facingRight ? 14 : -14);
+    const startY = npcY;
+    const dist   = Math.abs(this.robot.x - startX);
+
+    const bolt = this.add.rectangle(startX, startY, 8, 2, 0xffffff);
+    bolt.setDepth(20);
+
+    this.tweens.add({
+      targets:  bolt,
+      x:        this.robot.x,
+      duration: (dist / 400) * 1000,
+      ease:     'Linear',
+      onComplete: () => {
+        bolt.destroy();
+        this._robotExplode();
+      },
+    });
+  }
+
+  _spawnExplosion(cx, cy) {
     if (!this.textures.exists('pixel_spark')) {
       const g = this.make.graphics({ add: false });
       g.fillStyle(0xffffff, 1);
@@ -813,9 +851,6 @@ export default class GameScene extends Phaser.Scene {
       g.generateTexture('pixel_spark', 1, 1);
       g.destroy();
     }
-
-    const cx = npc.x;
-    const cy = npc.y - 20;
     const emitter = this.add.particles(0, 0, 'pixel_spark', {
       speed:    { min: 40, max: 150 },
       angle:    { min: 0, max: 360 },
@@ -826,43 +861,7 @@ export default class GameScene extends Phaser.Scene {
     });
     emitter.setDepth(30);
     emitter.explode(50, cx, cy);
-
-    this.tweens.add({
-      targets:  npc,
-      alpha:    0,
-      duration: 400,
-      ease:     'Linear',
-      onComplete: () => npc.setVisible(false),
-    });
     this.time.delayedCall(900, () => emitter.destroy());
-  }
-
-  _npcShoot(npcX, npcY, facingRight) {
-    const armOffsetX = facingRight ? 14 : -14;
-    const startX = npcX + armOffsetX;
-    const startY = npcY;
-
-    const targetX = this.robot.x;
-    const targetY = this.robot.y - 20;
-
-    const dx = targetX - startX;
-    const dy = targetY - startY;
-    const dist = Math.sqrt(dx * dx + dy * dy);
-    const duration = (dist / 400) * 1000;
-
-    const bolt = this.add.rectangle(startX, 65, 8, 2, 0xffffff);
-    bolt.setDepth(20);
-
-    this.tweens.add({
-      targets:  bolt,
-      x:        targetX,
-      duration,
-      ease:     'Linear',
-      onComplete: () => {
-        bolt.destroy();
-        this._robotExplode();
-      },
-    });
   }
 
   _robotExplode() {
@@ -871,28 +870,7 @@ export default class GameScene extends Phaser.Scene {
     if (r.body_proxy && r.body_proxy.body) /** @type {Phaser.Physics.Arcade.Body} */ (r.body_proxy.body).setVelocityX(0);
     this._robotWaiting = true;
 
-    if (!this.textures.exists('pixel_spark')) {
-      const g = this.make.graphics({ add: false });
-      g.fillStyle(0xffffff, 1);
-      g.fillRect(0, 0, 1, 1);
-      g.generateTexture('pixel_spark', 1, 1);
-      g.destroy();
-    }
-
-    const cx = r.x;
-    const cy = r.y - 20;
-
-    const emitter = this.add.particles(0, 0, 'pixel_spark', {
-      speed:    { min: 40, max: 150 },
-      angle:    { min: 0, max: 360 },
-      scale:    { start: 5, end: 0 },
-      alpha:    { start: 1, end: 0 },
-      lifespan: 1000,
-      emitting: false,
-    });
-    emitter.setDepth(30);
-    emitter.explode(150, cx, cy);
-
+    this._spawnExplosion(r.x, r.y - 20);
     r.setAlpha(0);
 
     // Fadeout then respawn at nearest checkpoint behind explosion
@@ -901,8 +879,6 @@ export default class GameScene extends Phaser.Scene {
 
     this.cameras.main.fadeOut(1000, 0, 0, 0);
     this.cameras.main.once('camerafadeoutcomplete', () => {
-      emitter.destroy();
-
       const gy = this._groundY;
       r.setPosition(spawnX, gy);
       r.body_proxy.setPosition(spawnX, gy - 42);
@@ -912,7 +888,7 @@ export default class GameScene extends Phaser.Scene {
       r.setAlpha(1);
       this._robotWaiting = false;
       this._surveillanceCam.reset();
-      if (!this._npcDestroyed) this._npcRobot.reset();
+      this._npcRobots.forEach(npc => { if (!npc._destroyed) npc.reset(); });
       this._cancelCharge(r);
 
       this.cameras.main.fadeIn(1000, 0, 0, 0);

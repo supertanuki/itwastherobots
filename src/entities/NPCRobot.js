@@ -75,6 +75,7 @@ export default class NPCRobot extends Robot {
     this._patrolDir    = -1;
     this._armRaised    = false;
     this._fired        = false;
+    this._destroyed    = false;
   }
 
   // ── Override blink to keep blue eye instead of red ────────────────────────
@@ -137,7 +138,7 @@ export default class NPCRobot extends Robot {
           this._fireTimer = null;
           this._fired = true;
           const armWorldY = this.y + this.upperArmR.y;
-          this.scene.events.emit('npc-fire', this.x, armWorldY, this.facingRight);
+          this.scene.events.emit('npc-fire', this, this.x, armWorldY, this.facingRight);
         });
       },
     });
@@ -146,6 +147,9 @@ export default class NPCRobot extends Robot {
   reset() {
     this._fired     = false;
     this._armRaised = false;
+    this._destroyed = false;
+    this.setAlpha(1);
+    this.setVisible(true);
     if (this._fireTimer) { this._fireTimer.remove(); this._fireTimer = null; }
     this._lowerArm();
   }
