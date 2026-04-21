@@ -350,6 +350,11 @@ export default class GameScene extends Phaser.Scene {
     if (this._chargingShot) {
       this._chargeAngle = Phaser.Math.Linear(this._chargeAngle, -90, 0.15);
       r.upperArmR.setAngle(this._chargeAngle);
+      if (this._chargeStripe) {
+        const progress = Math.min((this.time.now - this._chargeStart) / 1000, 1);
+        const h = Math.max(1, Math.round(progress * 10));
+        this._chargeStripe.setSize(1, h);
+      }
     }
 
     const headWorldX = r.x + r.head.x * r.scaleX;
@@ -729,20 +734,22 @@ export default class GameScene extends Phaser.Scene {
     r.remove(r.upperArmR, true);
 
     const armRect   = this.add.rectangle(0, 0, 3, 10, 0xeeeeee).setOrigin(0.5, 0);
-    const armStripe = this.add.rectangle(1, 5, 1, 10, 0xff2200).setOrigin(0.5, 0.5);
+    const armStripe = this.add.rectangle(1, 0, 1, 1, 0xff2200).setOrigin(0.5, 0);
     const armCont   = this.add.container(savedPos.x, savedPos.y, [armRect, armStripe]);
     armCont.setAngle(savedAng);
     r.add(armCont);
-    r.upperArmR = armCont;
+    r.upperArmR    = armCont;
+    this._chargeStripe = armStripe;
   }
 
   _cancelCharge(r) {
     if (!this._chargingShot) return;
-    this._chargingShot = false;
-    this._restoreArm(r);
+    this._chargingShot  = false;
+    this._chargeStripe  = null;
+    this._restoreArm(r, true);
   }
 
-  _restoreArm(r) {
+  _restoreArm(r, tween = false) {
     if (!r.upperArmR) return;
     const pos = { x: r.upperArmR.x, y: r.upperArmR.y };
     const ang = r.upperArmR.angle;
@@ -751,8 +758,12 @@ export default class GameScene extends Phaser.Scene {
     newArm.setPosition(pos.x, pos.y);
     newArm.setAngle(ang);
     r.add(newArm);
-    r.upperArmR = newArm;
-    this._chargeAngle = 5;
+    r.upperArmR    = newArm;
+    this._chargeAngle  = ang;
+    this._chargeStripe = null;
+    if (tween) {
+      this.tweens.add({ targets: newArm, angle: 5, duration: 300, ease: 'Sine.easeOut' });
+    }
   }
 
   _firePlayerShot(r) {
