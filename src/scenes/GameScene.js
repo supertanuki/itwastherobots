@@ -125,7 +125,7 @@ export default class GameScene extends Phaser.Scene {
 
     // ── Ceiling wall — hangs from top, x 2640–2660, 20 px tall ──────────
     // Wall origin = bottom of wall (y=20), height=20 → draws up to y=0
-    new Wall(this, 2640, 20, { width: 20, height: 20, offsetX: 0 });
+    new Wall(this, 2630, 20, { width: 40, height: 10, offsetX: 0 }).setDepth(6);
     {
       const ceilBody = this.add.rectangle(2650, 10, 20, 20, 0x000000, 0);
       this.physics.add.existing(ceilBody, true);
