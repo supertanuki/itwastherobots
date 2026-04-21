@@ -17,27 +17,15 @@ export default class ArmedDeadRobot extends DeadRobot {
       return rect;
     };
 
-    // ── Armed arm — extends leftward from upper torso ─────────────────────
-    const armUpper = addPart(3, 8, METAL);
-    armUpper.setPosition(-5, -15);
-    armUpper.setAngle(82);
+    // ── Armed arm — single vertical rectangle along the left side of torso ─
+    const armRect = addPart(3, 10, METAL);
+    armRect.setPosition(-6, -13);
 
-    // 1 px blue line on the top face of the arm
-    // Top of armUpper in container coords: rotate (0, -4) by 82° around (-5,-15)
-    // → (-5 + 4*sin82°, -15 - 4*cos82°) ≈ (-1, -16)
-    const armStripe = addPart(3, 1, ARM_BLUE);
-    armStripe.setPosition(-1, -16);
-    armStripe.setAngle(82);
+    // 1 px blue stripe on the left edge of the arm
+    const armStripe = addPart(1, 10, ARM_BLUE);
+    armStripe.setPosition(-7, -13);
 
-    const armLower = addPart(3, 7, METAL);
-    armLower.setPosition(-10, -12);
-    armLower.setAngle(75);
-
-    const armHand = addPart(4, 3, METAL);
-    armHand.setPosition(-15, -11);
-    armHand.setAngle(75);
-
-    this._armParts = [armStripe, armUpper, armLower, armHand];
+    this._armParts = [armRect, armStripe];
   }
 
   removeArm(onComplete) {
