@@ -19,11 +19,11 @@ export default class ArmedDeadRobot extends DeadRobot {
 
     // ── Armed arm — single vertical rectangle along the left side of torso ─
     const armRect = addPart(3, 10, METAL);
-    armRect.setPosition(-6, -13);
+    armRect.setPosition(-3, -10);
 
     // 1 px blue stripe on the left edge of the arm
     const armStripe = addPart(1, 10, ARM_BLUE);
-    armStripe.setPosition(-7, -13);
+    armStripe.setPosition(-2, -9);
 
     this._armParts = [armRect, armStripe];
   }
