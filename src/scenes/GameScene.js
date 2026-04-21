@@ -122,6 +122,31 @@ export default class GameScene extends Phaser.Scene {
     this._surveillanceCams = [1100, 2600, 2700].map(x =>
       new SurveillanceCamera(this, x, -60, GROUND_Y)
     );
+
+    // ── Ceiling wall — hangs from top, x 2640–2660, down to mid-height ────
+    {
+      const CX = 2640;
+      const CW = 20;
+      const CH = 60;   // half of GROUND_Y=120
+      const PERIOD = 4;
+      const ceilGfx = this.add.graphics();
+      ceilGfx.fillStyle(0x000000, 1);
+      ceilGfx.fillRect(CX, 0, CW, CH);
+      ceilGfx.fillStyle(0xffffff, 1);
+      for (let dy = 0; dy < CH; dy++) {
+        for (let dx = 0; dx < CW; dx++) {
+          const phase = ((dx - dy) % PERIOD + PERIOD) % PERIOD;
+          if (phase < PERIOD / 2) ceilGfx.fillRect(CX + dx, dy, 1, 1);
+        }
+      }
+      ceilGfx.lineStyle(1, 0xdddddd, 1);
+      ceilGfx.strokeRect(CX, 0, CW, CH);
+      ceilGfx.setDepth(5);
+
+      const ceilBody = this.add.rectangle(CX + CW / 2, CH / 2, CW, CH, 0x000000, 0);
+      this.physics.add.existing(ceilBody, true);
+      this.physics.add.collider(this.robot.body_proxy, ceilBody);
+    }
     this.events.on('camera-hit', () => this._robotExplode());
     this.events.on('npc-fire', (npc, npcX, npcY, facingRight) => this._npcShoot(npc, npcX, npcY, facingRight));
 
@@ -820,7 +845,7 @@ export default class GameScene extends Phaser.Scene {
     this.tweens.add({
       targets:  npc,
       alpha:    0,
-      duration: 400,
+      duration: 200,
       ease:     'Linear',
       onComplete: () => npc.setVisible(false),
     });
@@ -878,7 +903,7 @@ export default class GameScene extends Phaser.Scene {
     r.setAlpha(0);
 
     // Fadeout then respawn at nearest checkpoint behind explosion
-    const CHECKPOINTS = [900, 1300];
+    const CHECKPOINTS = [900, 1300, 2400];
     const spawnX = [...CHECKPOINTS].reverse().find(cpX => cpX < r.x) ?? 200;
 
     this.cameras.main.fadeOut(1000, 0, 0, 0);
