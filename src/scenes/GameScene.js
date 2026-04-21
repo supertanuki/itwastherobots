@@ -105,7 +105,7 @@ export default class GameScene extends Phaser.Scene {
     this._computerState = null;  // null | 'active' | 'done'
 
     // ── Surveillance camera — low ceiling at x=900 ────────────────────────
-    const CEIL_BOTTOM = 8;
+    const CEIL_BOTTOM = 18;
     new SurveillanceCamera(this, 900, CEIL_BOTTOM, 80, CEIL_BOTTOM);
 
     // ── Silent mode — ?nosounds in URL disables all audio ────────────────
@@ -384,7 +384,6 @@ export default class GameScene extends Phaser.Scene {
    */
   _zoomOut() {
     const cam     = this.cameras.main;
-    const VH      = 180;
     const WORLD_W = 3000;
 
     // Allow camera to scroll into negative world-Y (empty space above world)
@@ -403,7 +402,7 @@ export default class GameScene extends Phaser.Scene {
         const viewH = 720 / proxy.zoom;
         // Keep ground (VH) at screen bottom: scrollY = VH − viewH
         // Via follow: scrollY = robot.y − viewH/2 + offsetY → offsetY = VH − viewH/2 − robot.y
-        cam.setFollowOffset(-80, VH - viewH / 2 - this.robot.y);
+        cam.setFollowOffset(-80, viewH / 2 - this.robot.y);
       },
     });
   }
