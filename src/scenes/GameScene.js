@@ -860,7 +860,7 @@ export default class GameScene extends Phaser.Scene {
       emitting: false,
     });
     emitter.setDepth(30);
-    emitter.explode(50, cx, cy);
+    emitter.explode(200, cx, cy);
     this.time.delayedCall(900, () => emitter.destroy());
   }
 
