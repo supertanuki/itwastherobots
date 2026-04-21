@@ -40,6 +40,7 @@ export default class GameScene extends Phaser.Scene {
     const WORLD_W = 3000;   // scrollable world width
     const GH       = 60;          // ground height (3× original 20px)
     const GROUND_Y = VH - GH;    // = 120 — top of ground, robot stands here
+    this._groundY = GROUND_Y;
 
     // ── Camera zoom x4 — 1 virtual pixel = 4 screen pixels ───────────────
     this.cameras.main.setZoom(4);
@@ -127,6 +128,10 @@ export default class GameScene extends Phaser.Scene {
     if (this._debug) {
       this.keyPageUp   = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.PAGE_UP);
       this.keyPageDown = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.PAGE_DOWN);
+      this._debugText = this.add.text(318, 4, '', { fontSize: '6px', color: '#ffffff' });
+      this._debugText.setOrigin(1, 0);
+      this._debugText.setScrollFactor(0);
+      this._debugText.setDepth(100);
     }
 
     // ── Wake-up state ─────────────────────────────────────────────────────
@@ -199,13 +204,14 @@ export default class GameScene extends Phaser.Scene {
       }
     }
 
-    // debug: teleport robot ±200px
+    // debug: teleport robot ±200px + position display
     if (this._debug) {
       if (Phaser.Input.Keyboard.JustDown(this.keyPageDown)) {
         r.body_proxy.setX(r.body_proxy.x + 200);
       } else if (Phaser.Input.Keyboard.JustDown(this.keyPageUp)) {
         r.body_proxy.setX(r.body_proxy.x - 200);
       }
+      this._debugText.setText(`x:${Math.round(r.x)}`);
     }
 
     // Block all movement until the robot is awake
@@ -736,13 +742,27 @@ export default class GameScene extends Phaser.Scene {
     emitter.setDepth(30);
     emitter.explode(150, cx, cy);
 
-    this.tweens.add({
-      targets:  r,
-      alpha:    0,
-      duration: 100,
-      ease:     'Linear',
-    });
+    r.setAlpha(0);
 
-    this.time.delayedCall(1000, () => emitter.destroy());
+    // Fadeout then respawn at nearest checkpoint behind explosion
+    const CHECKPOINTS = [900, 1300];
+    const spawnX = [...CHECKPOINTS].reverse().find(cpX => cpX < cx) ?? 200;
+
+    this.cameras.main.fadeOut(1000, 0, 0, 0);
+    this.cameras.main.once('camerafadeoutcomplete', () => {
+      emitter.destroy();
+
+      const gy = this._groundY;
+      r.setPosition(spawnX, gy);
+      r.body_proxy.setPosition(spawnX, gy - 42);
+      /** @type {Phaser.Physics.Arcade.Body} */ (r.body_proxy.body).setVelocity(0, 0);
+      r.facingRight = true;
+      r.setScale(3, 3);
+      r.setAlpha(1);
+      this._robotWaiting = false;
+      this._surveillanceCam.reset();
+
+      this.cameras.main.fadeIn(1000, 0, 0, 0);
+    });
   }
 }

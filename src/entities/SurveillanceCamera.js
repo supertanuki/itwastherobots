@@ -136,6 +136,15 @@ export default class SurveillanceCamera extends Phaser.GameObjects.Container {
     this.scene.time.delayedCall(500, () => this._fire());
   }
 
+  reset() {
+    this._alerted  = false;
+    this._tracking = false;
+    if (this._alertTween) { this._alertTween.stop(); this._alertTween = null; }
+    this._spotlight.setAlpha(1);
+    this._spotlight.clearTint();
+    this._lensTween.resume();
+  }
+
   _updateBeamToTarget(headX, headY) {
     const ax  = this.x;
     const ay  = this.y + this._beamOY;
