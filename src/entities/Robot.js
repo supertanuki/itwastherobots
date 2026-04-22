@@ -68,7 +68,7 @@ export default class Robot extends Phaser.GameObjects.Container {
     // Sync container position to physics proxy each frame
     scene.events.on('update', this._syncToProxy, this);
 
-    this.sfxSteps = scene.sound.add('robot-steps', { loop: true, volume: 1 });
+    this.sfxSteps = scene.sound.add('robot-steps', { loop: true, volume: 0.8 });
   }
 
   // ─── Public API ───────────────────────────────────────────────────────────

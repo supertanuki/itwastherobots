@@ -32,6 +32,7 @@ export default class GameScene extends Phaser.Scene {
 
   preload() {
     this.load.audio('robot-steps', 'sfx/bannythecoolio-large-mech-robot-steps-432560.mp3');
+    this.load.audio('theme', 'sfx/kaazoom-under-the-bleak-sky-post-apocalyptic-cinematic-music-436655.mp3');
   }
 
   create() {
@@ -227,6 +228,10 @@ export default class GameScene extends Phaser.Scene {
     this._chargeStart  = 0;
     this._chargeFired  = false;
     this._chargeAngle  = 5;
+
+    // Play theme
+    this.theme = this.sound.add('theme', { loop: true, volume: 0.5 });
+    this.theme.play();
   }
 
   update() {
