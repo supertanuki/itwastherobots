@@ -38,6 +38,7 @@ export default class GameScene extends Phaser.Scene {
     this.load.audio('theme', 'sfx/kaazoom-under-the-bleak-sky-post-apocalyptic-cinematic-music-436655.mp3');
     this.load.audio('gunfire', 'sfx/lordsonny-plasma-gun-fire-162136.mp3');
     this.load.audio('chains', 'sfx/freesound_community-chains-6909.mp3');
+    this.load.audio('skulls-falling', 'sfx/freesound_community-falling-rock-105396.mp3');
   }
 
   create() {
@@ -240,6 +241,7 @@ export default class GameScene extends Phaser.Scene {
 
     // SFX
     this.sfxGunFire = this.sound.add('gunfire', { volume: sfxGunFireVolume });
+    this.sfxSkullsFalling = this.sound.add('skulls-falling', { volume: 1 });
   }
 
   update() {
@@ -484,6 +486,7 @@ export default class GameScene extends Phaser.Scene {
 
         this._pyramidTriggered = true;
         this._triggerCascade(skull);
+        this.sfxSkullsFalling.play();
         return;
       }
     }
