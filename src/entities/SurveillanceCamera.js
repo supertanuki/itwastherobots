@@ -179,7 +179,7 @@ export default class SurveillanceCamera extends Phaser.GameObjects.Container {
     bolt.setAngle(angle);
     bolt.setDepth(20);
 
-    const aura = this.scene.add.arc(startX, startY, 5, 0, 360, false, 0xffffff);
+    const aura = this.scene.add.arc(startX, startY, 20, 0, 360, false, 0xffffff);
     aura.setAlpha(0.3);
     aura.setDepth(19);
 

@@ -175,7 +175,11 @@ export default class Robot extends Phaser.GameObjects.Container {
   /** Prevent walk/crawl from overriding arm angle for durationMs. */
   lockArm(durationMs) {
     this._armLocked = true;
-    this.scene.time.delayedCall(durationMs, () => { this._armLocked = false; });
+    if (this._armLockTimer) this._armLockTimer.remove(false);
+    this._armLockTimer = this.scene.time.delayedCall(durationMs, () => {
+      this._armLocked  = false;
+      this._armLockTimer = null;
+    });
   }
 
   /** Wake the robot up: eye stays red, normal blink cycle resumes. */
