@@ -164,6 +164,11 @@ export default class GameScene extends Phaser.Scene {
       this._debugText.setDepth(100);
     }
 
+    // ── Ammo ──────────────────────────────────────────────────────────────
+    this._ammo        = 1;
+    this._maxAmmo     = 1;
+    this._ammoPickups = [];
+
     // ── Wake-up state ─────────────────────────────────────────────────────
     this._wakeCount = 0;   // space presses so far
     this._awake     = false;
@@ -392,6 +397,7 @@ export default class GameScene extends Phaser.Scene {
     this._surveillanceCams.forEach(cam => { if (!underCeiling) cam.checkHead(headWorldX, headWorldY); });
 
     this._checkSkullCollision();
+    this._checkAmmoPickups(r);
     this._npcRobots.forEach(npc => npc.npcUpdate(this.game.loop.delta, this.robot.x));
   }
 
@@ -742,6 +748,10 @@ export default class GameScene extends Phaser.Scene {
       if (this._chargingShot) this._cancelCharge(r);
       return;
     }
+    if (this._ammo <= 0) {
+      if (Phaser.Input.Keyboard.JustDown(this.keySpace)) this._doNoAmmoArmRaise(r);
+      return;
+    }
     if (!this._chargingShot) {
       if (this.time.now < (this._shotCooldownUntil || 0)) return;
       this._startCharge(r);
@@ -801,6 +811,8 @@ export default class GameScene extends Phaser.Scene {
     this._restoreArm(r);
     this._chargingShot = false;
     this._shotCooldownUntil = this.time.now + 400;
+    this._ammo = Math.max(0, this._ammo - 1);
+    if (this._ammo <= 0) this._startArmBlink(r);
 
     // Lock arm so _updateWalking doesn't override the recoil tween
     r.lockArm(400);
@@ -871,6 +883,7 @@ export default class GameScene extends Phaser.Scene {
     if (npc._fireTimer) { npc._fireTimer.remove(); npc._fireTimer = null; }
 
     this._spawnExplosion(npc.x, npc.y - 20);
+    this._spawnAmmoPickup(npc.x, this._groundY);
 
     this.tweens.add({
       targets:  npc,
@@ -939,6 +952,72 @@ export default class GameScene extends Phaser.Scene {
     emitter.setDepth(30);
     emitter.explode(200, cx, cy);
     this.time.delayedCall(900, () => emitter.destroy());
+  }
+
+  _startArmBlink(r) {
+    if (this._armBlinkEvent) return;
+    let state = false;
+    this._armBlinkEvent = this.time.addEvent({
+      delay:    150,
+      repeat:   -1,
+      callback: () => {
+        state = !state;
+        if (r.upperArmR) r.upperArmR.setAlpha(state ? 0.12 : 1);
+      },
+    });
+  }
+
+  _stopArmBlink(r) {
+    if (this._armBlinkEvent) { this._armBlinkEvent.remove(false); this._armBlinkEvent = null; }
+    if (r && r.upperArmR) r.upperArmR.setAlpha(1);
+  }
+
+  _doNoAmmoArmRaise(r) {
+    if (r._armLocked) return;
+    r.lockArm(380);
+    this.tweens.killTweensOf(r.upperArmR);
+    this.tweens.add({
+      targets:  r.upperArmR,
+      angle:    -30,
+      duration: 110,
+      ease:     'Sine.easeOut',
+      onComplete: () => {
+        this.tweens.add({ targets: r.upperArmR, angle: 5, duration: 240, ease: 'Sine.easeOut' });
+      },
+    });
+  }
+
+  _spawnAmmoPickup(x, groundY) {
+    const block = this.add.rectangle(x, groundY - 3, 6, 6, 0x2266ff);
+    block.setDepth(8);
+    const aura = this.add.arc(x, groundY - 3, 8, 0, 360, false, 0xffffff);
+    aura.setAlpha(0.5);
+    aura.setDepth(7);
+    const auraTween = this.tweens.add({
+      targets:  aura,
+      alpha:    { from: 0.1, to: 0.6 },
+      duration: 380,
+      yoyo:     true,
+      repeat:   -1,
+      ease:     'Sine.easeInOut',
+    });
+    this._ammoPickups.push({ block, aura, auraTween, x });
+  }
+
+  _checkAmmoPickups(r) {
+    for (let i = this._ammoPickups.length - 1; i >= 0; i--) {
+      const p = this._ammoPickups[i];
+      if (Math.abs(r.x - p.x) < 12) {
+        p.auraTween.stop();
+        p.block.destroy();
+        p.aura.destroy();
+        this._ammoPickups.splice(i, 1);
+        if (this._ammo < this._maxAmmo) {
+          this._ammo++;
+          this._stopArmBlink(r);
+        }
+      }
+    }
   }
 
   _buildPipeBackground(worldW, groundY) {
@@ -1048,10 +1127,21 @@ export default class GameScene extends Phaser.Scene {
       this._robotWaiting = false;
       this._surveillanceCams.forEach(cam => cam.reset());
       this._npcRobots.forEach(npc => {
-        if (npc._destroyed && npc.x >= spawnX) npc.reset();
-        else if (!npc._destroyed) npc.reset();
+        if (npc._destroyed && npc.x >= spawnX) {
+          npc.reset();
+          // Remove the ammo pickup that was spawned for this NPC if not yet collected
+          const pi = this._ammoPickups.findIndex(p => Math.abs(p.x - npc.x) < 5);
+          if (pi !== -1) {
+            const p = this._ammoPickups.splice(pi, 1)[0];
+            p.auraTween.stop();
+            p.block.destroy();
+            p.aura.destroy();
+          }
+        } else if (!npc._destroyed) npc.reset();
       });
       this._cancelCharge(r);
+      this._stopArmBlink(r);
+      this._ammo = 1;
 
       this.cameras.main.fadeIn(1000, 0, 0, 0);
     });
