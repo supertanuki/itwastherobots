@@ -71,6 +71,8 @@ export default class Robot extends Phaser.GameObjects.Container {
     scene.events.on('update', this._syncToProxy, this);
 
     this.sfxSteps = scene.sound.add('robot-steps', { loop: true, volume: sfxStepsVolume });
+    this.sfxWakeUp = scene.sound.add('robot-wakeup', { volume: 1 });
+    this.sfxWakeUpFeedback = scene.sound.add('robot-wakeup', { volume: 0.8 });
   }
 
   // ─── Public API ───────────────────────────────────────────────────────────
@@ -187,6 +189,11 @@ export default class Robot extends Phaser.GameObjects.Container {
     this.scene.time.delayedCall(100, () => {
       if (this._dormant) this.eye.setFillStyle(0x444444);
     });
+    this.scene.tweens.killTweensOf(this.sfxWakeUpFeedback);
+    this.sfxWakeUpFeedback.stop();
+    this.sfxWakeUpFeedback.setVolume(1);
+    this.sfxWakeUpFeedback.play();
+    this.scene.tweens.add({ targets: this.sfxWakeUpFeedback, duration: 200, volume:0 })
   }
 
   /** Prevent walk/crawl from overriding arm angle for durationMs. */
@@ -206,6 +213,8 @@ export default class Robot extends Phaser.GameObjects.Container {
     this._scheduleBlink();
     this._burstSparks();
     this._animateFromGrounded();
+    this.sfxWakeUp.setVolume(1);
+    this.sfxWakeUp.play();
   }
 
   /** Several spark bursts spread over ~1s to mark the wake-up moment. */
