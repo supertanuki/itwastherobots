@@ -974,15 +974,17 @@ export default class GameScene extends Phaser.Scene {
 
   _doNoAmmoArmRaise(r) {
     if (r._armLocked) return;
-    r.lockArm(380);
+    r.lockArm(750);
     this.tweens.killTweensOf(r.upperArmR);
     this.tweens.add({
       targets:  r.upperArmR,
-      angle:    -30,
-      duration: 110,
+      angle:    -90,
+      duration: 220,
       ease:     'Sine.easeOut',
       onComplete: () => {
-        this.tweens.add({ targets: r.upperArmR, angle: 5, duration: 240, ease: 'Sine.easeOut' });
+        this.time.delayedCall(120, () => {
+          this.tweens.add({ targets: r.upperArmR, angle: 5, duration: 360, ease: 'Sine.easeIn' });
+        });
       },
     });
   }
