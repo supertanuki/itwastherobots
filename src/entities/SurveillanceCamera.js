@@ -179,14 +179,19 @@ export default class SurveillanceCamera extends Phaser.GameObjects.Container {
     bolt.setAngle(angle);
     bolt.setDepth(20);
 
+    const aura = this.scene.add.arc(startX, startY, 5, 0, 360, false, 0xffffff);
+    aura.setAlpha(0.3);
+    aura.setDepth(19);
+
     this.scene.tweens.add({
-      targets:  bolt,
+      targets:  [bolt, aura],
       x:        headX,
       y:        headY,
       duration,
       ease:     'Linear',
       onComplete: () => {
         bolt.destroy();
+        aura.destroy();
         this._explode(headX, headY);
         this.scene.events.emit('camera-hit', headX, headY);
       },

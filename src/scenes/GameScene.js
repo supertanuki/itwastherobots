@@ -37,7 +37,7 @@ export default class GameScene extends Phaser.Scene {
     // ── Virtual world dimensions ──────────────────────────────────────────
     const VW      = 320;
     const VH      = 180;
-    const WORLD_W = 3000;   // scrollable world width
+    const WORLD_W = 4000;   // scrollable world width
     const GH       = 60;          // ground height (3× original 20px)
     const GROUND_Y = VH - GH;    // = 120 — top of ground, robot stands here
     this._groundY = GROUND_Y;
@@ -829,6 +829,9 @@ export default class GameScene extends Phaser.Scene {
     const bolt = this.add.rectangle(startX, startY, 8, 2, 0xffffff);
     bolt.setAngle(r.facingRight ? 0 : 180);
     bolt.setDepth(20);
+    const auraP = this.add.arc(startX, startY, 5, 0, 360, false, 0xffffff);
+    auraP.setAlpha(0.3);
+    auraP.setDepth(19);
 
     // Hit the first non-destroyed NPC in the firing direction
     const dir = r.facingRight ? 1 : -1;
@@ -844,11 +847,11 @@ export default class GameScene extends Phaser.Scene {
     }
 
     this.tweens.add({
-      targets:  bolt,
+      targets:  [bolt, auraP],
       x:        targetX,
       duration,
       ease:     'Linear',
-      onComplete: () => bolt.destroy(),
+      onComplete: () => { bolt.destroy(); auraP.destroy(); },
     });
   }
 
@@ -878,14 +881,18 @@ export default class GameScene extends Phaser.Scene {
 
     const bolt = this.add.rectangle(startX, startY, 8, 2, 0xffffff);
     bolt.setDepth(20);
+    const auraN = this.add.arc(startX, startY, 5, 0, 360, false, 0xffffff);
+    auraN.setAlpha(0.3);
+    auraN.setDepth(19);
 
     this.tweens.add({
-      targets:  bolt,
+      targets:  [bolt, auraN],
       x:        this.robot.x,
       duration: (dist / 400) * 1000,
       ease:     'Linear',
       onComplete: () => {
         bolt.destroy();
+        auraN.destroy();
         this._robotExplode();
       },
     });
