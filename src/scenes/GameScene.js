@@ -41,6 +41,7 @@ export default class GameScene extends Phaser.Scene {
     this.load.audio('skulls-falling', 'sfx/freesound_community-falling-rock-105396.mp3');
     this.load.audio('warning-alarm', 'sfx/freesound_community-severe-warning-alarm-98704.mp3');
     this.load.audio('cam-fire', 'sfx/daviddumaisaudio-sci-fi-weapon-laser-shot-04-316416.mp3');
+    this.load.audio('explosion', 'sfx/universfield-epic-cinematic-explosion-454857.mp3');
   }
 
   create() {
@@ -246,6 +247,7 @@ export default class GameScene extends Phaser.Scene {
     this.sfxSkullsFalling = this.sound.add('skulls-falling', { volume: 1 });
     this.sfxWarningAlarm = this.sound.add('warning-alarm', { volume: 1 });
     this.sfxCamFire = this.sound.add('cam-fire', { volume: 1 });
+    this.sfxExplosion = this.sound.add('explosion', { volume: 1 });
   }
 
   update() {
@@ -988,6 +990,8 @@ export default class GameScene extends Phaser.Scene {
     emitter.setDepth(30);
     emitter.explode(200, cx, cy);
     this.time.delayedCall(900, () => emitter.destroy());
+
+    this.sfxExplosion.play();
   }
 
   _startArmBlink(r) {
