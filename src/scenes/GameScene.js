@@ -829,7 +829,7 @@ export default class GameScene extends Phaser.Scene {
     const bolt = this.add.rectangle(startX, startY, 8, 2, 0xffffff);
     bolt.setAngle(r.facingRight ? 0 : 180);
     bolt.setDepth(20);
-    const auraP = this.add.arc(startX, startY, 5, 0, 360, false, 0xffffff);
+    const auraP = this.add.arc(startX, startY, 20, 0, 360, false, 0xffffff);
     auraP.setAlpha(0.3);
     auraP.setDepth(19);
 
@@ -841,12 +841,20 @@ export default class GameScene extends Phaser.Scene {
         && Math.abs(n.x - r.x) < 350)
       .sort((a, b) => dir * (a.x - b.x))[0];
 
+    let boltTween;
+
     if (firstNpc) {
       const hitTime = (Math.abs(firstNpc.x - startX) / 500) * 1000;
-      this.time.delayedCall(hitTime, () => this._npcRobotExplode(firstNpc));
+      this.time.delayedCall(hitTime, () => {
+        if (boltTween) boltTween.stop();
+        bolt.destroy();
+        auraP.destroy();
+        this._spawnImpact(firstNpc.x, startY);
+        this._npcRobotExplode(firstNpc);
+      });
     }
 
-    this.tweens.add({
+    boltTween = this.tweens.add({
       targets:  [bolt, auraP],
       x:        targetX,
       duration,
@@ -881,7 +889,7 @@ export default class GameScene extends Phaser.Scene {
 
     const bolt = this.add.rectangle(startX, startY, 8, 2, 0xffffff);
     bolt.setDepth(20);
-    const auraN = this.add.arc(startX, startY, 5, 0, 360, false, 0xffffff);
+    const auraN = this.add.arc(startX, startY, 20, 0, 360, false, 0xffffff);
     auraN.setAlpha(0.3);
     auraN.setDepth(19);
 
@@ -896,6 +904,20 @@ export default class GameScene extends Phaser.Scene {
         this._robotExplode();
       },
     });
+  }
+
+  _spawnImpact(x, y) {
+    const emitter = this.add.particles(0, 0, 'pixel_spark', {
+      speed:    { min: 40, max: 120 },
+      angle:    { min: 0, max: 360 },
+      scale:    { start: 2, end: 0 },
+      alpha:    { start: 1, end: 0 },
+      lifespan: 280,
+      emitting: false,
+    });
+    emitter.setDepth(25);
+    emitter.explode(14, x, y);
+    this.time.delayedCall(350, () => emitter.destroy());
   }
 
   _spawnExplosion(cx, cy) {
