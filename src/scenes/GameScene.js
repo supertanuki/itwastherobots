@@ -46,6 +46,7 @@ export default class GameScene extends Phaser.Scene {
     this.load.audio('robot-wakeup', 'sfx/freesound_community-robot-power-off-97246.mp3');
     this.load.audio('robot-crawling', 'sfx/freesound_community-robot-walk-82499.mp3');
     this.load.audio('robot-metal', 'sfx/dragon-studio-groaning-metal-511322.mp3');
+    this.load.audio('standing-up', 'sfx/freesound_community-029974_inside-the-robot-70923.mp3');
   }
 
   create() {
@@ -254,6 +255,7 @@ export default class GameScene extends Phaser.Scene {
     this.sfxExplosion = this.sound.add('explosion', { volume: 1 });
     this.sfxAmmoPicked = this.sound.add('ammo-picked', { volume: 1 });
     this.sfxRobotMetal = this.sound.add('robot-metal', { volume: 1 });
+    this.sfxStandingUp = this.sound.add('standing-up', { volume: 0.8 });
   }
 
   update() {
@@ -329,6 +331,7 @@ export default class GameScene extends Phaser.Scene {
               this.game.events.emit('instr-hide');
               this._deadRobot.removeLeg(() => {
                 this._deadRobot.collapse();
+                this.sfxStandingUp.play();
                 this.time.delayedCall(1000, () => {
                   this._legState = 'done';
                   this.robot.shake(() => {
@@ -401,6 +404,7 @@ export default class GameScene extends Phaser.Scene {
             this.sfxRobotMetal.play();
             this._armState = 'pulling';
             this.game.events.emit('instr-hide');
+            this.sfxStandingUp.play();
             this._armedDeadRobot.removeArm(() => {
               this._armedDeadRobot.collapse();
               this.time.delayedCall(1000, () => {
