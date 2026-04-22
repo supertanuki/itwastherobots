@@ -175,4 +175,8 @@ export default class NPCRobot extends Robot {
       ease:     'Sine.easeOut',
     });
   }
+
+  _updateStepSound() {
+    // disabled for the moment
+  }
 }

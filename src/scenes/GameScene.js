@@ -30,6 +30,10 @@ export default class GameScene extends Phaser.Scene {
     super('GameScene');
   }
 
+  preload() {
+    this.load.audio('robot-steps', 'sfx/bannythecoolio-large-mech-robot-steps-432560.mp3');
+  }
+
   create() {
     // ── Launch UI overlay (subtitles + instruction) ───────────────────────
     this.scene.launch('UIScene');

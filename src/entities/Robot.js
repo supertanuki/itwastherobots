@@ -67,6 +67,8 @@ export default class Robot extends Phaser.GameObjects.Container {
 
     // Sync container position to physics proxy each frame
     scene.events.on('update', this._syncToProxy, this);
+
+    this.sfxSteps = scene.sound.add('robot-steps', { loop: true, volume: 1 });
   }
 
   // ─── Public API ───────────────────────────────────────────────────────────
@@ -111,6 +113,16 @@ export default class Robot extends Phaser.GameObjects.Container {
     });
   }
 
+  _updateStepSound() {
+    const shouldPlay = this.state === RobotState.WALKING && this._moveIntent !== 0;
+
+    if (shouldPlay && !this.sfxSteps.isPlaying) {
+      this.sfxSteps.play();
+    } else if (!shouldPlay && this.sfxSteps.isPlaying) {
+      this.sfxSteps.stop();
+    }
+  }
+
   update(delta) {
     this._syncToProxy();
 
@@ -148,6 +160,8 @@ export default class Robot extends Phaser.GameObjects.Container {
 
     // Mirror parts when facing left (preserve the x3 base scale)
     this.setScale(this.facingRight ? 3 : -3, 3);
+
+    this._updateStepSound();
   }
 
   // ─── Eye blink ────────────────────────────────────────────────────────────
@@ -792,6 +806,10 @@ export default class Robot extends Phaser.GameObjects.Container {
 
   destroy(fromScene) {
     this.scene.events.off('update', this._syncToProxy, this);
+    if (this.sfxSteps) {
+      this.sfxSteps.stop();
+      this.sfxSteps.destroy();
+    }
     if (this.body_proxy) this.body_proxy.destroy();
     if (this._sparks) this._sparks.destroy();
     super.destroy(fromScene);
