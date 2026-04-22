@@ -39,6 +39,7 @@ export default class GameScene extends Phaser.Scene {
     this.load.audio('gunfire', 'sfx/lordsonny-plasma-gun-fire-162136.mp3');
     this.load.audio('chains', 'sfx/freesound_community-chains-6909.mp3');
     this.load.audio('skulls-falling', 'sfx/freesound_community-falling-rock-105396.mp3');
+    this.load.audio('warning-alarm', 'sfx/freesound_community-severe-warning-alarm-98704.mp3');
   }
 
   create() {
@@ -242,6 +243,7 @@ export default class GameScene extends Phaser.Scene {
     // SFX
     this.sfxGunFire = this.sound.add('gunfire', { volume: sfxGunFireVolume });
     this.sfxSkullsFalling = this.sound.add('skulls-falling', { volume: 1 });
+    this.sfxWarningAlarm = this.sound.add('warning-alarm', { volume: 1 });
   }
 
   update() {

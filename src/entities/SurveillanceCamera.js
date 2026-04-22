@@ -134,6 +134,9 @@ export default class SurveillanceCamera extends Phaser.GameObjects.Container {
       ease:     'Linear',
     });
     this.scene.time.delayedCall(500, () => this._fire());
+
+    // sfx
+    this.scene.sfxWarningAlarm.play();
   }
 
   reset() {
