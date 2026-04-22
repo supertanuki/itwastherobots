@@ -13,6 +13,9 @@ import i18n from '../i18n.js';
 // scrollable world width
 const WORLD_W = 4000;
 
+// Sfx volume
+const sfxGunFireVolume = 0.8;
+
 /**
  * GameScene — movement test for the broken robot.
  *
@@ -33,6 +36,7 @@ export default class GameScene extends Phaser.Scene {
   preload() {
     this.load.audio('robot-steps', 'sfx/bannythecoolio-large-mech-robot-steps-432560.mp3');
     this.load.audio('theme', 'sfx/kaazoom-under-the-bleak-sky-post-apocalyptic-cinematic-music-436655.mp3');
+    this.load.audio('gunfire', 'sfx/lordsonny-plasma-gun-fire-162136.mp3'); 
   }
 
   create() {
@@ -232,6 +236,9 @@ export default class GameScene extends Phaser.Scene {
     // Play theme
     this.theme = this.sound.add('theme', { loop: true, volume: 0.5 });
     this.theme.play();
+
+    // Gun fire SFX
+    this.sfxGunFire = this.sound.add('gunfire', { volume: sfxGunFireVolume });
   }
 
   update() {
@@ -794,10 +801,18 @@ export default class GameScene extends Phaser.Scene {
     r.add(armCont);
     r.upperArmR    = armCont;
     this._chargeStripe = armStripe;
+
+    // play sfx
+    this.sfxGunFire.setVolume(sfxGunFireVolume);
+    this.sfxGunFire.play();
   }
 
   _cancelCharge(r) {
     if (!this._chargingShot) return;
+
+    // stop sfx
+    this.tweens.add({ targets: this.sfxGunFire, volume: 0, duration: 200, ease: 'Linear', onComplete: () => this.sfxGunFire.stop() });
+
     this._chargingShot  = false;
     this._chargeStripe  = null;
     this._restoreArm(r, true);

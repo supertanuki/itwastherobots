@@ -22,6 +22,8 @@ export const RobotState = {
   RECOVERING:  'recovering',  // catching itself
 };
 
+const sfxStepsVolume = 0.8;
+
 export default class Robot extends Phaser.GameObjects.Container {
   /**
    * @param {Phaser.Scene} scene
@@ -68,7 +70,7 @@ export default class Robot extends Phaser.GameObjects.Container {
     // Sync container position to physics proxy each frame
     scene.events.on('update', this._syncToProxy, this);
 
-    this.sfxSteps = scene.sound.add('robot-steps', { loop: true, volume: 0.8 });
+    this.sfxSteps = scene.sound.add('robot-steps', { loop: true, volume: sfxStepsVolume });
   }
 
   // ─── Public API ───────────────────────────────────────────────────────────
@@ -117,9 +119,10 @@ export default class Robot extends Phaser.GameObjects.Container {
     const shouldPlay = this.state === RobotState.WALKING && this._moveIntent !== 0;
 
     if (shouldPlay && !this.sfxSteps.isPlaying) {
+      this.sfxSteps.setVolume(sfxStepsVolume);
       this.sfxSteps.play();
     } else if (!shouldPlay && this.sfxSteps.isPlaying) {
-      this.sfxSteps.stop();
+      this.scene.tweens.add({ targets: this.sfxSteps, volume: 0, duration: 200, ease: 'Linear', onComplete: () => this.sfxSteps.stop() });
     }
   }
 
