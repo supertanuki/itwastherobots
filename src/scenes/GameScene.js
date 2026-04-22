@@ -10,6 +10,9 @@ import ArmedDeadRobot from '../entities/ArmedDeadRobot.js';
 import NPCRobot from '../entities/NPCRobot.js';
 import i18n from '../i18n.js';
 
+// scrollable world width
+const WORLD_W = 4000;
+
 /**
  * GameScene — movement test for the broken robot.
  *
@@ -37,7 +40,6 @@ export default class GameScene extends Phaser.Scene {
     // ── Virtual world dimensions ──────────────────────────────────────────
     const VW      = 320;
     const VH      = 180;
-    const WORLD_W = 4000;   // scrollable world width
     const GH       = 60;          // ground height (3× original 20px)
     const GROUND_Y = VH - GH;    // = 120 — top of ground, robot stands here
     this._groundY = GROUND_Y;
@@ -499,8 +501,7 @@ export default class GameScene extends Phaser.Scene {
    * Starts immediately when the robot begins getting up.
    */
   _zoomOut() {
-    const cam     = this.cameras.main;
-    const WORLD_W = 3000;
+    const cam = this.cameras.main;
 
     // Allow camera to scroll into negative world-Y (empty space above world)
     cam.setBounds(0, -720, WORLD_W, 900);
