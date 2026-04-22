@@ -83,7 +83,7 @@ export default class DeadRobot extends Phaser.GameObjects.Container {
       x:          orig + 4,
       duration:   50,
       yoyo:       true,
-      repeat:     3,
+      repeat:     2,
       ease:       'Sine.easeInOut',
       onComplete: () => this.setX(orig),
     });

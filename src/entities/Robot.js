@@ -86,7 +86,7 @@ export default class Robot extends Phaser.GameObjects.Container {
     this._animateGetUp();
   }
 
-  /** Shake torso/head/neck for ~1s without moving the container (camera unaffected). */
+  /** Shake torso/head/neck for ~0.5s without moving the container (camera unaffected). */
   shake(onComplete) {
     const torsoX = this.torso.x;
     const headX  = this.head.x;
@@ -98,7 +98,7 @@ export default class Robot extends Phaser.GameObjects.Container {
       x:        '+=1',
       duration: 50,
       yoyo:     true,
-      repeat:   9,
+      repeat:   4,
       ease:     'Sine.easeInOut',
       onComplete: () => {
         this.torso.setX(torsoX);
