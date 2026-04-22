@@ -47,6 +47,7 @@ export default class GameScene extends Phaser.Scene {
     this.load.audio('robot-crawling', 'sfx/freesound_community-robot-walk-82499.mp3');
     this.load.audio('robot-metal', 'sfx/dragon-studio-groaning-metal-511322.mp3');
     this.load.audio('standing-up', 'sfx/freesound_community-029974_inside-the-robot-70923.mp3');
+    this.load.audio('computer-text', 'sfx/estudiocoati-interface-digital-de-texto-text-digital-interface-218128.mp3');
   }
 
   create() {
@@ -256,6 +257,7 @@ export default class GameScene extends Phaser.Scene {
     this.sfxAmmoPicked = this.sound.add('ammo-picked', { volume: 1 });
     this.sfxRobotMetal = this.sound.add('robot-metal', { volume: 1 });
     this.sfxStandingUp = this.sound.add('standing-up', { volume: 0.8 });
+    this.sfxComputerText = this.sound.add('computer-text', { volume: 0.8 });
   }
 
   update() {
@@ -644,6 +646,7 @@ export default class GameScene extends Phaser.Scene {
     this._startDialogue(i18n.dialogueComputer1, () => {
       // Space pressed → start blinking screen, then 2s later: second dialogue
       this._computer.startHacking();
+      this.sfxComputerText.play();
       this.time.delayedCall(2000, () => {
         this._startDialogue(i18n.dialogueComputer2, () => {
           // Space pressed → restore movement
