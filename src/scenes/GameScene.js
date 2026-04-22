@@ -42,6 +42,7 @@ export default class GameScene extends Phaser.Scene {
     this.load.audio('warning-alarm', 'sfx/freesound_community-severe-warning-alarm-98704.mp3');
     this.load.audio('cam-fire', 'sfx/daviddumaisaudio-sci-fi-weapon-laser-shot-04-316416.mp3');
     this.load.audio('explosion', 'sfx/universfield-epic-cinematic-explosion-454857.mp3');
+    this.load.audio('ammo-picked', 'sfx/freesound_community-2011-macbook-turning-on-45550.mp3');
   }
 
   create() {
@@ -248,6 +249,7 @@ export default class GameScene extends Phaser.Scene {
     this.sfxWarningAlarm = this.sound.add('warning-alarm', { volume: 1 });
     this.sfxCamFire = this.sound.add('cam-fire', { volume: 1 });
     this.sfxExplosion = this.sound.add('explosion', { volume: 1 });
+    this.sfxAmmoPicked = this.sound.add('ammo-picked', { volume: 1 });
   }
 
   update() {
@@ -1054,6 +1056,7 @@ export default class GameScene extends Phaser.Scene {
         p.block.destroy();
         p.aura.destroy();
         this._ammoPickups.splice(i, 1);
+        this.sfxAmmoPicked.play();
         if (this._ammo < this._maxAmmo) {
           this._ammo++;
           this._stopArmBlink(r);
