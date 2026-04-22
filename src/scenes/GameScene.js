@@ -103,6 +103,9 @@ export default class GameScene extends Phaser.Scene {
     this._pyramidTriggered = false;
     this._buildSkullPyramid(600, GROUND_Y, groundBody);
 
+    // ── Alone Skull ─────────────────────────────────────────────────────
+    const aloneSkull = new Skull(this, 850, GROUND_Y + 3);
+
     // ── Wide wall + computer terminal at mid-height ───────────────────────
     const COMP_WALL_H = 70;
     const COMP_X      = 750;
