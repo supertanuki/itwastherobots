@@ -71,6 +71,7 @@ export default class Robot extends Phaser.GameObjects.Container {
     scene.events.on('update', this._syncToProxy, this);
 
     this.sfxSteps = scene.sound.add('robot-steps', { loop: true, volume: sfxStepsVolume });
+    this.sfxCrawling = scene.sound.add('robot-crawling', { loop: true, volume: 1 });
     this.sfxWakeUp = scene.sound.add('robot-wakeup', { volume: 1 });
     this.sfxWakeUpFeedback = scene.sound.add('robot-wakeup', { volume: 0.8 });
   }
@@ -128,6 +129,17 @@ export default class Robot extends Phaser.GameObjects.Container {
     }
   }
 
+  _updatCrawlingSound() {
+    const shouldPlay = this.state === RobotState.LYING && this._moveIntent !== 0;
+
+    if (shouldPlay && !this.sfxCrawling.isPlaying) {
+      this.sfxCrawling.setVolume(1);
+      this.sfxCrawling.play();
+    } else if (!shouldPlay && this.sfxCrawling.isPlaying) {
+      this.scene.tweens.add({ targets: this.sfxCrawling, volume: 0, duration: 200, ease: 'Linear', onComplete: () => this.sfxCrawling.stop() });
+    }
+  }
+
   update(delta) {
     this._syncToProxy();
 
@@ -167,6 +179,7 @@ export default class Robot extends Phaser.GameObjects.Container {
     this.setScale(this.facingRight ? 3 : -3, 3);
 
     this._updateStepSound();
+    this._updatCrawlingSound();
   }
 
   // ─── Eye blink ────────────────────────────────────────────────────────────

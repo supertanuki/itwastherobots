@@ -44,6 +44,7 @@ export default class GameScene extends Phaser.Scene {
     this.load.audio('explosion', 'sfx/universfield-epic-cinematic-explosion-454857.mp3');
     this.load.audio('ammo-picked', 'sfx/freesound_community-2011-macbook-turning-on-45550.mp3');
     this.load.audio('robot-wakeup', 'sfx/freesound_community-robot-power-off-97246.mp3');
+    this.load.audio('robot-crawling', 'sfx/freesound_community-robot-walk-82499.mp3');
   }
 
   create() {
