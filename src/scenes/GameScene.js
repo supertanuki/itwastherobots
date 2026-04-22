@@ -36,7 +36,8 @@ export default class GameScene extends Phaser.Scene {
   preload() {
     this.load.audio('robot-steps', 'sfx/bannythecoolio-large-mech-robot-steps-432560.mp3');
     this.load.audio('theme', 'sfx/kaazoom-under-the-bleak-sky-post-apocalyptic-cinematic-music-436655.mp3');
-    this.load.audio('gunfire', 'sfx/lordsonny-plasma-gun-fire-162136.mp3'); 
+    this.load.audio('gunfire', 'sfx/lordsonny-plasma-gun-fire-162136.mp3');
+    this.load.audio('chains', 'sfx/freesound_community-chains-6909.mp3');
   }
 
   create() {
@@ -237,7 +238,7 @@ export default class GameScene extends Phaser.Scene {
     this.theme = this.sound.add('theme', { loop: true, volume: 0.5 });
     this.theme.play();
 
-    // Gun fire SFX
+    // SFX
     this.sfxGunFire = this.sound.add('gunfire', { volume: sfxGunFireVolume });
   }
 
