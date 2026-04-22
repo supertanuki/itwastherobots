@@ -930,6 +930,7 @@ export default class GameScene extends Phaser.Scene {
 
   _npcRobotExplode(npc) {
     if (npc._destroyed) return;
+    this.tweens.add({ targets: npc.sfxGunFire, duration: 100, volume: 0 });
     npc._destroyed = true;
     npc._fired = true;
     npc.setMoveIntent(0);

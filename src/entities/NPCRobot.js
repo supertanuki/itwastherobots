@@ -1,6 +1,8 @@
 import Phaser from 'phaser';
 import Robot, { RobotState } from './Robot.js';
 
+const sfxGunFireVolume = 0.4;
+
 /**
  * NPCRobot — fully intact robot NPC (blue eye, both legs, armed arm).
  *
@@ -76,6 +78,9 @@ export default class NPCRobot extends Robot {
     this._armRaised    = false;
     this._fired        = false;
     this._destroyed    = false;
+
+    // sfx
+    this.sfxGunFire = scene.sound.add('gunfire', { volume: sfxGunFireVolume });
   }
 
   // ── Override blink to keep blue eye instead of red ────────────────────────
@@ -127,6 +132,8 @@ export default class NPCRobot extends Robot {
   }
 
   _raiseArm() {
+    this.sfxGunFire.setVolume(sfxGunFireVolume);
+    this.sfxGunFire.play();
     this.scene.tweens.killTweensOf(this.upperArmR);
     this.scene.tweens.add({
       targets:    this.upperArmR,
