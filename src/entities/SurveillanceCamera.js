@@ -199,6 +199,8 @@ export default class SurveillanceCamera extends Phaser.GameObjects.Container {
         this.scene.events.emit('camera-hit', headX, headY);
       },
     });
+
+    this.scene.sfxCamFire.play();
   }
 
   _explode(x, y) {
