@@ -17,7 +17,7 @@ const WORLD_W = 5000;
 const sfxGunFireVolume = 0.8;
 
 // checkpoints after death
-const CHECKPOINTS = [600, 950, 1300, 1700, 2600];
+const CHECKPOINTS = [600, 950, 1300, 1700, 2280, 3050];
 
 /**
  * GameScene — movement test for the broken robot.
@@ -115,7 +115,7 @@ export default class GameScene extends Phaser.Scene {
     backMountainGfx.setDepth(-5);
 
     const mountainGfx = this.add.graphics();
-    mountainGfx.fillStyle(0x556b2f, 1);
+    mountainGfx.fillStyle(0x62644d, 1);
     const mtWidth = [250, 300, 350, 300, 250];
     const mtHeights = [70, 90, 110, 100, 90];
     for (let i = 0; i < mtHeights.length; i++) {
@@ -256,11 +256,15 @@ export default class GameScene extends Phaser.Scene {
     this._armedDeadRobot = new ArmedDeadRobot(this, 1750, GROUND_Y);
 
     // ── NPC robots ────────────────────────────────────────────────────────
-    this._npcRobots = [2150, 2350, 2550].map(x => {
+    this._npcRobots = [2150, 2650, 3400, 3600].map(x => {
       const npc = new NPCRobot(this, x, GROUND_Y);
       this.physics.add.collider(npc.body_proxy, groundBody);
       return npc;
     });
+
+    // ── Second Wide wall + computer terminal
+    new Wall(this, 2290, GROUND_Y, { width: 60, height: COMP_WALL_H, offsetX: 0 });
+    new Computer(this, 2320, GROUND_Y - COMP_WALL_H / 2);
 
     // ── Ceiling wall — hangs from top, x 2630–2670, 10 px tall ──────────
     // Wall origin = bottom of wall (y=20), height=10 → draws from y=10 to y=20
