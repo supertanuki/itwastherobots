@@ -22,7 +22,7 @@ const TEXTS = {
       { text: "Analyse structurelle…", speak: true },
       { text: "Intégrité compromise : un bras et une jambe manquants.", speak: true },
       { text: "Fonction locomotion réduite…", speak: true },
-      { text: "Ramper… reste possible en alternant  ← →", speak: false },
+      { text: "Ramper… reste possible en alternant  ← →", speak: true },
     ],
 
     dialogueLeg: [
@@ -138,7 +138,7 @@ const TEXTS = {
       { text: "Structural analysis…", speak: true },
       { text: "Integrity compromised: one arm and one leg missing.", speak: true },
       { text: "Locomotion function reduced…", speak: true },
-      { text: "Crawling… still possible by alternating ← →", speak: false },
+      { text: "Crawling… still possible by alternating ← →", speak: true },
     ],
 
     dialogueLeg: [
@@ -188,7 +188,7 @@ const TEXTS = {
     ],
 
     journalFirst: [
-      { text: "... corrupted entry ... partial restoration.", speak: false },
+      { text: "... corrupted entry ... partial restoration.", speak: true },
       { text: "Kaïz's Journal…", speak: true },
       { text: "It’s been almost a year…", speak: true },
       { text: "a year since I left the colony.", speak: true },
