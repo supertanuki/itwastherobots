@@ -219,16 +219,20 @@ export default class GameScene extends Phaser.Scene {
 
     // ── Chain — hangs from ceiling, reaches robot mid-height ──────────────
     // Robot head world y = GROUND_Y - 26*3 = 42 → mid-height y = (42+120)/2 = 81
-    new Chain(this, 260, -180, GROUND_Y - 60, this.robot);
     new Chain(this, 290, -180, GROUND_Y - 60, this.robot);
+
+    this.add.text(310, -10, 'F*Ck\nthe\nR0B0Ts', { color:'#ffffff', align: 'center' })
+    .setAngle(-15)
+    .setScrollFactor(0.35, 1);
 
     // ── Skull pyramid ─────────────────────────────────────────────────────
     this._skulls           = [];
     this._pyramidTriggered = false;
     this._buildSkullPyramid(600, GROUND_Y, groundBody);
 
-    // ── Alone Skull ─────────────────────────────────────────────────────
-    const aloneSkull = new Skull(this, 850, GROUND_Y + 3);
+    // ── Alone Skulls ─────────────────────────────────────────────────────
+    new Skull(this, 130, GROUND_Y + 3);
+    new Skull(this, 850, GROUND_Y + 3);
 
     // ── Wide wall + computer terminal at mid-height ───────────────────────
     const COMP_WALL_H = 70;
