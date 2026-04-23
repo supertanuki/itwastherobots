@@ -101,6 +101,11 @@ const TEXTS = {
       { text: "… fin de l’entrée.", speak: false },
     ],
 
+    dialogueBuilding: [
+      { text: "Qu'est-ce que c'est que ce bâtiment ?", speak: true },
+      { text: "C'est sans doute la colonie dont parlait Kaïz dans son journal.", speak: true },
+    ],
+
     journalThird: [
       { text: "Journal de Kaïz…", speak: true },
       { text: "La vérité… je l’ai trouvée.", speak: true },
@@ -217,6 +222,11 @@ const TEXTS = {
       { text: "It was a gilded cage.", speak: true },
       { text: "A sanctuary for the rich.", speak: true },
       { text: "… end of entry.", speak: false },
+    ],
+
+    dialogueBuilding: [
+      { text: "What is that building?", speak: true },
+      { text: "That must be the colony Kaïz mentioned in his journal.", speak: true },
     ],
 
     journalThird: [

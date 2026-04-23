@@ -358,8 +358,9 @@ export default class GameScene extends Phaser.Scene {
     this._legState         = null;
     this._legPressCount    = 0;
     this._dlgDismissOnWalk  = false;
-    this._robotWaiting      = false;  // true while a blocking dialogue is active
-    this._skullDialogueDone = false;  // true once dialogueSkullsFound has fired
+    this._robotWaiting        = false;  // true while a blocking dialogue is active
+    this._skullDialogueDone   = false;  // true once dialogueSkullsFound has fired
+    this._buildingDialogueDone = false; // true once dialogueBuilding has fired
 
     // Arm-retrieval interaction state (armed dead robot, standing phase)
     this._armState      = null;  // null | 'blocked' | 'instruction' | 'pulling' | 'done'
@@ -582,6 +583,7 @@ export default class GameScene extends Phaser.Scene {
     this._checkAmmoPickups(r);
     this._npcRobots.forEach(npc => npc.npcUpdate(this.game.loop.delta, this.robot.x));
     if (this._finalSequence) this._updateFinalNpc();
+    this._checkBuildingDialogue();
     this._updateDarkZone();
   }
 
@@ -1391,6 +1393,22 @@ export default class GameScene extends Phaser.Scene {
       npc.update(this.game.loop.delta);
       npc._syncArmStripe();
     }
+  }
+
+  _checkBuildingDialogue() {
+    if (this._buildingDialogueDone) return;
+    if (this._finalSequence) return;
+    if (this._robotWaiting) return;
+    if (this.robot.x < 4500) return;
+    if (!this._npcRobots.every(npc => npc._destroyed)) return;
+
+    this._buildingDialogueDone = true;
+    this._robotWaiting = true;
+    this.robot.setMoveIntent(0);
+    /** @type {Phaser.Physics.Arcade.Body} */ (this.robot.body_proxy.body).setVelocityX(0);
+    this._startDialogue(i18n.dialogueBuilding, () => {
+      this._robotWaiting = false;
+    });
   }
 
   _updateDarkZone() {
