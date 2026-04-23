@@ -269,7 +269,8 @@ export default class GameScene extends Phaser.Scene {
 
     // ── Second Wide wall + computer terminal
     new Wall(this, 2290, GROUND_Y, { width: 60, height: COMP_WALL_H, offsetX: 0 });
-    new Computer(this, 2320, GROUND_Y - COMP_WALL_H / 2);
+    this._computer2 = new Computer(this, 2320, GROUND_Y - COMP_WALL_H / 2);
+    this._computerState2 = null;
 
     // ── Ceiling wall — hangs from top, x 2630–2670, 10 px tall ──────────
     // Wall origin = bottom of wall (y=20), height=10 → draws from y=10 to y=20
@@ -510,6 +511,7 @@ export default class GameScene extends Phaser.Scene {
 
       this._inFrontOfSkulls();
       this._checkComputerProximity();
+      this._checkComputer2Proximity();
       this._checkArmProximity();
 
       if (this._armState === 'done' && !this._robotWaiting && !this._dlgWaiting) {
@@ -771,17 +773,43 @@ export default class GameScene extends Phaser.Scene {
     this.robot.body_proxy.body.setVelocityX(0);
 
     // Phase 1 — robot spots the computer
-    this._startDialogue(i18n.dialogueComputer1, () => {
+    this._startDialogue(i18n.dialogueComputer, () => {
       // Space pressed → start blinking screen, then 2s later: second dialogue
       this._computer.startHacking();
       this.sfxComputerText.play();
       this.time.delayedCall(2000, () => {
-        this._startDialogue(i18n.dialogueComputer2, () => {
+        this._startDialogue(i18n.journalFirst, () => {
           // Space pressed → restore movement
           this._computer.stopHacking();
           this._computerState = 'done';
           this._robotWaiting  = false;
         });
+      });
+    });
+  }
+
+  _checkComputer2Proximity() {
+    if (this._computerState2 !== null) return;
+    const r = this.robot;
+    const gap = this._computer2.x - r.body_proxy.body.right;
+    if (gap < 10 && gap > -10) {
+      this._startComputer2Interaction();
+    }
+  }
+
+  _startComputer2Interaction() {
+    this._computerState2 = 'active';
+    this._robotWaiting   = true;
+    this.robot.setMoveIntent(0);
+    this.robot.body_proxy.body.setVelocityX(0);
+
+    this._computer2.startHacking();
+    this.sfxComputerText.play();
+    this.time.delayedCall(500, () => {
+      this._startDialogue(i18n.journalSecond, () => {
+        this._computer2.stopHacking();
+        this._computerState2 = 'done';
+        this._robotWaiting   = false;
       });
     });
   }

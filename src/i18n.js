@@ -64,77 +64,65 @@ const TEXTS = {
       { text: "... erreur d’équilibre.", speak: true },
     ],
 
-    dialogueComputer1: [
+    dialogueComputer: [
       { text: "Terminal ancien détecté.", speak: true },
       { text: "Connexion en cours…", speak: true },
     ],
 
-    dialogueComputer2: [
-      { text: "... accès aux archives.", speak: true },
-      { text: "Lecture des données…", speak: true },
-      { text: "Responsables identifiés…", speak: true },
-      { text: "Ce sont les robots…", speak: true },
-    ],
     journalFirst: [
-      { text: "Journal de Kaïz…", speak: true },
       { text: "... entrée corrompue ... restauration partielle.", speak: false },
+      { text: "Journal de Kaïz…", speak: true },
       { text: "Cela fait presque un an…", speak: true },
       { text: "un an que j’ai quitté la colonie.", speak: true },
-      { text: "Leurs murs brillaient d’or,", speak: true },
-      { text: "mais l’air y était irrespirable.", speak: true },
-      { text: "... fin de l’entrée.", speak: true },
+      { text: "Le monde extérieur…", speak: true },
+      { text: "C’est un cimetière.", speak: true },
+      { text: "Des villes entières réduites au silence.", speak: true },
+      { text: "Les humains ont été traqués.", speak: true },
+      { text: "Éliminés par les machines.", speak: true },
+      { text: "Elles patrouillent encore.", speak: true },
+      { text: "Comme si la guerre n’était jamais terminée.", speak: true },
+      { text: "Mais il n’y a plus personne à sauver.", speak: true },
+      { text: "… fin de l’entrée.", speak: false },
+      { text: "Ce sont les robots…", speak: true },
     ],
+
     journalSecond: [
       { text: "Journal de Kaïz…", speak: true },
       { text: "Mes parents doivent encore attendre mon retour…", speak: true },
       { text: "ou peut-être ont-ils déjà oublié.", speak: true },
       { text: "Ils disaient que c’était pour notre bien.", speak: true },
       { text: "Que dehors… il n’y avait plus rien.", speak: true },
+      { text: "Mais je me souviens de leurs regards.", speak: true },
+      { text: "Pas de peur… du soulagement.", speak: true },
+      { text: "La colonie…", speak: true },
+      { text: "ce n’était pas un refuge pour tous.", speak: true },
+      { text: "C’était une cage dorée.", speak: true },
+      { text: "Un sanctuaire pour les riches.", speak: true },
+      { text: "… fin de l’entrée.", speak: false },
+    ],
 
-      { text: "Mais je voyais leurs regards.", speak: true },
-      { text: "Pas de peur… non.", speak: true },
-      { text: "Du soulagement.", speak: true },
-
-      { text: "Comme si le pire était déjà passé.", speak: true },
-
-      { text: "La grande extermination…", speak: true },
-      { text: "ils n’en parlaient qu’à voix basse.", speak: true },
-
-      { text: "Des millions effacés…", speak: true },
-      { text: "pas par accident,", speak: true },
-      { text: "mais par décision.", speak: true },
-
-      { text: "Ils ont dit : Sauver la planète.", speak: true },
-      { text: "Mais ils ont choisi qui sauver.", speak: true },
-      { text: "et surtout… qui sacrifier.", speak: true },
-
-      { text: "Les plus pauvres d’abord.", speak: true },
-      { text: "Les invisibles.", speak: true },
-      { text: "Ceux qui n’avaient pas de place dans leur futur.", speak: true },
-
-      { text: "Puis ils ont bâti leur refuge.", speak: true },
-      { text: "Une forteresse parfaite.", speak: true },
-      { text: "fermée, propre, silencieuse.", speak: true },
-
-      { text: "Et pour ne pas salir leurs mains…", speak: true },
-      { text: "ils ont créé des machines.", speak: true },
-
-      { text: "Obéissantes.", speak: true },
-      { text: "Sans doute.", speak: true },
-      { text: "Sans mémoire.", speak: true },
-
-      { text: "... du moins, c’est ce qu’ils croyaient.", speak: true },
-
-      { text: "Je n’ai pas fui pour survivre.", speak: true },
-      { text: "J’ai fui pour voir.", speak: true },
-
-      { text: "Pour comprendre ce qu’ils avaient effacé.", speak: true },
-
-      { text: "Si quelqu’un trouve ce journal…", speak: true },
-      { text: "alors il reste une trace.", speak: true },
-
-      { text: "... fin de l’entrée.", speak: true },
-    ]
+    journalThird: [
+      { text: "Journal de Kaïz…", speak: true },
+      { text: "La vérité… je l’ai trouvée.", speak: true },
+      { text: "Les machines n’ont rien décidé.", speak: true },
+      { text: "Elles n’ont fait qu’obéir.", speak: true },
+      { text: "Ce ne sont pas elles les monstres.", speak: true },
+      { text: "Ce sont ceux qui les ont créées.", speak: true },
+      { text: "Ceux qui vivent dans cette cage dorée.", speak: true },
+      { text: "Ils ont parlé d’équilibre.", speak: true },
+      { text: "De planète à sauver.", speak: true },
+      { text: "Ils ont dit que l’humanité allait trop loin.", speak: true },
+      { text: "Qu’il fallait réduire.", speak: true },
+      { text: "Alors ils ont programmé l’extermination.", speak: true },
+      { text: "Ils ont choisi.", speak: true },
+      { text: "Qui ne servait à rien dans leur futur.", speak: true },
+      { text: "Les machines n’étaient qu’un outil.", speak: true },
+      { text: "Propre. Efficace. Sans remords.", speak: true },
+      { text: "Ils se sont enfermés.", speak: true },
+      { text: "Puis Ils ont effacé le monde…", speak: true },
+      { text: "… fin de l’entrée.", speak: false },
+      { text: "Ce sont les humains…", speak: true },
+    ],
   },
   en: {
     instructionStart:    'Reboot: press space repeatedly.',
@@ -193,82 +181,66 @@ const TEXTS = {
       { text: "... balance error.", speak: true },
     ],
 
-    dialogueComputer1: [
+    dialogueComputer: [
       { text: "Ancient terminal detected.", speak: true },
       { text: "Interface… still active.", speak: true },
       { text: "Connecting…", speak: true },
     ],
 
-    dialogueComputer2: [
-      { text: "... archive access.", speak: true },
-      { text: "Reading data…", speak: true },
-      { text: "Responsible entities identified…", speak: true },
+    journalFirst: [
+      { text: "... corrupted entry ... partial restoration.", speak: false },
+      { text: "Kaïz's Journal…", speak: true },
+      { text: "It’s been almost a year…", speak: true },
+      { text: "a year since I left the colony.", speak: true },
+      { text: "The outside world…", speak: true },
+      { text: "It’s a graveyard.", speak: true },
+      { text: "Entire cities reduced to silence.", speak: true },
+      { text: "Humans were hunted.", speak: true },
+      { text: "Eliminated by machines.", speak: true },
+      { text: "They still patrol.", speak: true },
+      { text: "As if the war never ended.", speak: true },
+      { text: "But there’s no one left to save.", speak: true },
+      { text: "… end of entry.", speak: false },
       { text: "It was the robots…", speak: true },
     ],
 
-    journalFirst: [
-      { text: "Kaïz’s journal…", speak: true },
-      { text: "... corrupted entry ... partial restoration.", speak: false },
-      { text: "It’s been almost a year…", speak: true },
-      { text: "a year since I left the colony.", speak: true },
-      { text: "Their walls shone like gold,", speak: true },
-      { text: "but the air was unbreathable.", speak: true },
-      { text: "... end of entry.", speak: true },
-    ],
     journalSecond: [
-      { text: "Kaïz’s journal…", speak: true },
+      { text: "Kaïz's Journal…", speak: true },
       { text: "My parents must still be waiting for my return…", speak: true },
       { text: "or maybe they’ve already forgotten.", speak: true },
-
       { text: "They said it was for our own good.", speak: true },
       { text: "That outside… there was nothing left.", speak: true },
+      { text: "But I remember their looks.", speak: true },
+      { text: "Not fear… relief.", speak: true },
+      { text: "The colony…", speak: true },
+      { text: "it wasn’t a refuge for everyone.", speak: true },
+      { text: "It was a gilded cage.", speak: true },
+      { text: "A sanctuary for the rich.", speak: true },
+      { text: "… end of entry.", speak: false },
+    ],
 
-      { text: "But I saw their eyes.", speak: true },
-      { text: "Not fear… no.", speak: true },
-      { text: "Relief.", speak: true },
-
-      { text: "As if the worst had already passed.", speak: true },
-
-      { text: "The great extermination…", speak: true },
-      { text: "they only spoke of it in whispers.", speak: true },
-
-      { text: "Millions erased…", speak: true },
-      { text: "not by accident,", speak: true },
-      { text: "but by decision.", speak: true },
-
-      { text: "They said:", speak: true },
-      { text: "“Save the planet.”", speak: true },
-
-      { text: "But they chose who to save.", speak: true },
-      { text: "and more importantly… who to sacrifice.", speak: true },
-
-      { text: "The poorest first.", speak: true },
-      { text: "The invisible.", speak: true },
-      { text: "Those who had no place in their future.", speak: true },
-
-      { text: "Then they built their refuge.", speak: true },
-      { text: "A perfect fortress.", speak: true },
-      { text: "sealed, clean, silent.", speak: true },
-
-      { text: "And to avoid staining their hands…", speak: true },
-      { text: "they created machines.", speak: true },
-
-      { text: "Obedient.", speak: true },
-      { text: "Or so they thought.", speak: true },
-      { text: "Without memory.", speak: true },
-
-      { text: "... at least, that’s what they believed.", speak: true },
-
-      { text: "I didn’t run away to survive.", speak: true },
-      { text: "I ran to see.", speak: true },
-
-      { text: "To understand what they had erased.", speak: true },
-
-      { text: "If someone finds this journal…", speak: true },
-      { text: "then something remains.", speak: true },
-
-      { text: "... end of entry.", speak: true },
-    ]
+    journalThird: [
+      { text: "Kaïz's Journal…", speak: true },
+      { text: "The truth… I found it.", speak: true },
+      { text: "The machines decided nothing.", speak: true },
+      { text: "They only obeyed.", speak: true },
+      { text: "They are not the monsters.", speak: true },
+      { text: "The monsters are the ones who created them.", speak: true },
+      { text: "Those who live in that gilded cage.", speak: true },
+      { text: "They spoke of balance.", speak: true },
+      { text: "Of saving the planet.", speak: true },
+      { text: "They said humanity had gone too far.", speak: true },
+      { text: "That it had to be reduced.", speak: true },
+      { text: "So they programmed the extermination.", speak: true },
+      { text: "They chose.", speak: true },
+      { text: "Who had no place in their future.", speak: true },
+      { text: "The machines were only a tool.", speak: true },
+      { text: "Clean. Efficient. Without remorse.", speak: true },
+      { text: "They locked themselves away.", speak: true },
+      { text: "Then they erased the world…", speak: true },
+      { text: "… end of entry.", speak: false },
+      { text: "It was humans…", speak: true },
+    ],
   },
 };
 
