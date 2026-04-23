@@ -58,15 +58,6 @@ export default class Computer extends Phaser.GameObjects.Container {
     g.fillStyle(LGRAY, 1);
     g.fillRect(11, -24, 3, 17);   // side depth
 
-    // top bevel (angled top edge)
-    g.fillStyle(WHITE, 1);
-    g.fillTriangle(
-      -13, -26,   11, -26,   11, -28,  // top face
-    );
-    g.fillTriangle(
-       11, -28,   13, -24,   11, -24,  // top-right corner
-    );
-
     // ── Screen recess ────────────────────────────────────────────────────
     //   inset 2px from body edges: x: -11 → +9  y: -24 → -10
     g.fillStyle(SCREEN, 1);
