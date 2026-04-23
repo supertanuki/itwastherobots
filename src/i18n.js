@@ -36,15 +36,14 @@ const TEXTS = {
     dialogueArm: [
       { text: "Unité armée détectée.", speak: true },
       { text: "Système offensif… récupérable.", speak: true },
-      { text: "Bras fonctionnel… probable.", speak: true },
+      { text: "Bras fonctionnel…", speak: true },
     ],
 
     instructionArm:   '↑ ↓ : détacher le module',
 
     dialogueArmDone: [
       { text: "Intégration en cours…", speak: true },
-      { text: "Synchronisation… imparfaite.", speak: true },
-      { text: "Mais… puissance augmentée.", speak: true },
+      { text: "Puissance augmentée.", speak: true },
     ],
 
     dialogueStandup: [
@@ -57,8 +56,8 @@ const TEXTS = {
     dialogueSkullsFound: [
       { text: "Présence biologique détectée…", speak: true },
       { text: "Analyse… restes humains.", speak: true },
-      { text: "Cause de terminaison… inconnue.", speak: true },
-      { text: "Question… persistante : pourquoi ?", speak: true },
+      { text: "Cause de la mort… inconnue.", speak: true },
+      { text: "Question… pourquoi ?", speak: true },
     ],
 
     dialogueSkullFall: [
@@ -67,7 +66,6 @@ const TEXTS = {
 
     dialogueComputer1: [
       { text: "Terminal ancien détecté.", speak: true },
-      { text: "Interface… encore active.", speak: true },
       { text: "Connexion en cours…", speak: true },
     ],
 
@@ -77,19 +75,19 @@ const TEXTS = {
       { text: "Responsables identifiés…", speak: true },
       { text: "Ce sont les robots…", speak: true },
     ],
-    journal: [
+    journalFirst: [
       { text: "Journal de Kaïz…", speak: true },
       { text: "... entrée corrompue ... restauration partielle.", speak: false },
-
       { text: "Cela fait presque un an…", speak: true },
       { text: "un an que j’ai quitté la colonie.", speak: true },
-
       { text: "Leurs murs brillaient d’or,", speak: true },
       { text: "mais l’air y était irrespirable.", speak: true },
-
+      { text: "... fin de l’entrée.", speak: true },
+    ],
+    journalSecond: [
+      { text: "Journal de Kaïz…", speak: true },
       { text: "Mes parents doivent encore attendre mon retour…", speak: true },
       { text: "ou peut-être ont-ils déjà oublié.", speak: true },
-
       { text: "Ils disaient que c’était pour notre bien.", speak: true },
       { text: "Que dehors… il n’y avait plus rien.", speak: true },
 
@@ -106,9 +104,7 @@ const TEXTS = {
       { text: "pas par accident,", speak: true },
       { text: "mais par décision.", speak: true },
 
-      { text: "Ils ont dit :", speak: true },
-      { text: "“Sauver la planète.”", speak: true },
-
+      { text: "Ils ont dit : Sauver la planète.", speak: true },
       { text: "Mais ils ont choisi qui sauver.", speak: true },
       { text: "et surtout… qui sacrifier.", speak: true },
 
@@ -210,16 +206,17 @@ const TEXTS = {
       { text: "It was the robots…", speak: true },
     ],
 
-    journal: [
+    journalFirst: [
       { text: "Kaïz’s journal…", speak: true },
       { text: "... corrupted entry ... partial restoration.", speak: false },
-
       { text: "It’s been almost a year…", speak: true },
       { text: "a year since I left the colony.", speak: true },
-
       { text: "Their walls shone like gold,", speak: true },
       { text: "but the air was unbreathable.", speak: true },
-
+      { text: "... end of entry.", speak: true },
+    ],
+    journalSecond: [
+      { text: "Kaïz’s journal…", speak: true },
       { text: "My parents must still be waiting for my return…", speak: true },
       { text: "or maybe they’ve already forgotten.", speak: true },
 

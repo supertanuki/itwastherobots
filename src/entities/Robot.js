@@ -24,6 +24,11 @@ export const RobotState = {
 
 const sfxStepsVolume = 0.8;
 
+const METAL    = 0xffffff;
+const TORSO    = 0xffffff; // torso only — slight gray
+const METAL_BG = 0xaaaaaa; // back leg — slightly grayed for depth (side view)
+const EYE      = 0xff2200;
+
 export default class Robot extends Phaser.GameObjects.Container {
   /**
    * @param {Phaser.Scene} scene
@@ -171,9 +176,12 @@ export default class Robot extends Phaser.GameObjects.Container {
       this._syncChain();
     }
 
-    // Eye always follows head position
-    this.eye.setPosition(this.head.x + 2, this.head.y + 1);
-    this.eye.setAngle(this.head.angle);
+    // Eye world position (outside container, so computed from container transform)
+    this.eye.setPosition(
+      this.x + (this.head.x + 2) * this.scaleX,
+      this.y + (this.head.y + 1) * this.scaleY
+    );
+    this.eye.setAngle(this.head.angle * Math.sign(this.scaleX));
 
     // Mirror parts when facing left (preserve the x3 base scale)
     this.setScale(this.facingRight ? 3 : -3, 3);
@@ -190,7 +198,7 @@ export default class Robot extends Phaser.GameObjects.Container {
       this.eye.setFillStyle(0x222222);                          // dim
       this.scene.time.delayedCall(120, () => {
         if (this._dormant) return;
-        this.eye.setFillStyle(0xff2200);                        // reopen
+        this.eye.setFillStyle(EYE);                        // reopen
         this._scheduleBlink();                                  // reschedule
       });
     });
@@ -198,7 +206,7 @@ export default class Robot extends Phaser.GameObjects.Container {
 
   /** Flash the eye red for 100 ms then back to gray (dormant wake-up hint). */
   flickerEye() {
-    this.eye.setFillStyle(0xff2200);
+    this.eye.setFillStyle(EYE);
     this.scene.time.delayedCall(100, () => {
       if (this._dormant) this.eye.setFillStyle(0x444444);
     });
@@ -222,7 +230,7 @@ export default class Robot extends Phaser.GameObjects.Container {
   /** Wake the robot up: eye stays red, normal blink cycle resumes. */
   activate() {
     this._dormant = false;
-    this.eye.setFillStyle(0xff2200);
+    this.eye.setFillStyle(EYE);
     this._scheduleBlink();
     this._burstSparks();
     this._animateFromGrounded();
@@ -278,12 +286,6 @@ export default class Robot extends Phaser.GameObjects.Container {
       return r;
     };
 
-    const METAL    = 0xffffff;
-    const TORSO    = 0xffffff; // torso only — slight gray
-    const METAL_BG = 0xaaaaaa; // back leg — slightly grayed for depth (side view)
-    const EYE      = 0xff2200;
-    const DEBUG    = 0x0000ff;
-
     // ── Back leg (left) — added first so it renders behind everything ─────
     this.hipL        = add(4,  3, METAL_BG);
     this.upperLegL   = add(4,  8, METAL_BG);
@@ -312,7 +314,8 @@ export default class Robot extends Phaser.GameObjects.Container {
 
     // ── Head and eye ──────────────────────────────────────────────────────
     this.head        = add(6,  6, METAL);
-    this.eye         = add(2,  2, EYE);
+    // eye lives outside the container so its depth is scene-independent (depth 85 = above dark overlay)
+    this.eye = this.scene.add.rectangle(0, 0, 6, 6, EYE).setDepth(85);
 
     // ── Right arm — on top of everything (added last) ─────────────────────
     this.upperArmR   = add(3,  10, METAL).setOrigin(0.5, 0)
@@ -837,6 +840,7 @@ export default class Robot extends Phaser.GameObjects.Container {
     }
     if (this.body_proxy) this.body_proxy.destroy();
     if (this._sparks) this._sparks.destroy();
+    if (this.eye) this.eye.destroy();
     super.destroy(fromScene);
   }
 }

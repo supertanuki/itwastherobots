@@ -17,7 +17,7 @@ const WORLD_W = 5000;
 const sfxGunFireVolume = 0.8;
 
 // checkpoints after death
-const CHECKPOINTS = [600, 950, 1300, 1700, 2280, 3050];
+const CHECKPOINTS = [600, 950, 1300, 1700, 2280, 3050, 3785];
 
 /**
  * GameScene — movement test for the broken robot.
@@ -235,7 +235,7 @@ export default class GameScene extends Phaser.Scene {
     new Skull(this, 500, GROUND_Y + 3);
 
     // ── Surveillance camera ───────────────────────────────────────────────
-    this._surveillanceCams = [800, 1500, 2800, 2900].map(x =>
+    this._surveillanceCams = [800, 1500, 2800, 2900, 3965].map(x =>
       new SurveillanceCamera(this, x, -60, GROUND_Y)
     );
 
@@ -356,6 +356,12 @@ export default class GameScene extends Phaser.Scene {
     this._chargeStart  = 0;
     this._chargeFired  = false;
     this._chargeAngle  = 5;
+
+    // ── Dark zone overlay (x 3100–3800) — eyes/stripes at depth 85 show through ─
+    this._darkOverlay = this.add.rectangle(400, 200, 500, 300, 0x000000)
+      .setScrollFactor(0, 0).setOrigin(0, 0).setDepth(80).setAlpha(0);
+    this._inDarkZone = false;
+    this._darkTween  = null;
 
     // Play theme
     this.theme = this.sound.add('theme', { loop: true, volume: 0.5 });
@@ -543,8 +549,11 @@ export default class GameScene extends Phaser.Scene {
       r.upperArmR.setAngle(this._chargeAngle);
       if (this._chargeStripe) {
         const progress = Math.min((this.time.now - this._chargeStart) / 1000, 1);
-        const h = Math.max(1, Math.round(progress * 10));
-        this._chargeStripe.setSize(1, h);
+        const h = Math.max(3, Math.round(progress * 30));
+        this._chargeStripe
+          .setSize(3, h)
+          .setPosition(r.x + r.upperArmR.x * r.scaleX, r.y + r.upperArmR.y * r.scaleY)
+          .setAngle(r.upperArmR.angle * Math.sign(r.scaleX));
       }
     }
 
@@ -556,6 +565,7 @@ export default class GameScene extends Phaser.Scene {
     this._checkSkullCollision();
     this._checkAmmoPickups(r);
     this._npcRobots.forEach(npc => npc.npcUpdate(this.game.loop.delta, this.robot.x));
+    this._updateDarkZone();
   }
 
   _inFrontOfSkulls() {
@@ -932,13 +942,13 @@ export default class GameScene extends Phaser.Scene {
     const savedAng = r.upperArmR.angle;
     r.remove(r.upperArmR, true);
 
-    const armRect   = this.add.rectangle(0, 0, 3, 10, 0xeeeeee).setOrigin(0.5, 0);
-    const armStripe = this.add.rectangle(1, 0, 1, 1, 0xff2200).setOrigin(0.5, 0);
-    const armCont   = this.add.container(savedPos.x, savedPos.y, [armRect, armStripe]);
+    const armRect = this.add.rectangle(0, 0, 3, 10, 0xeeeeee).setOrigin(0.5, 0);
+    const armCont = this.add.container(savedPos.x, savedPos.y, [armRect]);
     armCont.setAngle(savedAng);
     r.add(armCont);
-    r.upperArmR    = armCont;
-    this._chargeStripe = armStripe;
+    r.upperArmR = armCont;
+    // Stripe outside container so it renders above the dark overlay (depth 85)
+    this._chargeStripe = this.add.rectangle(0, 0, 3, 3, 0xff2200).setOrigin(0.5, 0).setDepth(85);
 
     // play sfx
     this.sfxGunFire.setVolume(sfxGunFireVolume);
@@ -951,12 +961,12 @@ export default class GameScene extends Phaser.Scene {
     // stop sfx
     this.tweens.add({ targets: this.sfxGunFire, volume: 0, duration: 200, ease: 'Linear', onComplete: () => this.sfxGunFire.stop() });
 
-    this._chargingShot  = false;
-    this._chargeStripe  = null;
+    this._chargingShot = false;
     this._restoreArm(r, true);
   }
 
   _restoreArm(r, tween = false) {
+    if (this._chargeStripe) { this._chargeStripe.destroy(); this._chargeStripe = null; }
     if (!r.upperArmR) return;
     const pos = { x: r.upperArmR.x, y: r.upperArmR.y };
     const ang = r.upperArmR.angle;
@@ -1006,10 +1016,10 @@ export default class GameScene extends Phaser.Scene {
 
     const bolt = this.add.rectangle(startX, startY, 8, 2, 0xffffff);
     bolt.setAngle(r.facingRight ? 0 : 180);
-    bolt.setDepth(20);
+    bolt.setDepth(90);
     const auraP = this.add.arc(startX, startY, 20, 0, 360, false, 0xffffff);
     auraP.setAlpha(0.3);
-    auraP.setDepth(19);
+    auraP.setDepth(89);
 
     // Hit the first non-destroyed NPC in the firing direction
     const dir = r.facingRight ? 1 : -1;
@@ -1053,7 +1063,7 @@ export default class GameScene extends Phaser.Scene {
     this._spawnAmmoPickup(npc.x, this._groundY);
 
     this.tweens.add({
-      targets:  npc,
+      targets:  [npc, npc.eye],
       alpha:    0,
       duration: 200,
       ease:     'Linear',
@@ -1068,10 +1078,10 @@ export default class GameScene extends Phaser.Scene {
     const dist   = Math.abs(this.robot.x - startX);
 
     const bolt = this.add.rectangle(startX, startY, 8, 2, 0xffffff);
-    bolt.setDepth(20);
+    bolt.setDepth(90);
     const auraN = this.add.arc(startX, startY, 20, 0, 360, false, 0xffffff);
     auraN.setAlpha(0.3);
-    auraN.setDepth(19);
+    auraN.setDepth(89);
 
     this.tweens.add({
       targets:  [bolt, auraN],
@@ -1095,7 +1105,7 @@ export default class GameScene extends Phaser.Scene {
       lifespan: 280,
       emitting: false,
     });
-    emitter.setDepth(25);
+    emitter.setDepth(90);
     emitter.explode(14, x, y);
     this.time.delayedCall(350, () => emitter.destroy());
   }
@@ -1116,7 +1126,7 @@ export default class GameScene extends Phaser.Scene {
       lifespan: 800,
       emitting: false,
     });
-    emitter.setDepth(30);
+    emitter.setDepth(91);
     emitter.explode(200, cx, cy);
     this.time.delayedCall(900, () => emitter.destroy());
 
@@ -1160,10 +1170,10 @@ export default class GameScene extends Phaser.Scene {
 
   _spawnAmmoPickup(x, groundY) {
     const block = this.add.rectangle(x, groundY - 3, 6, 6, 0x2266ff);
-    block.setDepth(8);
+    block.setDepth(88);
     const aura = this.add.arc(x, groundY - 3, 8, 0, 360, false, 0xffffff);
     aura.setAlpha(0.5);
-    aura.setDepth(7);
+    aura.setDepth(87);
     const auraTween = this.tweens.add({
       targets:  aura,
       alpha:    { from: 0.1, to: 0.6 },
@@ -1274,6 +1284,20 @@ export default class GameScene extends Phaser.Scene {
     }
   }
 
+  _updateDarkZone() {
+    const inZone = this.robot.x >= 3100 && this.robot.x <= 3800;
+    if (inZone !== this._inDarkZone) {
+      this._inDarkZone = inZone;
+      if (this._darkTween) { this._darkTween.stop(); this._darkTween = null; }
+      this._darkTween = this.tweens.add({
+        targets:  this._darkOverlay,
+        alpha:    inZone ? 1 : 0,
+        duration: 1200,
+        ease:     'Sine.easeInOut',
+      });
+    }
+  }
+
   _robotExplode() {
     const r = this.robot;
     r.setMoveIntent(0);
@@ -1282,6 +1306,7 @@ export default class GameScene extends Phaser.Scene {
 
     this._spawnExplosion(r.x, r.y - 20);
     r.setAlpha(0);
+    r.eye.setAlpha(0);
 
     // Fadeout then respawn at nearest checkpoint behind explosion
     const spawnX = [...CHECKPOINTS].reverse().find(cpX => cpX < r.x) ?? 200;
@@ -1296,6 +1321,7 @@ export default class GameScene extends Phaser.Scene {
       r.facingRight = true;
       r.setScale(3, 3);
       r.setAlpha(1);
+      r.eye.setAlpha(1);
       r.sfxWakeUp.play();
       this._robotWaiting = false;
       this._surveillanceCams.forEach(cam => cam.reset());

@@ -44,14 +44,11 @@ export default class NPCRobot extends Robot {
     const armRect   = scene.add.rectangle(0, 0, 3, 10, 0xffffff);
     armRect.setOrigin(0.5, 0);  // pivot at top-center, body hangs down
 
-    // 1 px blue stripe — occupies the leftmost column of the arm (x -1.5→-0.5).
-    // In arm-local space this column is the "top row" when the arm is horizontal.
-    const armStripe = scene.add.rectangle(1, 5, 1, 10, 0x4499ff);
-    armStripe.setOrigin(0.5, 0.5);
+    // Blue stripe lives outside the container so its depth is scene-independent (depth 85)
+    this.armStripe = scene.add.rectangle(0, 0, 3, 30, 0x4499ff).setOrigin(0.5, 0).setDepth(85);
 
-    // Sub-container: pivot at (0,0) = top-center of arm, same as setOrigin(0.5,0)
     const armCont = scene.add.container(0, 0);
-    armCont.add([armRect, armStripe]);  // stripe on top
+    armCont.add([armRect]);
 
     this.add(armCont);          // added last → highest z-order
     this.upperArmR = armCont;  // all existing code (tweens, setAngle…) targets this
@@ -102,10 +99,21 @@ export default class NPCRobot extends Robot {
   }
 
   // ── Called every frame from GameScene ────────────────────────────────────
+  _syncArmStripe() {
+    this.armStripe
+      .setPosition(
+        this.x + this.upperArmR.x * this.scaleX,
+        this.y + this.upperArmR.y * this.scaleY
+      )
+      .setAngle(this.upperArmR.angle * Math.sign(this.scaleX))
+      .setAlpha(this.alpha);
+  }
+
   npcUpdate(delta, playerX) {
     if (this._fired) {
       this.setMoveIntent(0);
       this.update(delta);
+      this._syncArmStripe();
       return;
     }
 
@@ -129,6 +137,7 @@ export default class NPCRobot extends Robot {
     }
 
     this.update(delta);
+    this._syncArmStripe();
   }
 
   _raiseArm() {
@@ -168,8 +177,15 @@ export default class NPCRobot extends Robot {
     this._destroyed = false;
     this.setAlpha(1);
     this.setVisible(true);
+    this.eye.setAlpha(1);
+    this.armStripe.setAlpha(1);
     if (this._fireTimer) { this._fireTimer.remove(); this._fireTimer = null; }
     this._lowerArm();
+  }
+
+  destroy(fromScene) {
+    if (this.armStripe) this.armStripe.destroy();
+    super.destroy(fromScene);
   }
 
   _lowerArm() {
