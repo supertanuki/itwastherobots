@@ -66,12 +66,14 @@ export default class UIScene extends Phaser.Scene {
     // ── Instruction band — black bg, white text, below dialogue ──────────
     this._instrBg = this.add.rectangle(W / 2, INSTR_Y, BW, BH_INSTR, 0x000000)
       .setOrigin(0.5, 0.5)
-      //.setAlpha(0);
+      .setDepth(11)
+      .setAlpha(0);
 
     this._instrText = this.add.bitmapText(W / 2, INSTR_Y, 'subtitle', i18n.instructionStart, 32)
       .setOrigin(0.5, 0.5)
       .setTint(0xffffff)
       .setVisible(false)
+      .setDepth(11)
       .setMaxWidth(BW - 10);
 
     this.time.delayedCall(2000, () => this._instrText.setVisible(true));
@@ -113,6 +115,34 @@ export default class UIScene extends Phaser.Scene {
         targets: [this._bg, this._text],
         alpha: 0,
         duration: 800,
+      });
+    }, this);
+
+    // ── Title card ("It was the robots") ─────────────────────────────────
+    this._titleOverlay = this.add.rectangle(W / 2, H / 2, W, H, 0x000000)
+      .setAlpha(0).setDepth(10);
+
+    this._titleText = this.add.bitmapText(W / 2, H / 2, 'subtitle', '', 128)
+      .setOrigin(0.5, 0.5)
+      .setTint(0xffffff)
+      .setAlpha(0)
+      .setDepth(11)
+      .setCenterAlign();
+
+    this.game.events.on('title-card-show', ({ text }) => {
+      this._titleText.setText(text);
+      this.tweens.killTweensOf([this._titleOverlay, this._titleText]);
+      this.tweens.add({ targets: this._titleOverlay, alpha: 0.88, duration: 1500, ease: 'Sine.easeIn' });
+      this.tweens.add({ targets: this._titleText,    alpha: 1,    duration: 3000, ease: 'Sine.easeIn' });
+    }, this);
+
+    this.game.events.on('title-card-hide', () => {
+      this.tweens.killTweensOf([this._titleOverlay, this._titleText]);
+      this.tweens.add({
+        targets:  [this._titleOverlay, this._titleText],
+        alpha:    0,
+        duration: 800,
+        ease:     'Sine.easeOut',
       });
     }, this);
   }

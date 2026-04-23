@@ -101,6 +101,8 @@ const TEXTS = {
       { text: "… fin de l’entrée.", speak: false },
     ],
 
+    titleCard: "It was\nthe robots",
+
     dialogueBuilding: [
       { text: "Qu'est-ce que c'est que ce bâtiment ?", speak: true },
       { text: "C'est sans doute la colonie dont parlait Kaïz dans son journal.", speak: true },
@@ -223,6 +225,8 @@ const TEXTS = {
       { text: "A sanctuary for the rich.", speak: true },
       { text: "… end of entry.", speak: false },
     ],
+
+    titleCard: "It was\nthe robots",
 
     dialogueBuilding: [
       { text: "What is that building?", speak: true },

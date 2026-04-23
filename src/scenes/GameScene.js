@@ -358,9 +358,11 @@ export default class GameScene extends Phaser.Scene {
     this._legState         = null;
     this._legPressCount    = 0;
     this._dlgDismissOnWalk  = false;
-    this._robotWaiting        = false;  // true while a blocking dialogue is active
-    this._skullDialogueDone   = false;  // true once dialogueSkullsFound has fired
-    this._buildingDialogueDone = false; // true once dialogueBuilding has fired
+    this._robotWaiting         = false;  // true while a blocking dialogue is active
+    this._skullDialogueDone    = false;  // true once dialogueSkullsFound has fired
+    this._buildingDialogueDone = false;  // true once dialogueBuilding has fired
+    this._titleCardActive      = false;  // true while title card is visible
+    this._titleCardReady       = false;  // true once 3s have elapsed (Space allowed)
 
     // Arm-retrieval interaction state (armed dead robot, standing phase)
     this._armState      = null;  // null | 'blocked' | 'instruction' | 'pulling' | 'done'
@@ -506,8 +508,18 @@ export default class GameScene extends Phaser.Scene {
       }
 
       // SPACE: continue dialogue if active while standing/walking (not while charging)
-      if (!this._chargingShot && Phaser.Input.Keyboard.JustDown(this.keySpace) && this._dlgWaiting) {
+      // (_dlgWaiting checked first so JustDown isn't consumed when there's no dialogue)
+      if (!this._chargingShot && this._dlgWaiting && Phaser.Input.Keyboard.JustDown(this.keySpace)) {
         this._dialogueContinue();
+      }
+
+      // SPACE: dismiss title card (only once 3s have elapsed)
+      if (this._titleCardActive && this._titleCardReady && Phaser.Input.Keyboard.JustDown(this.keySpace)) {
+        this._titleCardActive = false;
+        this._titleCardReady  = false;
+        this.game.events.emit('title-card-hide');
+        this.game.events.emit('instr-hide');
+        this._robotWaiting = false;
       }
 
       // Auto-dismiss standup dialogue 2s after the robot starts walking
@@ -791,10 +803,9 @@ export default class GameScene extends Phaser.Scene {
       this.sfxComputerText.play();
       this.time.delayedCall(2000, () => {
         this._startDialogue(i18n.journalFirst, () => {
-          // Space pressed → restore movement
           this._computer.stopHacking();
           this._computerState = 'done';
-          this._robotWaiting  = false;
+          this._showTitleCard();
         });
       });
     });
@@ -1393,6 +1404,17 @@ export default class GameScene extends Phaser.Scene {
       npc.update(this.game.loop.delta);
       npc._syncArmStripe();
     }
+  }
+
+  _showTitleCard() {
+    this._titleCardActive = true;
+    this._titleCardReady  = false;
+    this._robotWaiting    = true;
+    this.game.events.emit('title-card-show', { text: i18n.titleCard });
+    this.time.delayedCall(3000, () => {
+      this._titleCardReady = true;
+      this.game.events.emit('instr-show', { text: i18n.instructionContinue });
+    });
   }
 
   _checkBuildingDialogue() {
