@@ -79,7 +79,7 @@ export default class GameScene extends Phaser.Scene {
     // On couvre une large zone car le parallaxe va décaler le rendu visuel
     exteriorBg.fillRect(1000, -60, WORLD_W + 1000, VH);
     exteriorBg.setScrollFactor(0.4, 1); // Se déplace à 40% de la vitesse de la caméra
-    exteriorBg.setDepth(0);
+    exteriorBg.setDepth(-10);
 
     // Fond noir pour l'intérieur avec terminaison en diagonale "\" (parallax 1)
     const interiorBg = this.add.graphics();
@@ -93,15 +93,33 @@ export default class GameScene extends Phaser.Scene {
     interiorBg.fill();
     interiorBg.setDepth(0);
 
+    // ── Mountains (Exterior) ──────────────────────────────────────────────
+    const mountainGfx = this.add.graphics();
+    mountainGfx.fillStyle(0x4b5320, 1);
+    
+    const mtCount = 7;
+    for (let i = 0; i < mtCount; i++) {
+      const x = 2000 + i * 140;
+      const w = 250 + Math.random() * 100;
+      const h = 70 + Math.random() * 40;
+      
+      mountainGfx.fillTriangle(
+        x - w / 2, GROUND_Y,
+        x + w / 2, GROUND_Y,
+        x,         GROUND_Y - h
+      );
+    }
+    mountainGfx.setScrollFactor(0.4, 1);
+    mountainGfx.setDepth(-5);
+
     // ── Exterior Particles (Dust/Mist) ────────────────────────────────────
     if (!this.textures.exists('exterior_spark')) {
       const g = this.make.graphics({ add: false });
-      g.fillStyle(0x000000, 1);
+      g.fillStyle(0xffffff, 1);
       g.fillRect(0, 0, 1, 1);
       g.generateTexture('exterior_spark', 1, 1);
       g.destroy();
     }
-    // Particules de poussière flottante dans la zone extérieure (> 4000px)
     this.add.particles(0, 0, 'exterior_spark', {
       x: { min: 4000, max: WORLD_W },
       y: { min: 0, max: VH },
@@ -110,7 +128,7 @@ export default class GameScene extends Phaser.Scene {
       scale: { start: 0.5, end: 2 },
       alpha: { start: 0.2, end: 0.6 },
       frequency: 60,
-      gravityY: 3, // Flottement léger vers le bas
+      gravityY: 3,
     }).setDepth(1);
 
     // ── Pipe background — procedural, parallax ────────────────────────────
