@@ -187,6 +187,9 @@ export default class GameScene extends Phaser.Scene {
     // Physics ground — static body spanning the full world
     const groundBody = this.add.rectangle(WORLD_W / 2, GROUND_Y + GH / 2, WORLD_W, GH, 0x000000, 0);
     this.physics.add.existing(groundBody, true);
+    this._groundBody = groundBody;
+    this._finalSequence = false;
+    this._finalNpc = null;
 
     // ── Ground plates — metal panels, tiled across the full world ─────────
     const gfx = this.add.graphics();
@@ -297,8 +300,8 @@ export default class GameScene extends Phaser.Scene {
     this.events.on('npc-fire', (npc, npcX, npcY, facingRight) => this._npcShoot(npc, npcX, npcY, facingRight));
 
     // ── Third Wide wall + computer terminal
-    new Wall(this, 4760, GROUND_Y, { width: 60, height: COMP_WALL_H, offsetX: 0 });
-    this._computer3 = new Computer(this, 4790, GROUND_Y - COMP_WALL_H / 2);
+    new Wall(this, 4860, GROUND_Y, { width: 60, height: COMP_WALL_H, offsetX: 0 });
+    this._computer3 = new Computer(this, 4890, GROUND_Y - COMP_WALL_H / 2);
     this._computerState3 = null;
 
     // ── Silent mode — ?nosounds in URL disables all audio ────────────────
@@ -578,6 +581,7 @@ export default class GameScene extends Phaser.Scene {
     this._checkSkullCollision();
     this._checkAmmoPickups(r);
     this._npcRobots.forEach(npc => npc.npcUpdate(this.game.loop.delta, this.robot.x));
+    if (this._finalSequence) this._updateFinalNpc();
     this._updateDarkZone();
   }
 
@@ -841,7 +845,7 @@ export default class GameScene extends Phaser.Scene {
       this._startDialogue(i18n.journalThird, () => {
         this._computer3.stopHacking();
         this._computerState3 = 'done';
-        this._robotWaiting   = false;
+        this._startFinalSequence();
       });
     });
   }
@@ -1074,7 +1078,7 @@ export default class GameScene extends Phaser.Scene {
     // Fire horizontally from arm-tip world position
     const startX = r.x + (r.facingRight ? 10 : -10);
     const startY = r.y - 54;
-    const targetX = r.facingRight ? 4000 : -400;
+    const targetX = r.facingRight ? WORLD_W + 400 : -400;
 
     const dist = Math.abs(targetX - startX);
     const duration = (dist / 500) * 1000;
@@ -1349,6 +1353,46 @@ export default class GameScene extends Phaser.Scene {
     }
   }
 
+  _startFinalSequence() {
+    this._finalSequence = true;
+    this._robotWaiting = true;
+
+    const r = this.robot;
+    const spawnX = r.x - 400;
+    const npc = new NPCRobot(this, spawnX, this._groundY);
+    npc.facingRight = true;
+    this.physics.add.collider(npc.body_proxy, this._groundBody);
+    this._finalNpc = npc;
+  }
+
+  _updateFinalNpc() {
+    const npc = this._finalNpc;
+    if (!npc || npc._destroyed) return;
+
+    const dist = Math.abs(npc.x - this.robot.x);
+
+    if (npc._fired) {
+      npc.npcUpdate(this.game.loop.delta, this.robot.x);
+      return;
+    }
+
+    if (dist < 220) {
+      npc.facingRight = this.robot.x > npc.x;
+      npc.setMoveIntent(0);
+      npc.update(this.game.loop.delta);
+      npc._syncArmStripe();
+      if (!npc._armRaised) {
+        npc._armRaised = true;
+        this.time.delayedCall(260, () => npc._raiseArm());
+      }
+    } else {
+      npc.facingRight = true;
+      npc.setMoveIntent(1);
+      npc.update(this.game.loop.delta);
+      npc._syncArmStripe();
+    }
+  }
+
   _updateDarkZone() {
     const inZone = this.robot.x >= 3100 && this.robot.x <= 3800;
     if (inZone !== this._inDarkZone) {
@@ -1372,6 +1416,11 @@ export default class GameScene extends Phaser.Scene {
     this._spawnExplosion(r.x, r.y - 20);
     r.setAlpha(0);
     r.eye.setAlpha(0);
+
+    if (this._finalSequence) {
+      this.cameras.main.fadeOut(3000, 0, 0, 0);
+      return;
+    }
 
     // Fadeout then respawn at nearest checkpoint behind explosion
     const spawnX = [...CHECKPOINTS].reverse().find(cpX => cpX < r.x) ?? 200;
