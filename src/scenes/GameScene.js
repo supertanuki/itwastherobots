@@ -16,6 +16,9 @@ const WORLD_W = 5000;
 // Sfx volume
 const sfxGunFireVolume = 0.8;
 
+// checkpoints after death
+const CHECKPOINTS = [600, 950, 1300, 1700, 2600];
+
 /**
  * GameScene — movement test for the broken robot.
  *
@@ -225,45 +228,45 @@ export default class GameScene extends Phaser.Scene {
     .setAngle(-15)
     .setScrollFactor(0.35, 1);
 
-    // ── Skull pyramid ─────────────────────────────────────────────────────
-    this._skulls           = [];
-    this._pyramidTriggered = false;
-    this._buildSkullPyramid(600, GROUND_Y, groundBody);
-
     // ── Alone Skulls ─────────────────────────────────────────────────────
     // on the left
     new Skull(this, 130, GROUND_Y + 3);
     // after the first dead robot
-    new Skull(this, 480, GROUND_Y + 3);
+    new Skull(this, 500, GROUND_Y + 3);
+
+    // ── Surveillance camera ───────────────────────────────────────────────
+    this._surveillanceCams = [800, 1500, 2800, 2900].map(x =>
+      new SurveillanceCamera(this, x, -60, GROUND_Y)
+    );
+
+    // ── Skull pyramid ─────────────────────────────────────────────────────
+    this._skulls           = [];
+    this._pyramidTriggered = false;
+    this._buildSkullPyramid(1100, GROUND_Y, groundBody);
 
     // ── Wide wall + computer terminal at mid-height ───────────────────────
     const COMP_WALL_H = 70;
-    const COMP_X      = 750;
+    const COMP_X      = 1250;
     new Wall(this, COMP_X, GROUND_Y, { width: 60, height: COMP_WALL_H, offsetX: 0 });
     this._computer = new Computer(this, COMP_X + 30, GROUND_Y - COMP_WALL_H / 2);
     this._computerState = null;  // null | 'active' | 'done'
 
     // ── Armed dead robot + wall ───────────────────────────────────────────
-    new Wall(this, 1400, GROUND_Y);
-    this._armedDeadRobot = new ArmedDeadRobot(this, 1400, GROUND_Y);
+    new Wall(this, 1750, GROUND_Y);
+    this._armedDeadRobot = new ArmedDeadRobot(this, 1750, GROUND_Y);
 
     // ── NPC robots ────────────────────────────────────────────────────────
-    this._npcRobots = [1800, 2000, 2300].map(x => {
+    this._npcRobots = [2150, 2350, 2550].map(x => {
       const npc = new NPCRobot(this, x, GROUND_Y);
       this.physics.add.collider(npc.body_proxy, groundBody);
       return npc;
     });
 
-    // ── Surveillance camera ───────────────────────────────────────────────
-    this._surveillanceCams = [1100, 2600, 2700].map(x =>
-      new SurveillanceCamera(this, x, -60, GROUND_Y)
-    );
-
     // ── Ceiling wall — hangs from top, x 2630–2670, 10 px tall ──────────
     // Wall origin = bottom of wall (y=20), height=10 → draws from y=10 to y=20
-    new Wall(this, 2630, 20, { width: 40, height: 10, offsetX: 0 }).setDepth(6);
+    new Wall(this, 2830, 20, { width: 40, height: 10, offsetX: 0 }).setDepth(6);
     {
-      const ceilBody = this.add.rectangle(2650, 15, 40, 10, 0x000000, 0);
+      const ceilBody = this.add.rectangle(2850, 15, 40, 10, 0x000000, 0);
       this.physics.add.existing(ceilBody, true);
       this.physics.add.collider(this.robot.body_proxy, ceilBody);
     }
@@ -272,14 +275,14 @@ export default class GameScene extends Phaser.Scene {
     {
       const maskGfx = this.make.graphics({ add: false });
       maskGfx.fillStyle(0xffffff);
-      maskGfx.fillTriangle(2630, 10, 2670, 10, 2650, 180);
+      maskGfx.fillTriangle(2830, 10, 2870, 10, 2850, 180);
       const beamMask = maskGfx.createGeometryMask();
       beamMask.invertAlpha = true;
       this._surveillanceCams[1]._spotlight.setMask(beamMask);
       this._surveillanceCams[2]._spotlight.setMask(beamMask);
     }
-    this._ceilWallMinX = 2630;
-    this._ceilWallMaxX = 2670;
+    this._ceilWallMinX = 2830;
+    this._ceilWallMaxX = 2870;
     this.events.on('camera-hit', () => this._robotExplode());
     this.events.on('npc-fire', (npc, npcX, npcY, facingRight) => this._npcShoot(npc, npcX, npcY, facingRight));
 
@@ -292,6 +295,8 @@ export default class GameScene extends Phaser.Scene {
       this.keyPageUp   = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.PAGE_UP);
       this.keyPageDown = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.PAGE_DOWN);
     }
+
+    this.betterCheckpoint = 0;
 
     // ── Ammo ──────────────────────────────────────────────────────────────
     this._ammo        = 1;
@@ -1275,14 +1280,14 @@ export default class GameScene extends Phaser.Scene {
     r.setAlpha(0);
 
     // Fadeout then respawn at nearest checkpoint behind explosion
-    const CHECKPOINTS = [900, 1300, 2400];
     const spawnX = [...CHECKPOINTS].reverse().find(cpX => cpX < r.x) ?? 200;
+    if (spawnX > this.betterCheckpoint) this.betterCheckpoint = spawnX;
 
     this.cameras.main.fadeOut(1000, 0, 0, 0);
     this.cameras.main.once('camerafadeoutcomplete', () => {
       const gy = this._groundY;
-      r.setPosition(spawnX, gy);
-      r.body_proxy.setPosition(spawnX, gy - 42);
+      r.setPosition(this.betterCheckpoint, gy);
+      r.body_proxy.setPosition(this.betterCheckpoint, gy - 42);
       /** @type {Phaser.Physics.Arcade.Body} */ (r.body_proxy.body).setVelocity(0, 0);
       r.facingRight = true;
       r.setScale(3, 3);
@@ -1291,7 +1296,7 @@ export default class GameScene extends Phaser.Scene {
       this._robotWaiting = false;
       this._surveillanceCams.forEach(cam => cam.reset());
       this._npcRobots.forEach(npc => {
-        if (npc._destroyed && npc.x >= spawnX) {
+        if (npc._destroyed && npc.x >= this.betterCheckpoint) {
           npc.reset();
           // Remove the ammo pickup that was spawned for this NPC if not yet collected
           const pi = this._ammoPickups.findIndex(p => Math.abs(p.x - npc.x) < 5);
