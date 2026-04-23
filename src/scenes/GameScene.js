@@ -223,6 +223,11 @@ export default class GameScene extends Phaser.Scene {
     // ── Chain — hangs from ceiling, reaches robot mid-height ──────────────
     // Robot head world y = GROUND_Y - 26*3 = 42 → mid-height y = (42+120)/2 = 81
     new Chain(this, 290, -180, GROUND_Y - 60, this.robot);
+    new Chain(this, 1335, -180, GROUND_Y - 60, this.robot);
+    new Chain(this, 1355, -180, GROUND_Y - 60, this.robot);
+    new Chain(this, 3790, -180, GROUND_Y - 60, this.robot);
+    new Chain(this, 3800, -180, GROUND_Y - 60, this.robot);
+    new Chain(this, 3810, -180, GROUND_Y - 60, this.robot);
 
     this.add.text(310, -10, 'F*Ck\nthe\nR0B0Ts', { color:'#ffffff', align: 'center' })
     .setAngle(-15)
