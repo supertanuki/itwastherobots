@@ -94,13 +94,15 @@ export default class GameScene extends Phaser.Scene {
     interiorBg.setDepth(0);
 
     // ── Mountains (Exterior) ──────────────────────────────────────────────
+    const mountsPosition = WORLD_W - 3000;
     const mountainGfx = this.add.graphics();
     mountainGfx.fillStyle(0x4b5320, 1);
     
+    const mtWidth = [250, 300, 350, 300, 250];
     const mtHeights = [70, 90, 110, 100, 90];
     for (let i = 0; i < mtHeights.length; i++) {
-      const x = 2000 + i * 140;
-      const w = 250 + Math.random() * 100;
+      const x = mountsPosition + i * 140;
+      const w = mtWidth[i];
       const h = mtHeights[i];
       
       mountainGfx.fillTriangle(
@@ -111,6 +113,32 @@ export default class GameScene extends Phaser.Scene {
     }
     mountainGfx.setScrollFactor(0.4, 1);
     mountainGfx.setDepth(-5);
+
+    // ── Big Building (Exterior) ──────────────────────────────────────────────
+    const buildingGfx = this.add.graphics();
+    buildingGfx
+      // bottom building
+      .fillStyle(0xdddddd, 1)
+      .fillRect(mountsPosition + 240, GROUND_Y - 120, 80, 40)
+      // top building
+      .fillStyle(0xeeeeee, 1)
+      .fillRect(mountsPosition + 260, GROUND_Y - 140, 40, 20)
+      // wall
+      .fillStyle(0xaaaaaa, 1)
+      .fillRect(mountsPosition + 200, GROUND_Y - 75, 160, 20)
+      // wall beams
+      .fillStyle(0x999999, 1)
+      .fillRect(mountsPosition + 195, GROUND_Y - 77, 5, 22)
+      .fillRect(mountsPosition + 215, GROUND_Y - 77, 5, 22)
+      .fillRect(mountsPosition + 235, GROUND_Y - 77, 5, 22)
+      .fillRect(mountsPosition + 255, GROUND_Y - 77, 5, 22)
+      .fillRect(mountsPosition + 275, GROUND_Y - 77, 5, 22)
+      .fillRect(mountsPosition + 295, GROUND_Y - 77, 5, 22)
+      .fillRect(mountsPosition + 315, GROUND_Y - 77, 5, 22)
+      .fillRect(mountsPosition + 335, GROUND_Y - 77, 5, 22)
+      .fillRect(mountsPosition + 355, GROUND_Y - 77, 5, 22)
+      .setDepth(-4)
+      .setScrollFactor(0.4, 1);
 
     // ── Exterior Particles (Dust/Mist) ────────────────────────────────────
     if (!this.textures.exists('exterior_spark')) {
