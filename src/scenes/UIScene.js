@@ -55,19 +55,21 @@ export default class UIScene extends Phaser.Scene {
     // ── Speech band — white bg, black text ───────────────────────────────
     this._bg = this.add.rectangle(W / 2, SPEECH_Y, BW, BH_DLG, 0xffffff)
       .setOrigin(0.5, 0.5)
+      .setDepth(11)
       .setAlpha(0);
 
     this._text = this.add.bitmapText(W / 2, SPEECH_Y, 'subtitle', '', 32)
       .setOrigin(0.5, 0.5)
       .setTintFill(0x000000)
       .setMaxWidth(BW - 20)
+      .setDepth(11)
       .setAlpha(0);
 
     // ── Instruction band — black bg, white text, below dialogue ──────────
     this._instrBg = this.add.rectangle(W / 2, INSTR_Y, BW, BH_INSTR, 0x000000)
       .setOrigin(0.5, 0.5)
       .setDepth(11)
-      .setAlpha(0);
+      .setVisible(false);
 
     this._instrText = this.add.bitmapText(W / 2, INSTR_Y, 'subtitle', i18n.instructionStart, 32)
       .setOrigin(0.5, 0.5)
@@ -76,7 +78,10 @@ export default class UIScene extends Phaser.Scene {
       .setDepth(11)
       .setMaxWidth(BW - 10);
 
-    this.time.delayedCall(2000, () => this._instrText.setVisible(true));
+    this.time.delayedCall(2000, () => {
+      this._instrText.setVisible(true);
+      this._instrBg.setVisible(true);
+    });
 
     // ── Events ────────────────────────────────────────────────────────────
     // Initial instruction fade-out on wake-up
@@ -122,18 +127,28 @@ export default class UIScene extends Phaser.Scene {
     this._titleOverlay = this.add.rectangle(W / 2, H / 2, W, H, 0x000000)
       .setAlpha(0).setDepth(10);
 
-    this._titleText = this.add.bitmapText(W / 2, H / 2, 'subtitle', '', 128)
+    this._titleText = this.add.bitmapText(W / 2, H / 2, 'subtitle', i18n.titleCard, 128)
       .setOrigin(0.5, 0.5)
       .setTint(0xffffff)
       .setAlpha(0)
       .setDepth(11)
       .setCenterAlign();
 
-    this.game.events.on('title-card-show', ({ text }) => {
-      this._titleText.setText(text);
+    this._subTitleText = this.add.bitmapText(W / 2, H / 2 + 200, 'subtitle', i18n.endMessage, 64)
+      .setOrigin(0.5, 0.5)
+      .setTint(0xffffff)
+      .setAlpha(0)
+      .setDepth(11)
+      .setCenterAlign();
+
+    this.game.events.on('title-card-show', () => {
       this.tweens.killTweensOf([this._titleOverlay, this._titleText]);
       this.tweens.add({ targets: this._titleOverlay, alpha: 0.88, duration: 1500, ease: 'Sine.easeIn' });
       this.tweens.add({ targets: this._titleText,    alpha: 1,    duration: 3000, ease: 'Sine.easeIn' });
+    }, this);
+
+    this.game.events.on('subtitle-card-show', () => {
+      this.tweens.add({ targets: this._subTitleText, alpha: 1, duration: 3000, ease: 'Sine.easeIn' });
     }, this);
 
     this.game.events.on('title-card-hide', () => {

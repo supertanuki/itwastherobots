@@ -1410,7 +1410,7 @@ export default class GameScene extends Phaser.Scene {
     this._titleCardActive = true;
     this._titleCardReady  = false;
     this._robotWaiting    = true;
-    this.game.events.emit('title-card-show', { text: i18n.titleCard });
+    this.game.events.emit('title-card-show');
     this.time.delayedCall(3000, () => {
       this._titleCardReady = true;
       this.game.events.emit('instr-show', { text: i18n.instructionContinue });
@@ -1459,6 +1459,14 @@ export default class GameScene extends Phaser.Scene {
 
     if (this._finalSequence) {
       this.cameras.main.fadeOut(3000, 0, 0, 0);
+      this.cameras.main.once('camerafadeoutcomplete', () => {
+        this.game.events.emit('title-card-show');
+        this.time.delayedCall(2000, () => {
+          this.game.events.emit('subtitle-card-show');
+          //this._finalNpc.destroy();
+          this.cameras.main.fadeIn(1000, 0, 0, 0);
+        });
+      });
       return;
     }
 

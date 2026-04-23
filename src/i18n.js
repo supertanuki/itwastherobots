@@ -130,6 +130,8 @@ const TEXTS = {
       { text: "… fin de l’entrée.", speak: false },
       { text: "Ce sont les humains…", speak: true },
     ],
+
+    endMessage: "(Ce sont les humains…)",
   },
   en: {
     instructionStart:    'Reboot: press space repeatedly.',
@@ -255,6 +257,8 @@ const TEXTS = {
       { text: "… end of entry.", speak: false },
       { text: "It was humans…", speak: true },
     ],
+
+    endMessage: "(It was humans…)",
   },
 };
 
