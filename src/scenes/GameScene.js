@@ -231,8 +231,10 @@ export default class GameScene extends Phaser.Scene {
     this._buildSkullPyramid(600, GROUND_Y, groundBody);
 
     // ── Alone Skulls ─────────────────────────────────────────────────────
+    // on the left
     new Skull(this, 130, GROUND_Y + 3);
-    new Skull(this, 850, GROUND_Y + 3);
+    // after the first dead robot
+    new Skull(this, 480, GROUND_Y + 3);
 
     // ── Wide wall + computer terminal at mid-height ───────────────────────
     const COMP_WALL_H = 70;
@@ -289,10 +291,6 @@ export default class GameScene extends Phaser.Scene {
     if (this._debug) {
       this.keyPageUp   = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.PAGE_UP);
       this.keyPageDown = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.PAGE_DOWN);
-      this._debugText = this.add.text(318, 4, '', { fontSize: '6px', color: '#ffffff' });
-      this._debugText.setOrigin(1, 0);
-      this._debugText.setScrollFactor(0);
-      this._debugText.setDepth(100);
     }
 
     // ── Ammo ──────────────────────────────────────────────────────────────
@@ -398,7 +396,7 @@ export default class GameScene extends Phaser.Scene {
       } else if (Phaser.Input.Keyboard.JustDown(this.keyPageUp)) {
         r.body_proxy.setX(r.body_proxy.x - 200);
       }
-      this._debugText.setText(`x:${Math.round(r.x)}`);
+      console.info(`x:${Math.round(r.x)}`);
     }
 
     // Block all movement until the robot is awake
