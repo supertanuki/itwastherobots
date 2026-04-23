@@ -97,11 +97,11 @@ export default class GameScene extends Phaser.Scene {
     const mountainGfx = this.add.graphics();
     mountainGfx.fillStyle(0x4b5320, 1);
     
-    const mtCount = 7;
-    for (let i = 0; i < mtCount; i++) {
+    const mtHeights = [70, 90, 110, 100, 90];
+    for (let i = 0; i < mtHeights.length; i++) {
       const x = 2000 + i * 140;
       const w = 250 + Math.random() * 100;
-      const h = 70 + Math.random() * 40;
+      const h = mtHeights[i];
       
       mountainGfx.fillTriangle(
         x - w / 2, GROUND_Y,
