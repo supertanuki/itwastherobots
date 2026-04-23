@@ -73,21 +73,18 @@ export default class GameScene extends Phaser.Scene {
     this.physics.world.setBounds(0, 0, WORLD_W, VH + 40);
 
     // ── Backgrounds ───────────────────────────────────────────────────────    
-    // Fond vert pour l'extérieur (brume lointaine) avec parallaxe plus faible
     const exteriorBg = this.add.graphics();
-    exteriorBg.fillStyle(0x80ef80, 1);
-    // On couvre une large zone car le parallaxe va décaler le rendu visuel
+    exteriorBg.fillStyle(0xa5a5b6, 1);
     exteriorBg.fillRect(1000, -60, WORLD_W + 1000, VH);
-    exteriorBg.setScrollFactor(0.4, 1); // Se déplace à 40% de la vitesse de la caméra
+    exteriorBg.setScrollFactor(0.4, 1);
     exteriorBg.setDepth(-10);
 
-    // Fond noir pour l'intérieur avec terminaison en diagonale "\" (parallax 1)
     const interiorBg = this.add.graphics();
     interiorBg.fillStyle(0x000000, 1);
     interiorBg.beginPath();
     interiorBg.moveTo(0, -60);
-    interiorBg.lineTo(4000, -60);   // Le haut s'arrête à 4000px
-    interiorBg.lineTo(4020, VH);  // Le bas finit à 4020px pour créer la diagonale
+    interiorBg.lineTo(4000, -60);
+    interiorBg.lineTo(4020, VH);
     interiorBg.lineTo(0, VH);
     interiorBg.closePath();
     interiorBg.fill();
@@ -95,9 +92,27 @@ export default class GameScene extends Phaser.Scene {
 
     // ── Mountains (Exterior) ──────────────────────────────────────────────
     const mountsPosition = WORLD_W - 3000;
+
+    const backMountainGfx = this.add.graphics();
+    backMountainGfx.fillStyle(0x47473c, 1);
+    const backMtWidth = [300, 400, 450, 350, 450];
+    const backMtHeights = [95, 110, 130, 120, 110];
+    for (let i = 0; i < backMtHeights.length; i++) {
+      const x = mountsPosition - 300 + i * 140;
+      const w = backMtWidth[i];
+      const h = backMtHeights[i];
+      
+      backMountainGfx.fillTriangle(
+        x - w / 2, GROUND_Y,
+        x + w / 2, GROUND_Y,
+        x,         GROUND_Y - h
+      );
+    }
+    backMountainGfx.setScrollFactor(0.35, 1);
+    backMountainGfx.setDepth(-5);
+
     const mountainGfx = this.add.graphics();
-    mountainGfx.fillStyle(0x4b5320, 1);
-    
+    mountainGfx.fillStyle(0x556b2f, 1);
     const mtWidth = [250, 300, 350, 300, 250];
     const mtHeights = [70, 90, 110, 100, 90];
     for (let i = 0; i < mtHeights.length; i++) {
@@ -116,29 +131,32 @@ export default class GameScene extends Phaser.Scene {
 
     // ── Big Building (Exterior) ──────────────────────────────────────────────
     const buildingGfx = this.add.graphics();
-    buildingGfx
-      // bottom building
-      .fillStyle(0xdddddd, 1)
-      .fillRect(mountsPosition + 240, GROUND_Y - 120, 80, 40)
-      // top building
-      .fillStyle(0xeeeeee, 1)
-      .fillRect(mountsPosition + 260, GROUND_Y - 140, 40, 20)
-      // wall
-      .fillStyle(0xaaaaaa, 1)
-      .fillRect(mountsPosition + 200, GROUND_Y - 75, 160, 20)
-      // wall beams
-      .fillStyle(0x999999, 1)
-      .fillRect(mountsPosition + 195, GROUND_Y - 77, 5, 22)
-      .fillRect(mountsPosition + 215, GROUND_Y - 77, 5, 22)
-      .fillRect(mountsPosition + 235, GROUND_Y - 77, 5, 22)
-      .fillRect(mountsPosition + 255, GROUND_Y - 77, 5, 22)
-      .fillRect(mountsPosition + 275, GROUND_Y - 77, 5, 22)
-      .fillRect(mountsPosition + 295, GROUND_Y - 77, 5, 22)
-      .fillRect(mountsPosition + 315, GROUND_Y - 77, 5, 22)
-      .fillRect(mountsPosition + 335, GROUND_Y - 77, 5, 22)
-      .fillRect(mountsPosition + 355, GROUND_Y - 77, 5, 22)
-      .setDepth(-4)
-      .setScrollFactor(0.4, 1);
+    buildingGfx.setDepth(-4).setScrollFactor(0.4, 1);
+
+    // Bottom building base and window grid (1px square, color 0x999999, 2px vertical gap)
+    buildingGfx.fillStyle(0xdddddd, 1).fillRect(mountsPosition + 240, GROUND_Y - 120, 80, 40);
+    buildingGfx.fillStyle(0x999999, 1);
+    for (let wy = 6; wy < 36; wy += 3) {
+      for (let wx = 8; wx < 74; wx += 6) {
+        buildingGfx.fillRect(mountsPosition + 241 + wx, GROUND_Y - 120 + wy, 1, 1);
+      }
+    }
+
+    // Top building base and window grid (1px square, color 0x999999, 2px vertical gap)
+    buildingGfx.fillStyle(0xeeeeee, 1).fillRect(mountsPosition + 260, GROUND_Y - 140, 40, 20);
+    buildingGfx.fillStyle(0x999999, 1);
+    for (let wy = 4; wy < 18; wy += 3) {
+      for (let wx = 6; wx < 36; wx += 6) {
+        buildingGfx.fillRect(mountsPosition + 261 + wx, GROUND_Y - 140 + wy, 1, 1);
+      }
+    }
+
+    // Wall and decorative beams
+    buildingGfx.fillStyle(0xaaaaaa, 1).fillRect(mountsPosition + 200, GROUND_Y - 75, 160, 20);
+    buildingGfx.fillStyle(0x999999, 1);
+    [195, 215, 235, 255, 275, 295, 315, 335, 355].forEach(bx => {
+      buildingGfx.fillRect(mountsPosition + bx, GROUND_Y - 77, 5, 22);
+    });
 
     // ── Exterior Particles (Dust/Mist) ────────────────────────────────────
     if (!this.textures.exists('exterior_spark')) {
