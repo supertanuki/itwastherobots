@@ -11,7 +11,7 @@ import NPCRobot from '../entities/NPCRobot.js';
 import i18n from '../i18n.js';
 
 // scrollable world width
-const WORLD_W = 4000;
+const WORLD_W = 5000;
 
 // Sfx volume
 const sfxGunFireVolume = 0.8;
@@ -72,11 +72,49 @@ export default class GameScene extends Phaser.Scene {
     // Physics world bounds
     this.physics.world.setBounds(0, 0, WORLD_W, VH + 40);
 
-    // ── Background (full world width) ─────────────────────────────────────
-    this.add.rectangle(WORLD_W / 2, VH / 2, WORLD_W, VH, 0x000000);
+    // ── Backgrounds ───────────────────────────────────────────────────────    
+    // Fond vert pour l'extérieur (brume lointaine) avec parallaxe plus faible
+    const exteriorBg = this.add.graphics();
+    exteriorBg.fillStyle(0x80ef80, 1);
+    // On couvre une large zone car le parallaxe va décaler le rendu visuel
+    exteriorBg.fillRect(1000, -60, WORLD_W + 1000, VH);
+    exteriorBg.setScrollFactor(0.4, 1); // Se déplace à 40% de la vitesse de la caméra
+    exteriorBg.setDepth(0);
+
+    // Fond noir pour l'intérieur avec terminaison en diagonale "\" (parallax 1)
+    const interiorBg = this.add.graphics();
+    interiorBg.fillStyle(0x000000, 1);
+    interiorBg.beginPath();
+    interiorBg.moveTo(0, -60);
+    interiorBg.lineTo(4000, -60);   // Le haut s'arrête à 4000px
+    interiorBg.lineTo(4020, VH);  // Le bas finit à 4020px pour créer la diagonale
+    interiorBg.lineTo(0, VH);
+    interiorBg.closePath();
+    interiorBg.fill();
+    interiorBg.setDepth(0);
+
+    // ── Exterior Particles (Dust/Mist) ────────────────────────────────────
+    if (!this.textures.exists('exterior_spark')) {
+      const g = this.make.graphics({ add: false });
+      g.fillStyle(0x000000, 1);
+      g.fillRect(0, 0, 1, 1);
+      g.generateTexture('exterior_spark', 1, 1);
+      g.destroy();
+    }
+    // Particules de poussière flottante dans la zone extérieure (> 4000px)
+    this.add.particles(0, 0, 'exterior_spark', {
+      x: { min: 4000, max: WORLD_W },
+      y: { min: 0, max: VH },
+      lifespan: { min: 3000, max: 7000 },
+      speed: { min: 4, max: 12 },
+      scale: { start: 0.5, end: 2 },
+      alpha: { start: 0.2, end: 0.6 },
+      frequency: 60,
+      gravityY: 3, // Flottement léger vers le bas
+    }).setDepth(1);
 
     // ── Pipe background — procedural, parallax ────────────────────────────
-    this._buildPipeBackground(WORLD_W * 2, GROUND_Y);
+    this._buildPipeBackground(4000, GROUND_Y);
 
     // ── Ground ────────────────────────────────────────────────────────────
     // Physics ground — static body spanning the full world
