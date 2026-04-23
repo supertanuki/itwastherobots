@@ -1221,6 +1221,7 @@ export default class GameScene extends Phaser.Scene {
       r.facingRight = true;
       r.setScale(3, 3);
       r.setAlpha(1);
+      r.sfxWakeUp.play();
       this._robotWaiting = false;
       this._surveillanceCams.forEach(cam => cam.reset());
       this._npcRobots.forEach(npc => {
