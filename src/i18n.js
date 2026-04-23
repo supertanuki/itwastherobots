@@ -119,7 +119,7 @@ const TEXTS = {
       { text: "Les machines n’étaient qu’un outil.", speak: true },
       { text: "Propre. Efficace. Sans remords.", speak: true },
       { text: "Ils se sont enfermés.", speak: true },
-      { text: "Puis Ils ont effacé le monde…", speak: true },
+      { text: "Puis ils ont effacé le monde…", speak: true },
       { text: "… fin de l’entrée.", speak: false },
       { text: "Ce sont les humains…", speak: true },
     ],

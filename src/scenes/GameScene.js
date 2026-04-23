@@ -261,7 +261,7 @@ export default class GameScene extends Phaser.Scene {
     this._armedDeadRobot = new ArmedDeadRobot(this, 1750, GROUND_Y);
 
     // ── NPC robots ────────────────────────────────────────────────────────
-    this._npcRobots = [2150, 2650, 3400, 3600].map(x => {
+    this._npcRobots = [2150, 2650, 3400, 3600, 4610].map(x => {
       const npc = new NPCRobot(this, x, GROUND_Y);
       this.physics.add.collider(npc.body_proxy, groundBody);
       return npc;
@@ -295,6 +295,11 @@ export default class GameScene extends Phaser.Scene {
     this._ceilWallMaxX = 2870;
     this.events.on('camera-hit', () => this._robotExplode());
     this.events.on('npc-fire', (npc, npcX, npcY, facingRight) => this._npcShoot(npc, npcX, npcY, facingRight));
+
+    // ── Third Wide wall + computer terminal
+    new Wall(this, 4760, GROUND_Y, { width: 60, height: COMP_WALL_H, offsetX: 0 });
+    this._computer3 = new Computer(this, 4790, GROUND_Y - COMP_WALL_H / 2);
+    this._computerState3 = null;
 
     // ── Silent mode — ?nosounds in URL disables all audio ────────────────
     this._silent = new URLSearchParams(window.location.search).has('nosounds');
@@ -512,6 +517,7 @@ export default class GameScene extends Phaser.Scene {
       this._inFrontOfSkulls();
       this._checkComputerProximity();
       this._checkComputer2Proximity();
+      this._checkComputer3Proximity();
       this._checkArmProximity();
 
       if (this._armState === 'done' && !this._robotWaiting && !this._dlgWaiting) {
@@ -809,6 +815,32 @@ export default class GameScene extends Phaser.Scene {
       this._startDialogue(i18n.journalSecond, () => {
         this._computer2.stopHacking();
         this._computerState2 = 'done';
+        this._robotWaiting   = false;
+      });
+    });
+  }
+
+  _checkComputer3Proximity() {
+    if (this._computerState3 !== null) return;
+    const r = this.robot;
+    const gap = this._computer3.x - r.body_proxy.body.right;
+    if (gap < 10 && gap > -10) {
+      this._startComputer3Interaction();
+    }
+  }
+
+  _startComputer3Interaction() {
+    this._computerState3 = 'active';
+    this._robotWaiting   = true;
+    this.robot.setMoveIntent(0);
+    this.robot.body_proxy.body.setVelocityX(0);
+
+    this._computer3.startHacking();
+    this.sfxComputerText.play();
+    this.time.delayedCall(500, () => {
+      this._startDialogue(i18n.journalThird, () => {
+        this._computer3.stopHacking();
+        this._computerState3 = 'done';
         this._robotWaiting   = false;
       });
     });
