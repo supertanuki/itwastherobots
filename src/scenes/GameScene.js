@@ -17,7 +17,7 @@ const WORLD_W = 5000;
 const sfxGunFireVolume = 0.8;
 
 // checkpoints after death
-const CHECKPOINTS = [600, 950, 1300, 1700, 2280, 3050, 3785];
+const CHECKPOINTS = [600, 950, 1300, 1700, 2280, 3050, 3785, 4120];
 
 /**
  * GameScene — movement test for the broken robot.
