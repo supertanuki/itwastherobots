@@ -37,3 +37,8 @@ npm run build
 ## License
 
 [MIT](LICENSE)
+
+
+### Wavedash Build Instructions
+
+npm run build && wavedash build push

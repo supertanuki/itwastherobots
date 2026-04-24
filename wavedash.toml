@@ -1,2 +1,4 @@
-game_id    = "j97b12gx4gf1hk8522scvvz06n85f7by"
-upload_dir = "web"
+game_id = "j97b12gx4gf1hk8522scvvz06n85f7by"
+upload_dir = "dist"
+
+entrypoint = "index.html"
