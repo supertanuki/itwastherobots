@@ -71,7 +71,8 @@ export default class UIScene extends Phaser.Scene {
       .setDepth(11)
       .setVisible(false);
 
-    this._instrText = this.add.bitmapText(W / 2, INSTR_Y, 'subtitle', i18n.instructionStart, 32)
+    const isTouch = this.sys.game.device.input.touch || ('ontouchstart' in window);
+    this._instrText = this.add.bitmapText(W / 2, INSTR_Y, 'subtitle', isTouch ? i18n.instrStartTouch : i18n.instructionStart, 32)
       .setOrigin(0.5, 0.5)
       .setTint(0xffffff)
       .setVisible(false)

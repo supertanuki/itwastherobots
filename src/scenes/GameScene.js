@@ -310,6 +310,9 @@ export default class GameScene extends Phaser.Scene {
     this._computer3 = new Computer(this, 4890, GROUND_Y - COMP_WALL_H / 2);
     this._computerState3 = null;
 
+    // ── Touch detection ───────────────────────────────────────────────────
+    this._isTouch = this.sys.game.device.input.touch || ('ontouchstart' in window);
+
     // ── Virtual input (touch controls written by UIScene) ─────────────────
     this._virtX        = 0;   // joystick x, -1..1
     this._virtY        = 0;   // joystick y, -1..1
@@ -927,7 +930,7 @@ export default class GameScene extends Phaser.Scene {
     this._dlgTimer = this.time.delayedCall(2000, () => {
       if (!this._dlgWaiting) return;  // already advanced
       this._dlgInstrOn = true;
-      this.game.events.emit('instr-show', { text: i18n.instructionContinue });
+      this.game.events.emit('instr-show', { text: this._isTouch ? i18n.instrContinueTouch : i18n.instructionContinue });
     });
 
     this._dlgWaiting = true;
@@ -1446,7 +1449,7 @@ export default class GameScene extends Phaser.Scene {
     this.game.events.emit('title-card-show');
     this.time.delayedCall(3000, () => {
       this._titleCardReady = true;
-      this.game.events.emit('instr-show', { text: i18n.instructionContinue });
+      this.game.events.emit('instr-show', { text: this._isTouch ? i18n.instrContinueTouch : i18n.instructionContinue });
     });
   }
 

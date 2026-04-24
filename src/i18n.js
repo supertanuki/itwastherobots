@@ -13,7 +13,9 @@ const TEXTS = {
     speechLangPrefix:    'fr',
 
     instructionStart:    'Redémarrage : presser espace de manière répétée.',
+    instrStartTouch:     'Redémarrage: toucher de manière répétée.',
     instructionContinue: 'Espace : continuer',
+    instrContinueTouch:  'Toucher pour continuer',
     tag:                 'Attention\naux\nR0B0Ts',
 
     dialogueWakeup: [
@@ -139,7 +141,9 @@ const TEXTS = {
     speechLang:          'en-US',
     speechLangPrefix:    'en',
     instructionStart:    'Reboot: press space repeatedly.',
+    instrStartTouch:     'Reboot: touch repeatedly.',
     instructionContinue: 'Space: continue',
+    instrContinueTouch:  'Touch to continue',
     tag:                 'Beware\nof\nR0B0Ts',
 
     dialogueWakeup: [
