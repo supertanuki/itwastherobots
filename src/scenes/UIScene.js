@@ -143,7 +143,7 @@ export default class UIScene extends Phaser.Scene {
 
     this.game.events.on('title-card-show', () => {
       this.tweens.killTweensOf([this._titleOverlay, this._titleText]);
-      this.tweens.add({ targets: this._titleOverlay, alpha: 0.88, duration: 1500, ease: 'Sine.easeIn' });
+      this.tweens.add({ targets: this._titleOverlay, alpha: 0.7, duration: 1500, ease: 'Sine.easeIn' });
       this.tweens.add({ targets: this._titleText,    alpha: 1,    duration: 3000, ease: 'Sine.easeIn' });
     }, this);
 
