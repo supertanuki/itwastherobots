@@ -9,10 +9,12 @@
 
 const TEXTS = {
   fr: {
-    instructionStart:    'Redémarrage : presser espace de manière répétée.',
-    instructionContinue: 'Espace : continuer',
     speechLang:          'fr-FR',
     speechLangPrefix:    'fr',
+
+    instructionStart:    'Redémarrage : presser espace de manière répétée.',
+    instructionContinue: 'Espace : continuer',
+    tag:                 'Attention\naux\nR0B0Ts',
 
     dialogueWakeup: [
       { text: "... initialisation ...", speak: true },
@@ -134,10 +136,11 @@ const TEXTS = {
     endMessage: "(It was humans…)\n\nun jeu par Richard Hanna, avril 2026.",
   },
   en: {
-    instructionStart:    'Reboot: press space repeatedly.',
-    instructionContinue: 'Space: continue',
     speechLang:          'en-US',
     speechLangPrefix:    'en',
+    instructionStart:    'Reboot: press space repeatedly.',
+    instructionContinue: 'Space: continue',
+    tag:                 'Beware\nof\nR0B0Ts',
 
     dialogueWakeup: [
       { text: "... initialization ...", speak: true },

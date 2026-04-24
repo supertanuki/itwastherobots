@@ -218,6 +218,8 @@ export default class GameScene extends Phaser.Scene {
     this.robot.setDepth(10);
     this.physics.add.collider(this.robot.body_proxy, groundBody);
 
+    new Wall(this, -25, GROUND_Y + 10);
+
     // ── Dead robot + wall ─────────────────────────────────────────────────
     // Wall added first so it renders behind the robot body
     new Wall(this, 438, GROUND_Y);
@@ -232,7 +234,7 @@ export default class GameScene extends Phaser.Scene {
     new Chain(this, 3800, -180, GROUND_Y - 60, this.robot);
     new Chain(this, 3810, -180, GROUND_Y - 60, this.robot);
 
-    this.add.text(310, -10, 'F*Ck\nthe\nR0B0Ts', { color:'#ffffff', align: 'center' })
+    this.add.text(310, -10, i18n.tag, { color:'#ffffff', align: 'center' })
     .setAngle(-15)
     .setScrollFactor(0.35, 1);
 
