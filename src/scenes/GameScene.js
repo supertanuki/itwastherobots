@@ -345,10 +345,9 @@ export default class GameScene extends Phaser.Scene {
     this._wakeCount = 0;   // space presses so far
     this._awake     = false;
 
-    // ── Camera follows the robot ──────────────────────────────────────────
+    // ── Camera: follow robot from start, centered (offset applied on wake-up) ─
     this.cameras.main.startFollow(this.robot, true);
-    // Negative offset → camera leads right, robot appears ~1/4 from left
-    this.cameras.main.setFollowOffset(-80, 0);
+    this.cameras.main.setFollowOffset(0, 0);
 
     this._zoomedOut = false;
 
@@ -767,6 +766,16 @@ export default class GameScene extends Phaser.Scene {
     this._awake = true;
     r.activate();
     this.game.events.emit('instruction-hide');
+    this.game.events.emit('camera-released');
+    // Smoothly slide the follow offset from 0 → -80 (no startFollow re-call)
+    const offsetProxy = { x: 0 };
+    this.tweens.add({
+      targets:  offsetProxy,
+      x:        -80,
+      duration: 1500,
+      ease:     'Sine.easeInOut',
+      onUpdate: () => this.cameras.main.setFollowOffset(offsetProxy.x, 0),
+    });
     this.time.delayedCall(2000, () => this._startDialogue(i18n.dialogueWakeup));
   }
 

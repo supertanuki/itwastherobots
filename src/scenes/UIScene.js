@@ -52,6 +52,11 @@ export default class UIScene extends Phaser.Scene {
     this.textures.addCanvas('vignette', canvas);
     this.add.image(560, 480, 'vignette');
 
+    // ── Initial vignette boost — heavy overlay that fades on wake-up ──────
+    this._vigBoost = this.add.rectangle(W / 2, H / 2, W, H, 0x000000)
+      .setAlpha(0.72)
+      .setDepth(9);
+
     // ── Speech band — white bg, black text ───────────────────────────────
     this._bg = this.add.rectangle(W / 2, SPEECH_Y, BW, BH_DLG, 0xffffff)
       .setOrigin(0.5, 0.5)
@@ -85,6 +90,16 @@ export default class UIScene extends Phaser.Scene {
     });
 
     // ── Events ────────────────────────────────────────────────────────────
+    // Fade out initial vignette boost when camera transitions to follow
+    this.game.events.on('camera-released', () => {
+      this.tweens.add({
+        targets:  this._vigBoost,
+        alpha:    0,
+        duration: 2500,
+        ease:     'Sine.easeOut',
+      });
+    }, this);
+
     // Initial instruction fade-out on wake-up
     this.game.events.on('instruction-hide', () => {
       this.tweens.add({
