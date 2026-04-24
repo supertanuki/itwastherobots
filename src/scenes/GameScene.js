@@ -478,18 +478,17 @@ export default class GameScene extends Phaser.Scene {
               this.sfxRobotMetal.play();
               this._legState = 'pulling';
               this.game.events.emit('instr-hide');
-              this._deadRobot.removeLeg(() => {
-                this._deadRobot.collapse();
-                this.sfxStandingUp.play();
-                this.time.delayedCall(1000, () => {
-                  this._legState = 'done';
-                  this.robot.shake(() => {
-                    this.robot.getUp();
-                    if (!this._zoomedOut) {
-                      this._zoomedOut = true;
-                      this._zoomOut();
-                    }
-                  });
+              this._deadRobot.removeLeg();
+              this._deadRobot.collapse();
+              this.sfxStandingUp.play();
+              this.time.delayedCall(1000, () => {
+                this._legState = 'done';
+                this.robot.shake(() => {
+                  this.robot.getUp();
+                  if (!this._zoomedOut) {
+                    this._zoomedOut = true;
+                    this._zoomOut();
+                  }
                 });
               });
             }

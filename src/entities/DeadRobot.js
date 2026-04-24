@@ -91,15 +91,13 @@ export default class DeadRobot extends Phaser.GameObjects.Container {
 
   /**
    * Fade the leg parts out, then call onComplete.
-   * @param {() => void} [onComplete]
    */
-  removeLeg(onComplete) {
+  removeLeg() {
     this.scene.tweens.add({
       targets:    this._legParts,
       alpha:      0,
       duration:   600,
       ease:       'Sine.easeOut',
-      onComplete: () => { if (onComplete) onComplete(); },
     });
   }
 
