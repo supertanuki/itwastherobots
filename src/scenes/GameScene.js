@@ -402,7 +402,7 @@ export default class GameScene extends Phaser.Scene {
     this._darkTween  = null;
 
     // Play theme
-    this.theme = this.sound.add('theme', { loop: true, volume: 0.5 });
+    this.theme = this.sound.add('theme', { loop: true, volume: 0.4 });
     this.theme.play();
 
     // SFX
