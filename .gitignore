@@ -1,3 +1,7 @@
 dist
 node_modules
 .claude
+# Wavedash — assets générés par build:wavedash (non versionnés)
+web/src/
+web/fonts/
+web/sfx/
