@@ -1177,6 +1177,7 @@ export default class GameScene extends Phaser.Scene {
     npc.setMoveIntent(0);
     if (npc._fireTimer) { npc._fireTimer.remove(); npc._fireTimer = null; }
 
+    this.cameras.main.flash(200, 255, 255, 255);
     this._spawnExplosion(npc.x, npc.y - 20);
     this._spawnAmmoPickup(npc.x, this._groundY);
 
