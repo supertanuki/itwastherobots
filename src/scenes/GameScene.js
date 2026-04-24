@@ -1461,15 +1461,13 @@ export default class GameScene extends Phaser.Scene {
       // Stop all NPC activity before fadeout covers the screen
       const fnpc = this._finalNpc;
       if (fnpc) {
+        // Stop behaviour immediately — but keep visible until fadeout covers the screen
         fnpc._destroyed = true;
         fnpc._fired = true;
         if (fnpc._fireTimer) { fnpc._fireTimer.remove(); fnpc._fireTimer = null; }
         this.tweens.killTweensOf(fnpc);
         this.tweens.killTweensOf(fnpc.upperArmR);
         /** @type {Phaser.Physics.Arcade.Body} */ (fnpc.body_proxy.body).setVelocityX(0);
-        fnpc.setAlpha(0);
-        if (fnpc.eye) fnpc.eye.setAlpha(0);
-        if (fnpc.armStripe) fnpc.armStripe.setAlpha(0);
       }
 
       this.cameras.main.fadeOut(3000, 0, 0, 0);
