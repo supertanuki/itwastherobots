@@ -414,7 +414,7 @@ export default class GameScene extends Phaser.Scene {
     }
 
     // debug: test the get up
-    if (Phaser.Input.Keyboard.JustDown(this.keyM)) {
+    if (this._debug && Phaser.Input.Keyboard.JustDown(this.keyM)) {
       this._wakeUp(r);
       r.getUp();
       if (!this._zoomedOut) {
