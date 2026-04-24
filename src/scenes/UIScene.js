@@ -112,6 +112,7 @@ export default class UIScene extends Phaser.Scene {
 
     this.game.events.on('subtitle-show', ({ text }) => {
       this._text.setText(text);
+      this._bg.setSize(this._text.width + 40, this._bg.height);
       this._bg.setAlpha(1);
       this._text.setAlpha(1);
     }, this);
