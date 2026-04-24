@@ -767,6 +767,7 @@ export default class GameScene extends Phaser.Scene {
     r.activate();
     this.game.events.emit('instruction-hide');
     this.game.events.emit('camera-released');
+    this._wakeUpTime = this.time.now;
     // Smoothly slide the follow offset from 0 → -80 (no startFollow re-call)
     const offsetProxy = { x: 0 };
     this.tweens.add({
@@ -1523,7 +1524,12 @@ export default class GameScene extends Phaser.Scene {
 
       this.cameras.main.fadeOut(3000, 0, 0, 0);
       this.cameras.main.once('camerafadeoutcomplete', () => {
+        const elapsed = this.time.now - (this._wakeUpTime ?? this.time.now);
+        const mm = String(Math.floor(elapsed / 60000)).padStart(2, '0');
+        const ss = String(Math.floor((elapsed % 60000) / 1000)).padStart(2, '0');
+        const ms = String(Math.round(elapsed % 1000)).padStart(3, '0');
         this.game.events.emit('title-card-show');
+        this.game.events.emit('game-time', { text: `${i18n.gameTime} : ${mm}:${ss}:${ms}` });
 
         // Screen is black — safe to destroy NPC and detach camera
         if (fnpc) { fnpc.destroy(); this._finalNpc = null; }

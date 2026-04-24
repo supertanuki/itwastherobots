@@ -145,19 +145,30 @@ export default class UIScene extends Phaser.Scene {
     this._titleOverlay = this.add.rectangle(W / 2, H / 2, W, H, 0x000000)
       .setAlpha(0).setDepth(10);
 
-    this._titleText = this.add.bitmapText(W / 2, H / 2 - 100, 'subtitle', i18n.titleCard, 128)
+    this._titleText = this.add.bitmapText(W / 2, H / 2 - 120, 'subtitle', i18n.titleCard, 128)
       .setOrigin(0.5, 0.5)
       .setTint(0xffffff)
       .setAlpha(0)
       .setDepth(11)
       .setCenterAlign();
 
-    this._subTitleText = this.add.bitmapText(W / 2, H / 2 + 200, 'subtitle', i18n.endMessage, 64)
+    this._subTitleText = this.add.bitmapText(W / 2, H / 2 + 120, 'subtitle', i18n.endMessage, 32)
       .setOrigin(0.5, 0.5)
       .setTint(0xffffff)
       .setAlpha(0)
       .setDepth(11)
       .setCenterAlign();
+
+    this._gameTimeText = this.add.bitmapText(W / 2, H - 60, 'subtitle', '', 32)
+      .setOrigin(0.5, 0.5)
+      .setTint(0xffffff)
+      .setAlpha(0)
+      .setDepth(11);
+
+    this.game.events.on('game-time', ({ text }) => {
+      this._gameTimeText.setText(text);
+      this.time.delayedCall(4000, () => this.tweens.add({ targets: this._gameTimeText, alpha: 1, duration: 1000, ease: 'Sine.easeIn' }));
+    }, this);
 
     this.game.events.on('title-card-show', () => {
       this.tweens.killTweensOf([this._titleOverlay, this._titleText]);

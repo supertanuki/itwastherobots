@@ -135,7 +135,8 @@ const TEXTS = {
       { text: "Ce sont les humains…", speak: true },
     ],
 
-    endMessage: "(It was humans…)\n\nun jeu par Richard Hanna, avril 2026",
+    gameTime:   'Temps de votre partie',
+    endMessage: "(It was humans…)\nUn jeu par Richard Hanna, avril 2026",
   },
   en: {
     speechLang:          'en-US',
@@ -265,7 +266,8 @@ const TEXTS = {
       { text: "It was humans…", speak: true },
     ],
 
-    endMessage: "(It was humans…)\n\na game by Richard Hanna, april 2026",
+    gameTime:   'Your game time',
+    endMessage: "(It was humans…)\nA game by Richard Hanna, april 2026",
   },
 };
 
