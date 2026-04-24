@@ -345,6 +345,8 @@ export default class GameScene extends Phaser.Scene {
     this.keyA    = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
     this.keyD    = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D);
     this.keyQ    = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Q);
+    this.keyW    = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W);
+    this.keyZ    = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Z);
     this.keySpace = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
     this.keyS    = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S);
     this.keyM    = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.M);
@@ -455,7 +457,10 @@ export default class GameScene extends Phaser.Scene {
         // ↑ / ↓ counting during instruction phase
         if (this._legState === 'instruction') {
           const pull = Phaser.Input.Keyboard.JustDown(this.cursors.up)
-                    || Phaser.Input.Keyboard.JustDown(this.cursors.down);
+                    || Phaser.Input.Keyboard.JustDown(this.cursors.down)
+                    || Phaser.Input.Keyboard.JustDown(this.keyW)
+                    || Phaser.Input.Keyboard.JustDown(this.keyZ)
+                    || Phaser.Input.Keyboard.JustDown(this.keyS);
           if (pull) {
             this._legPressCount++;
             // Brief lurch (player robot strains)
@@ -543,7 +548,10 @@ export default class GameScene extends Phaser.Scene {
       // ── Arm pulling (↑↓) ───────────────────────────────────────────────
       if (this._armState === 'instruction') {
         const pull = Phaser.Input.Keyboard.JustDown(this.cursors.up)
-                  || Phaser.Input.Keyboard.JustDown(this.cursors.down);
+                  || Phaser.Input.Keyboard.JustDown(this.cursors.down)
+                  || Phaser.Input.Keyboard.JustDown(this.keyW)
+                  || Phaser.Input.Keyboard.JustDown(this.keyZ)
+                  || Phaser.Input.Keyboard.JustDown(this.keyS);
         if (pull) {
           this._armPressCount++;
           this._armedDeadRobot.shake();
