@@ -26,7 +26,7 @@ const TEXTS = {
       { text: "Analyse structurelle…", speak: true },
       { text: "Intégrité compromise : un bras et une jambe manquants.", speak: true },
       { text: "Fonction locomotion réduite…", speak: true },
-      { text: "Ramper… reste possible en alternant  ← →", speak: false },
+      { text: "Ramper… en alternant  ← →", speak: false },
     ],
 
     dialogueLeg: [
@@ -135,7 +135,7 @@ const TEXTS = {
       { text: "Ce sont les humains…", speak: true },
     ],
 
-    endMessage: "(It was humans…)\n\nun jeu par Richard Hanna, avril 2026.",
+    endMessage: "(It was humans…)\n\nun jeu par Richard Hanna, avril 2026",
   },
   en: {
     speechLang:          'en-US',
@@ -154,7 +154,7 @@ const TEXTS = {
       { text: "Structural analysis…", speak: true },
       { text: "Integrity compromised: one arm and one leg missing.", speak: true },
       { text: "Locomotion function reduced…", speak: true },
-      { text: "Crawling… still possible by alternating ← →", speak: false },
+      { text: "Crawling… by alternating ← →", speak: false },
     ],
 
     dialogueLeg: [
@@ -265,7 +265,7 @@ const TEXTS = {
       { text: "It was humans…", speak: true },
     ],
 
-    endMessage: "(It was humans…)\n\na game by Richard Hanna, april 2026.",
+    endMessage: "(It was humans…)\n\na game by Richard Hanna, april 2026",
   },
 };
 
