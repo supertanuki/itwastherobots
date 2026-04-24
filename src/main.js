@@ -12,6 +12,7 @@ const config = {
   parent: 'game-container',
   backgroundColor: '#000000',
   pixelArt: true,
+  input: { activePointers: 3 },   // multi-touch (joystick + fire simultaneously)
   scale: {
     mode: Phaser.Scale.FIT,        // scale to fill window, keep aspect ratio
     autoCenter: Phaser.Scale.CENTER_BOTH,

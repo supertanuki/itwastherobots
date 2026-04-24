@@ -310,6 +310,14 @@ export default class GameScene extends Phaser.Scene {
     this._computer3 = new Computer(this, 4890, GROUND_Y - COMP_WALL_H / 2);
     this._computerState3 = null;
 
+    // ── Virtual input (touch controls written by UIScene) ─────────────────
+    this._virtX        = 0;   // joystick x, -1..1
+    this._virtY        = 0;   // joystick y, -1..1
+    this._virtXPrev    = 0;
+    this._virtYPrev    = 0;
+    this._virtFire     = false;  // one-shot tap (consumed once per update)
+    this._virtFireHeld = false;  // continuous hold
+
     // ── Silent mode — ?nosounds in URL disables all audio ────────────────
     this._silent = new URLSearchParams(window.location.search).has('nosounds');
 
@@ -407,7 +415,16 @@ export default class GameScene extends Phaser.Scene {
   update() {
     const r = this.robot;
 
-    if (!this._awake && Phaser.Input.Keyboard.JustDown(this.keySpace)) {
+    // ── Virtual joystick "just" pulses (direction crossing threshold) ─────
+    const vRightJust = this._virtX >  0.3 && this._virtXPrev <= 0.3;
+    const vLeftJust  = this._virtX < -0.3 && this._virtXPrev >= -0.3;
+    const vUpJust    = this._virtY < -0.3 && this._virtYPrev >= -0.3;
+    const vDownJust  = this._virtY >  0.3 && this._virtYPrev <= 0.3;
+    const vFireJust  = this._virtFire; this._virtFire = false;
+    this._virtXPrev  = this._virtX;
+    this._virtYPrev  = this._virtY;
+
+    if (!this._awake && (Phaser.Input.Keyboard.JustDown(this.keySpace) || vFireJust)) {
       this._wakeCount++;
       r.flickerEye();
       if (this._wakeCount === 8) {
@@ -464,9 +481,11 @@ export default class GameScene extends Phaser.Scene {
         if (this._legState === 'instruction') {
           const up   = Phaser.Input.Keyboard.JustDown(this.cursors.up)
                     || Phaser.Input.Keyboard.JustDown(this.keyW)
-                    || Phaser.Input.Keyboard.JustDown(this.keyZ);
+                    || Phaser.Input.Keyboard.JustDown(this.keyZ)
+                    || vUpJust;
           const down = Phaser.Input.Keyboard.JustDown(this.cursors.down)
-                    || Phaser.Input.Keyboard.JustDown(this.keyS);
+                    || Phaser.Input.Keyboard.JustDown(this.keyS)
+                    || vDownJust;
           const dir  = up ? 'up' : (down ? 'down' : null);
           if (dir && dir !== this._legLastPull) {
             this._legLastPull = dir;
@@ -498,20 +517,20 @@ export default class GameScene extends Phaser.Scene {
         }
       } else {
         // Normal crawl
-        this._tickCrawlSequence(r);
+        this._tickCrawlSequence(r, vRightJust, vLeftJust);
         r.setMoveIntent(this.time.now < this._crawlActiveUntil ? 1 : 0);
       }
 
       // SPACE: continue dialogue if active
-      if (Phaser.Input.Keyboard.JustDown(this.keySpace) && this._dlgWaiting) {
+      if ((Phaser.Input.Keyboard.JustDown(this.keySpace) || vFireJust) && this._dlgWaiting) {
         this._dialogueContinue();
       }
     } else {
       const canMove = !this._robotWaiting
         && (r.state === RobotState.STANDING || r.state === RobotState.WALKING);
       if (canMove) {
-        const left  = this.cursors.left.isDown  || this.keyA.isDown || this.keyQ.isDown;
-        const right = this.cursors.right.isDown || this.keyD.isDown;
+        const left  = this.cursors.left.isDown  || this.keyA.isDown || this.keyQ.isDown || this._virtX < -0.3;
+        const right = this.cursors.right.isDown || this.keyD.isDown                     || this._virtX >  0.3;
         if (left && !right)      r.setMoveIntent(-1);
         else if (right && !left) r.setMoveIntent(1);
         else                     r.setMoveIntent(0);
@@ -521,12 +540,12 @@ export default class GameScene extends Phaser.Scene {
 
       // SPACE: continue dialogue if active while standing/walking (not while charging)
       // (_dlgWaiting checked first so JustDown isn't consumed when there's no dialogue)
-      if (!this._chargingShot && this._dlgWaiting && Phaser.Input.Keyboard.JustDown(this.keySpace)) {
+      if (!this._chargingShot && this._dlgWaiting && (Phaser.Input.Keyboard.JustDown(this.keySpace) || vFireJust)) {
         this._dialogueContinue();
       }
 
       // SPACE: dismiss title card (only once 3s have elapsed)
-      if (this._titleCardActive && this._titleCardReady && Phaser.Input.Keyboard.JustDown(this.keySpace)) {
+      if (this._titleCardActive && this._titleCardReady && (Phaser.Input.Keyboard.JustDown(this.keySpace) || vFireJust)) {
         this._titleCardActive = false;
         this._titleCardReady  = false;
         this.game.events.emit('title-card-hide');
@@ -556,9 +575,11 @@ export default class GameScene extends Phaser.Scene {
       if (this._armState === 'instruction') {
         const up   = Phaser.Input.Keyboard.JustDown(this.cursors.up)
                   || Phaser.Input.Keyboard.JustDown(this.keyW)
-                  || Phaser.Input.Keyboard.JustDown(this.keyZ);
+                  || Phaser.Input.Keyboard.JustDown(this.keyZ)
+                  || vUpJust;
         const down = Phaser.Input.Keyboard.JustDown(this.cursors.down)
-                  || Phaser.Input.Keyboard.JustDown(this.keyS);
+                  || Phaser.Input.Keyboard.JustDown(this.keyS)
+                  || vDownJust;
         const dir  = up ? 'up' : (down ? 'down' : null);
         if (dir && dir !== this._armLastPull) {
           this._armLastPull = dir;
@@ -987,10 +1008,10 @@ export default class GameScene extends Phaser.Scene {
    * Step 0 — wait for right. Step 1 — wait for left. Step 2 — wrong key pressed at
    * step 1: movement stops; must press left before right is accepted again.
    */
-  _tickCrawlSequence(r) {
+  _tickCrawlSequence(r, vRightJust = false, vLeftJust = false) {
     const K     = Phaser.Input.Keyboard;
-    const right = K.JustDown(this.cursors.right) || K.JustDown(this.keyD);
-    const left  = K.JustDown(this.cursors.left)  || K.JustDown(this.keyA) || K.JustDown(this.keyQ);
+    const right = K.JustDown(this.cursors.right) || K.JustDown(this.keyD) || vRightJust;
+    const left  = K.JustDown(this.cursors.left)  || K.JustDown(this.keyA) || K.JustDown(this.keyQ) || vLeftJust;
 
     const ACTIVE_MS = 250;
     const ok = (nextStep) => {
@@ -1006,7 +1027,7 @@ export default class GameScene extends Phaser.Scene {
   }
 
   _tickChargeShot(r) {
-    if (!this.keySpace.isDown) {
+    if (!this.keySpace.isDown && !this._virtFireHeld) {
       if (this._chargingShot) this._cancelCharge(r);
       return;
     }

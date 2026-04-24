@@ -160,5 +160,99 @@ export default class UIScene extends Phaser.Scene {
         ease:     'Sine.easeOut',
       });
     }, this);
+
+    this._createTouchControls();
+  }
+
+  // ── Virtual joystick + fire button (touch screens only) ──────────────────
+  // Both controls are floating: they appear wherever the finger lands.
+  // First touch  → joystick (movement + directions)
+  // Second touch → fire button (tap = space, hold = charge)
+  _createTouchControls() {
+    const isTouch = this.sys.game.device.input.touch || ('ontouchstart' in window);
+    if (!isTouch) return;
+
+    const gs = this.scene.get('GameScene');
+
+    const JOR = 72, JIR = 30;   // joystick outer / inner radius
+    const FR  = 50;              // fire button radius
+
+    // ── Joystick visuals (hidden until first touch) ───────────────────────
+    const joyRing = this.add.circle(0, 0, JOR, 0xffffff, 0.10)
+      .setStrokeStyle(2, 0xffffff, 0.30).setDepth(20).setVisible(false);
+    const joyKnob = this.add.circle(0, 0, JIR, 0xffffff, 0.40)
+      .setDepth(21).setVisible(false);
+
+    // ── Fire button visuals (hidden until second touch) ───────────────────
+    const fireRing = this.add.circle(0, 0, FR, 0xffffff, 0.10)
+      .setStrokeStyle(2, 0xffffff, 0.30).setDepth(20).setVisible(false);
+    const fireDot  = this.add.circle(0, 0, 16, 0xffffff, 0.45)
+      .setDepth(21).setVisible(false);
+
+    // ── State ─────────────────────────────────────────────────────────────
+    let joyPtrId = null, joyCX = 0, joyCY = 0;
+    let firePtrId = null;
+
+    const updateJoy = (px, py) => {
+      const dx   = px - joyCX, dy = py - joyCY;
+      const dist = Math.hypot(dx, dy);
+      const cl   = Math.min(dist, JOR);
+      const ang  = Math.atan2(dy, dx);
+      joyKnob.setPosition(joyCX + Math.cos(ang) * cl, joyCY + Math.sin(ang) * cl);
+      const dead = 18;
+      if (gs) {
+        gs._virtX = dist > dead ? dx / Math.max(dist, 1) : 0;
+        gs._virtY = dist > dead ? dy / Math.max(dist, 1) : 0;
+      }
+    };
+
+    const showJoy = (x, y) => {
+      joyCX = x; joyCY = y;
+      joyRing.setPosition(x, y).setVisible(true);
+      joyKnob.setPosition(x, y).setVisible(true);
+    };
+
+    const hideJoy = () => {
+      joyRing.setVisible(false);
+      joyKnob.setVisible(false);
+      joyPtrId = null;
+      if (gs) { gs._virtX = 0; gs._virtY = 0; }
+    };
+
+    const showFire = (x, y) => {
+      fireRing.setPosition(x, y).setVisible(true);
+      fireDot.setPosition(x, y).setVisible(true);
+    };
+
+    const hideFire = () => {
+      fireRing.setVisible(false);
+      fireDot.setVisible(false);
+      firePtrId = null;
+      if (gs) gs._virtFireHeld = false;
+    };
+
+    this.input.on('pointerdown', (ptr) => {
+      if (joyPtrId === null) {
+        joyPtrId = ptr.id;
+        showJoy(ptr.x, ptr.y);
+        if (gs) gs._virtFire = true;
+      } else if (firePtrId === null) {
+        firePtrId = ptr.id;
+        showFire(ptr.x, ptr.y);
+        if (gs) { gs._virtFire = true; gs._virtFireHeld = true; }
+      }
+    });
+
+    this.input.on('pointermove', (ptr) => {
+      if (ptr.id === joyPtrId) updateJoy(ptr.x, ptr.y);
+    });
+
+    const releasePtr = (ptr) => {
+      if (ptr.id === joyPtrId) hideJoy();
+      if (ptr.id === firePtrId) hideFire();
+    };
+
+    this.input.on('pointerup',        releasePtr);
+    this.input.on('pointerupoutside', releasePtr);
   }
 }
