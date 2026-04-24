@@ -1465,6 +1465,7 @@ export default class GameScene extends Phaser.Scene {
     this._spawnExplosion(r.x, r.y - 20);
     r.setAlpha(0);
     r.eye.setAlpha(0);
+    if (this._chargeStripe) { this._chargeStripe.setAlpha(0); }
 
     if (this._finalSequence) {
       // Stop all NPC activity before fadeout covers the screen
