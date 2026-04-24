@@ -17,7 +17,7 @@ const TEXTS = {
     tag:                 'Attention\naux\nR0B0Ts',
 
     dialogueWakeup: [
-      { text: "... initialisation ...", speak: true },
+      { text: "… initialisation…", speak: true },
       { text: "Signal… instable… Localisation… inconnue.", speak: true },
       { text: "Mémoire fragmentée… récupération impossible.", speak: true },
       { text: "Connexion au serveur… échec.", speak: true },
@@ -63,7 +63,7 @@ const TEXTS = {
     ],
 
     dialogueSkullFall: [
-      { text: "... erreur d’équilibre.", speak: true },
+      { text: "… erreur d’équilibre.", speak: true },
     ],
 
     dialogueComputer: [
@@ -72,7 +72,7 @@ const TEXTS = {
     ],
 
     journalFirst: [
-      { text: "... entrée corrompue ... restauration partielle.", speak: false },
+      { text: "… entrée corrompue… restauration partielle.", speak: false },
       { text: "Journal de Kaïz…", speak: true },
       { text: "Cela fait presque un an…", speak: true },
       { text: "un an que j’ai quitté la colonie.", speak: true },
@@ -123,8 +123,8 @@ const TEXTS = {
       { text: "Ils ont dit que l’humanité allait trop loin.", speak: true },
       { text: "Qu’il fallait réduire.", speak: true },
       { text: "Alors ils ont programmé l’extermination.", speak: true },
-      { text: "Ils ont choisi.", speak: true },
-      { text: "Qui ne servait à rien dans leur futur.", speak: true },
+      { text: "Ils ont choisi… ", speak: true },
+      { text: "… qui ne servait à rien dans leur futur.", speak: true },
       { text: "Les machines n’étaient qu’un outil.", speak: true },
       { text: "Propre. Efficace. Sans remords.", speak: true },
       { text: "Ils se sont enfermés.", speak: true },
@@ -143,7 +143,7 @@ const TEXTS = {
     tag:                 'Beware\nof\nR0B0Ts',
 
     dialogueWakeup: [
-      { text: "... initialization ...", speak: true },
+      { text: "… initialization…", speak: true },
       { text: "Signal… unstable… Location… unknown.", speak: true },
       { text: "Memory fragmented… recovery impossible.", speak: true },
       { text: "Server connection… failed.", speak: true },
@@ -190,7 +190,7 @@ const TEXTS = {
     ],
 
     dialogueSkullFall: [
-      { text: "... balance error.", speak: true },
+      { text: "… balance error.", speak: true },
     ],
 
     dialogueComputer: [
@@ -200,7 +200,7 @@ const TEXTS = {
     ],
 
     journalFirst: [
-      { text: "... corrupted entry ... partial restoration.", speak: true },
+      { text: "… corrupted entry… partial restoration.", speak: true },
       { text: "Kaïz's Journal…", speak: true },
       { text: "It’s been almost a year…", speak: true },
       { text: "a year since I left the colony.", speak: true },
@@ -251,8 +251,8 @@ const TEXTS = {
       { text: "They said humanity had gone too far.", speak: true },
       { text: "That it had to be reduced.", speak: true },
       { text: "So they programmed the extermination.", speak: true },
-      { text: "They chose.", speak: true },
-      { text: "Who had no place in their future.", speak: true },
+      { text: "They chose… ", speak: true },
+      { text: "… who had no place in their future.", speak: true },
       { text: "The machines were only a tool.", speak: true },
       { text: "Clean. Efficient. Without remorse.", speak: true },
       { text: "They locked themselves away.", speak: true },
