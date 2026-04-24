@@ -286,15 +286,19 @@ export default class GameScene extends Phaser.Scene {
       this.physics.add.collider(this.robot.body_proxy, ceilBody);
     }
 
-    // Mask: hide camera beams (2600, 2700) in the ceiling wall zone
+    // Mask: hide camera beams (2800, 2900) in the ceiling wall zone
+    // Two separate mask instances — Phaser GeometryMask can't be shared between objects
     {
-      const maskGfx = this.make.graphics({ add: false });
-      maskGfx.fillStyle(0xffffff);
-      maskGfx.fillTriangle(2830, 10, 2870, 10, 2850, 180);
-      const beamMask = maskGfx.createGeometryMask();
-      beamMask.invertAlpha = true;
-      this._surveillanceCams[1]._spotlight.setMask(beamMask);
-      this._surveillanceCams[2]._spotlight.setMask(beamMask);
+      const makeMask = () => {
+        const g = this.make.graphics({ add: false });
+        g.fillStyle(0xffffff);
+        g.fillTriangle(2830, 10, 2870, 10, 2850, 180);
+        const m = g.createGeometryMask();
+        m.invertAlpha = true;
+        return m;
+      };
+      this._surveillanceCams[2]._spotlight.setMask(makeMask()); // x=2800
+      this._surveillanceCams[3]._spotlight.setMask(makeMask()); // x=2900
     }
     this._ceilWallMinX = 2830;
     this._ceilWallMaxX = 2870;
