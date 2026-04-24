@@ -460,14 +460,16 @@ export default class GameScene extends Phaser.Scene {
         r.body_proxy.body.setVelocityX(0);
         r.setMoveIntent(0);
 
-        // ↑ / ↓ counting during instruction phase
+        // ↑ / ↓ alternating during instruction phase
         if (this._legState === 'instruction') {
-          const pull = Phaser.Input.Keyboard.JustDown(this.cursors.up)
-                    || Phaser.Input.Keyboard.JustDown(this.cursors.down)
+          const up   = Phaser.Input.Keyboard.JustDown(this.cursors.up)
                     || Phaser.Input.Keyboard.JustDown(this.keyW)
-                    || Phaser.Input.Keyboard.JustDown(this.keyZ)
+                    || Phaser.Input.Keyboard.JustDown(this.keyZ);
+          const down = Phaser.Input.Keyboard.JustDown(this.cursors.down)
                     || Phaser.Input.Keyboard.JustDown(this.keyS);
-          if (pull) {
+          const dir  = up ? 'up' : (down ? 'down' : null);
+          if (dir && dir !== this._legLastPull) {
+            this._legLastPull = dir;
             this._legPressCount++;
             // Brief lurch (player robot strains)
             r.body_proxy.body.setVelocityX(25);
@@ -550,14 +552,16 @@ export default class GameScene extends Phaser.Scene {
         this._tickChargeShot(r);
       }
 
-      // ── Arm pulling (↑↓) ───────────────────────────────────────────────
+      // ── Arm pulling (↑↓ alternating) ──────────────────────────────────────
       if (this._armState === 'instruction') {
-        const pull = Phaser.Input.Keyboard.JustDown(this.cursors.up)
-                  || Phaser.Input.Keyboard.JustDown(this.cursors.down)
+        const up   = Phaser.Input.Keyboard.JustDown(this.cursors.up)
                   || Phaser.Input.Keyboard.JustDown(this.keyW)
-                  || Phaser.Input.Keyboard.JustDown(this.keyZ)
+                  || Phaser.Input.Keyboard.JustDown(this.keyZ);
+        const down = Phaser.Input.Keyboard.JustDown(this.cursors.down)
                   || Phaser.Input.Keyboard.JustDown(this.keyS);
-        if (pull) {
+        const dir  = up ? 'up' : (down ? 'down' : null);
+        if (dir && dir !== this._armLastPull) {
+          this._armLastPull = dir;
           this._armPressCount++;
           this._armedDeadRobot.shake();
           r.body_proxy.body.setVelocityX(-15);
@@ -751,6 +755,7 @@ export default class GameScene extends Phaser.Scene {
   _startLegInteraction() {
     this._legState      = 'blocked';
     this._legPressCount = 0;
+    this._legLastPull   = null;
     // Stop any crawl momentum
     this.robot.body_proxy.body.setVelocityX(0);
     this._crawlActiveUntil = 0;
@@ -773,6 +778,7 @@ export default class GameScene extends Phaser.Scene {
   _startArmInteraction() {
     this._armState      = 'blocked';
     this._armPressCount = 0;
+    this._armLastPull   = null;
     this._robotWaiting  = true;
     this.robot.setMoveIntent(0);
     this.robot.body_proxy.body.setVelocityX(0);
@@ -977,32 +983,25 @@ export default class GameScene extends Phaser.Scene {
   }
 
   /**
-   * Crawl combo while the robot is lying: alternating right / left.
-   * Sequence: right(0) → left(1) → right(0) → …
-   * Each valid step extends the active window by ACTIVE_MS (animation + velocity).
-   * A wrong key cuts the window immediately and resets the sequence.
-   * No input for ACTIVE_MS → window expires naturally, animation freezes.
+   * Crawl combo while the robot is lying: strict alternating right / left.
+   * Step 0 — wait for right. Step 1 — wait for left. Step 2 — wrong key pressed at
+   * step 1: movement stops; must press left before right is accepted again.
    */
   _tickCrawlSequence(r) {
     const K     = Phaser.Input.Keyboard;
     const right = K.JustDown(this.cursors.right) || K.JustDown(this.keyD);
     const left  = K.JustDown(this.cursors.left)  || K.JustDown(this.keyA) || K.JustDown(this.keyQ);
-    const any   = right || left;
 
-    const ACTIVE_MS = 250; // animation/velocity window per step
-
+    const ACTIVE_MS = 250;
     const ok = (nextStep) => {
       this._crawlStep        = nextStep;
       this._crawlActiveUntil = this.time.now + ACTIVE_MS;
     };
-    const fail = () => {
-      this._crawlStep        = 0;
-      this._crawlActiveUntil = 0; // stop immediately
-    };
 
     switch (this._crawlStep) {
-      case 0: if (right) ok(1); else if (any) fail(); break;
-      case 1: if (left)  ok(0); else if (any) fail(); break;
+      case 0: if (right) ok(1); break;                                                    // first press must be right
+      case 1: if (left) ok(0); else if (right) { this._crawlStep = 2; this._crawlActiveUntil = 0; } break; // wrong key: penalty
+      case 2: if (left) this._crawlStep = 0; break;                                       // recover: press left to restart
     }
   }
 
