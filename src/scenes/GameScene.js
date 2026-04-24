@@ -213,6 +213,9 @@ export default class GameScene extends Phaser.Scene {
       pi++;
     }
 
+    // ── Vines / ivy — organic tendrils from x=4000 onward ───────────────
+    this._buildVines(4000, WORLD_W, GROUND_Y, GH);
+
     // ── Robot — starts lying on the ground ───────────────────────────────
     this.robot = new Robot(this, 200, GROUND_Y);
     this.robot.setDepth(10);
@@ -1567,5 +1570,72 @@ export default class GameScene extends Phaser.Scene {
 
       this.cameras.main.fadeIn(1000, 0, 0, 0);
     });
+  }
+
+  // ── Ivy crawling along the ground (x ≥ 4000) ────────────────────────────
+  // Horizontal meandering strands spread across the full ground height, with
+  // scattered leaves and moss dots. No upright stems.
+  _buildVines(startX, endX, groundY, groundH) {
+    const gfx = this.add.graphics().setDepth(4);
+    const rng = (a, b = 0) => { const s = Math.sin(a * 91.3 + b * 253.7) * 43758.5453; return s - Math.floor(s); };
+
+    const C_STEM = 0x243d10;
+    const C_LEAF = 0x3a5c1a;
+    const C_DARK = 0x182808;
+    const W      = endX - startX;
+
+    // ── Winding horizontal creepers across the full ground height ─────────
+    const creepers = [];
+    for (let i = 0; i < 140; i++) {
+      const sx     = startX + rng(i * 3.7) * W;
+      const dir    = rng(i * 7.1) > 0.5 ? 1 : -1;
+      const len    = 30 + rng(i * 1.9) * 110;
+      // baseY anywhere within the ground slab
+      const baseY  = groundY + rng(i * 2.3) * groundH;
+      const amp    = 1 + rng(i * 4.1) * 2;
+      const period = 10 + rng(i * 5.3) * 14;
+      const phase  = rng(i * 8.7) * Math.PI * 2;
+      const alpha  = 0.55 + rng(i * 6.1) * 0.35;
+
+      const pts = [];
+      const steps = Math.max(8, Math.floor(len / 2));
+      for (let s = 0; s <= steps; s++) {
+        const t = s / steps;
+        const x = sx + dir * t * len;
+        const y = baseY + Math.sin(phase + (t * len) / period * Math.PI * 2) * amp;
+        pts.push(x, y);
+      }
+
+      gfx.lineStyle(1, i % 3 === 0 ? C_DARK : C_STEM, alpha);
+      gfx.beginPath();
+      gfx.moveTo(pts[0], pts[1]);
+      for (let k = 2; k < pts.length; k += 2) gfx.lineTo(pts[k], pts[k + 1]);
+      gfx.strokePath();
+
+      creepers.push(pts);
+    }
+
+    // ── Leaves scattered along creepers ───────────────────────────────────
+    for (const pts of creepers) {
+      const count = 2 + Math.floor((pts.length / 2) / 5);
+      for (let l = 0; l < count; l++) {
+        const seed = pts[0] * 0.31 + l * 7.7;
+        const idx  = Math.floor(rng(seed, l) * (pts.length / 2 - 1)) * 2;
+        const lx   = pts[idx]     + (rng(seed, l + 10) - 0.5) * 3;
+        const ly   = pts[idx + 1] + (rng(seed, l + 20) - 0.5) * 1.5;
+        const lw   = 2 + rng(seed, l + 30) * 2;
+        gfx.fillStyle(rng(seed, l + 40) > 0.55 ? C_DARK : C_LEAF, 0.55 + rng(seed, l + 50) * 0.3);
+        gfx.fillEllipse(lx, ly, lw, Math.max(1.5, lw - 1));
+      }
+    }
+
+    // ── Moss / leaf speckles across the full ground height ───────────────
+    for (let i = 0; i < 600; i++) {
+      const lx = startX + rng(i * 13.1 + 1500) * W;
+      const ly = groundY + rng(i * 17.3 + 1500) * groundH;
+      const lw = 1 + Math.floor(rng(i * 19.1 + 1500) * 2);
+      gfx.fillStyle(rng(i * 21.7 + 1500) > 0.5 ? C_LEAF : C_DARK, 0.35 + rng(i * 23.3 + 1500) * 0.35);
+      gfx.fillRect(lx, ly, lw, 1);
+    }
   }
 }
