@@ -264,7 +264,7 @@ export default class GameScene extends Phaser.Scene {
     this._armedDeadRobot = new ArmedDeadRobot(this, 1750, GROUND_Y);
 
     // ── NPC robots ────────────────────────────────────────────────────────
-    this._npcRobots = [2150, 2650, 3400, 3600, 4610].map(x => {
+    this._npcRobots = [2150, 2750, 3400, 3600, 4610].map(x => {
       const npc = new NPCRobot(this, x, GROUND_Y);
       this.physics.add.collider(npc.body_proxy, groundBody);
       return npc;
