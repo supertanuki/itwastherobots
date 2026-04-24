@@ -98,6 +98,7 @@ export default class UIScene extends Phaser.Scene {
     this.game.events.on('instr-show', ({ text }) => {
       this._instrText.setText(text);
       this.tweens.killTweensOf([this._instrBg, this._instrText]);
+      this._instrBg.setSize(this._instrText.width + 40, this._instrBg.height);
       this._instrBg.setAlpha(1);
       this._instrText.setAlpha(1);
     }, this);
