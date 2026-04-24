@@ -589,7 +589,7 @@ export default class GameScene extends Phaser.Scene {
         const h = Math.max(3, Math.round(progress * 30));
         this._chargeStripe
           .setSize(3, h)
-          .setPosition(r.x + r.upperArmR.x * r.scaleX, r.y + r.upperArmR.y * r.scaleY)
+          .setPosition(r.x + r.upperArmR.x * r.scaleX, r.y + r.upperArmR.y * r.scaleY - 3)
           .setAngle(r.upperArmR.angle * Math.sign(r.scaleX));
       }
     }

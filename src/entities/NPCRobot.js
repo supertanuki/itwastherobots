@@ -103,7 +103,7 @@ export default class NPCRobot extends Robot {
     this.armStripe
       .setPosition(
         this.x + this.upperArmR.x * this.scaleX,
-        this.y + this.upperArmR.y * this.scaleY
+        this.y + this.upperArmR.y * this.scaleY - 3
       )
       .setAngle(this.upperArmR.angle * Math.sign(this.scaleX))
       .setAlpha(this.alpha);
