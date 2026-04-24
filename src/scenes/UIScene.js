@@ -127,7 +127,7 @@ export default class UIScene extends Phaser.Scene {
     this._titleOverlay = this.add.rectangle(W / 2, H / 2, W, H, 0x000000)
       .setAlpha(0).setDepth(10);
 
-    this._titleText = this.add.bitmapText(W / 2, H / 2, 'subtitle', i18n.titleCard, 128)
+    this._titleText = this.add.bitmapText(W / 2, H / 2 - 100, 'subtitle', i18n.titleCard, 128)
       .setOrigin(0.5, 0.5)
       .setTint(0xffffff)
       .setAlpha(0)

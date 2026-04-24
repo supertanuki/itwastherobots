@@ -83,10 +83,10 @@ export default class NPCRobot extends Robot {
   // ── Override blink to keep blue eye instead of red ────────────────────────
   _scheduleBlink() {
     this.scene.time.delayedCall(Phaser.Math.Between(2000, 3000), () => {
-      if (this._dormant) return;
+      if (this._dormant || this._destroyed || !this.scene) return;
       this.eye.setFillStyle(0x222222);
       this.scene.time.delayedCall(120, () => {
-        if (this._dormant) return;
+        if (this._dormant || this._destroyed || !this.scene) return;
         this.eye.setFillStyle(0x0088ff);
         this._scheduleBlink();
       });

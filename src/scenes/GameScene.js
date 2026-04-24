@@ -1458,13 +1458,37 @@ export default class GameScene extends Phaser.Scene {
     r.eye.setAlpha(0);
 
     if (this._finalSequence) {
+      // Stop all NPC activity before fadeout covers the screen
+      const fnpc = this._finalNpc;
+      if (fnpc) {
+        fnpc._destroyed = true;
+        fnpc._fired = true;
+        if (fnpc._fireTimer) { fnpc._fireTimer.remove(); fnpc._fireTimer = null; }
+        this.tweens.killTweensOf(fnpc);
+        this.tweens.killTweensOf(fnpc.upperArmR);
+        /** @type {Phaser.Physics.Arcade.Body} */ (fnpc.body_proxy.body).setVelocityX(0);
+        fnpc.setAlpha(0);
+        if (fnpc.eye) fnpc.eye.setAlpha(0);
+        if (fnpc.armStripe) fnpc.armStripe.setAlpha(0);
+      }
+
       this.cameras.main.fadeOut(3000, 0, 0, 0);
       this.cameras.main.once('camerafadeoutcomplete', () => {
         this.game.events.emit('title-card-show');
+
+        // Screen is black — safe to destroy NPC and detach camera
+        if (fnpc) { fnpc.destroy(); this._finalNpc = null; }
+        this.cameras.main.stopFollow();
+
         this.time.delayedCall(2000, () => {
           this.game.events.emit('subtitle-card-show');
-          //this._finalNpc.destroy();
-          this.cameras.main.fadeIn(1000, 0, 0, 0);
+          // Fade the game back in (title card visible on top during this 2s)
+          this.cameras.main.fadeIn(2000, 0, 0, 0);
+          // Once fully visible: hide title card and start slow pan back to world start
+          this.cameras.main.once('camerafadeincomplete', () => {
+            this.cameras.main.pan(160, 90, 40000, 'Sine.easeInOut');
+            this.time.delayedCall(38000, () => this.cameras.main.fadeOut(2000, 0, 0, 0));
+          });
         });
       });
       return;

@@ -131,7 +131,7 @@ const TEXTS = {
       { text: "Ce sont les humains…", speak: true },
     ],
 
-    endMessage: "(Ce sont les humains…)",
+    endMessage: "(It was humans…)\n\nun jeu par Richard Hanna, avril 2026.",
   },
   en: {
     instructionStart:    'Reboot: press space repeatedly.',
@@ -258,7 +258,7 @@ const TEXTS = {
       { text: "It was humans…", speak: true },
     ],
 
-    endMessage: "(It was humans…)",
+    endMessage: "(It was humans…)\n\na game by Richard Hanna, april 2026.",
   },
 };
 
