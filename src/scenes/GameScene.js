@@ -194,14 +194,14 @@ export default class GameScene extends Phaser.Scene {
     // ── Ground plates — metal panels, tiled across the full world ─────────
     const gfx = this.add.graphics();
     const platePattern = [40, 54, 36, 62, 44, 38, 46]; // base pattern (sums 320)
-    let gx = 0;
+    let gx = -1;
     let pi = 0;
-    while (gx < WORLD_W) {
+    while (gx < WORLD_W+1) {
       const pw = Math.min(platePattern[pi % platePattern.length], WORLD_W - gx);
       gfx.fillStyle(0x000000, 1);
-      gfx.fillRect(gx, GROUND_Y, pw, GH);
+      gfx.fillRect(gx, GROUND_Y - 5, pw, GH + 12);
       gfx.lineStyle(1, 0xffffff, 1);
-      gfx.strokeRect(gx, GROUND_Y, pw, GH);
+      gfx.strokeRect(gx, GROUND_Y - 5, pw, GH + 12);
       gfx.fillStyle(0xffffff, 1);
       if (pw >= 20) {
         gfx.fillCircle(gx + 5,      GROUND_Y + 5,      1.5);
