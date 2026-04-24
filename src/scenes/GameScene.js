@@ -1460,6 +1460,7 @@ export default class GameScene extends Phaser.Scene {
     r.setMoveIntent(0);
     if (r.body_proxy && r.body_proxy.body) /** @type {Phaser.Physics.Arcade.Body} */ (r.body_proxy.body).setVelocityX(0);
     this._robotWaiting = true;
+    this.cameras.main.flash(200, 255, 255, 255);
 
     this._spawnExplosion(r.x, r.y - 20);
     r.setAlpha(0);
