@@ -24,7 +24,7 @@ const TEXTS = {
       { text: "Analyse structurelle…", speak: true },
       { text: "Intégrité compromise : un bras et une jambe manquants.", speak: true },
       { text: "Fonction locomotion réduite…", speak: true },
-      { text: "Ramper… reste possible en alternant  ← →", speak: true },
+      { text: "Ramper… reste possible en alternant  ← →", speak: false },
     ],
 
     dialogueLeg: [
@@ -150,7 +150,7 @@ const TEXTS = {
       { text: "Structural analysis…", speak: true },
       { text: "Integrity compromised: one arm and one leg missing.", speak: true },
       { text: "Locomotion function reduced…", speak: true },
-      { text: "Crawling… still possible by alternating ← →", speak: true },
+      { text: "Crawling… still possible by alternating ← →", speak: false },
     ],
 
     dialogueLeg: [
